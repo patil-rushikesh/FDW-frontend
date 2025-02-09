@@ -7,6 +7,7 @@ import ResearchPublications from "./components/forms/ResearchPublications";
 import Profile from "./components/profile/Profile"
 import { FormProvider } from "./context/FormContext";
 import { Menu } from "lucide-react";
+import LoginPage from "./components/LoginPage";
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -21,6 +22,7 @@ function App() {
             <main className="p-4 lg:p-6 mt-16">
               <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-4 lg:p-6">
                 <Routes>
+                  <Route path="/login" element={<LoginPage />} />
                   <Route path="/teaching" element={<TeachingPerformance />} />
                   <Route path="/research" element={<ResearchPublications />} />
                   <Route path="/profile" element={<Profile/>} />

@@ -1,6 +1,14 @@
-import React from 'react';
-import { BookOpen, FileText, Building2, GraduationCap, User, CheckSquare, X } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import React from "react";
+import {
+  BookOpen,
+  FileText,
+  Building2,
+  GraduationCap,
+  User,
+  CheckSquare,
+  X,
+} from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 const navItems = [
   { icon: User, label: "Profile", path: "/profile" },
@@ -30,27 +38,31 @@ export default function Sidebar({ isOpen, onClose }) {
     <>
       {/* Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
           onClick={onClose}
         />
       )}
-      
+
       {/* Sidebar */}
-      <div className={`
+      <div
+        className={`
         fixed top-0 left-0 h-screen bg-indigo-800 text-white z-40
         transform transition-transform duration-300 ease-in-out
-        w-64 overflow-y-auto
-        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-bold">Faculty Appraisal</h2>
-            <button 
+        w-72 overflow-y-auto
+        ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+      `}
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-10">
+            <h2 className="text-2xl font-bold tracking-tight">
+              Faculty Appraisal
+            </h2>
+            <button
               onClick={onClose}
-              className="p-2 hover:bg-indigo-700 rounded-full lg:hidden"
+              className="p-2 hover:bg-indigo-700 rounded-full lg:hidden transition-colors"
             >
-              <X size={20} />
+              <X size={24} />
             </button>
           </div>
           <nav>
@@ -62,14 +74,18 @@ export default function Sidebar({ isOpen, onClose }) {
                   key={item.path}
                   to={item.path}
                   onClick={() => onClose()}
-                  className={`flex items-center space-x-3 p-3 rounded-lg mb-2 transition-colors ${
-                    isActive
-                      ? 'bg-indigo-700 text-white'
-                      : 'text-indigo-100 hover:bg-indigo-700'
-                  }`}
+                  className={`
+                    flex items-center space-x-4 p-4 rounded-lg mb-3 transition-all
+                    hover:scale-[1.02] transform
+                    ${
+                      isActive
+                        ? "bg-indigo-700 text-white shadow-lg"
+                        : "text-indigo-100 hover:bg-indigo-700/70"
+                    }
+                  `}
                 >
-                  <Icon size={20} />
-                  <span>{item.label}</span>
+                  <Icon size={24} strokeWidth={2} className="flex-shrink-0" />
+                  <span className="text-base font-medium">{item.label}</span>
                 </Link>
               );
             })}
