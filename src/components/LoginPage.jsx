@@ -12,7 +12,7 @@ const LoginPage = () => {
     const staticPassword = "password123";
 
     if (username === staticUsername && password === staticPassword) {
-      navigate("/home");
+      navigate("/profile");
     } else {
       alert("Invalid username or password");
     }
