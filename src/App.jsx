@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 import Sidebar from "./components/layout/Sidebar";
 import Navbar from "./components/layout/Navbar";
-import TeachingPerformance from "./components/forms/TempTeachingPerfomance";
 import ResearchPublications from "./components/forms/ResearchPublications";
 import Profile from "./components/profile/Profile";
 import { FormProvider } from "./context/FormContext";
@@ -15,6 +14,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Menu } from "lucide-react";
 import LoginPage from "./components/LoginPage";
 import SplashScreen from "./components/SplashScreen";
+import TeachingPerformance from "./components/forms/TeachingPerformance";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -56,7 +56,7 @@ function AppContent() {
                     path="/teaching"
                     element={
                       <ProtectedRoute>
-                        <TeachingPerformance />
+                        <TeachingPerformance/>
                       </ProtectedRoute>
                     }
                   />
