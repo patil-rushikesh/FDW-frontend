@@ -1,12 +1,4 @@
 import { useState } from "react";
-// import {
-//   PencilIcon,
-//   AcademicCapIcon,
-//   UserIcon,
-//   ClipboardIcon,
-//   CogIcon,
-//   ArrowRightOnRectangleIcon,
-// } from "@heroicons/react/24/solid";
 
 const Profile= () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -51,7 +43,6 @@ const Profile= () => {
               onClick={() => setIsEditing(!isEditing)}
               className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition duration-200"
             >
-              {/* <PencilIcon className="h-5 w-5" /> */}
               <span>{isEditing ? "Cancel" : "Edit Profile"}</span>
             </button>
           </div>
