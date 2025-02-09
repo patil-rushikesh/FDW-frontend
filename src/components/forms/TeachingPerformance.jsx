@@ -67,6 +67,7 @@ export default function TeachingPerformance() {
           out of 50
         </div>
       </div>
+      
       <hr className="border-t-4 border-gray-950 my-4" />
       <div>
         <h3 className="text-lg font-medium text-gray-900">
