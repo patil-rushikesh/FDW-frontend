@@ -3,6 +3,7 @@ import { useState } from "react";
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [facultyData, setFacultyData] = useState({
+    userId: "122B1B133",
     name: "Dr. Jane Smith",
     department: "Computer Science",
     position: "Associate Professor",
@@ -73,33 +74,15 @@ const Profile = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Department
                 </label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    name="department"
-                    value={facultyData.department}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border rounded focus:ring focus:ring-indigo-200"
-                  />
-                ) : (
-                  <p className="text-gray-800">{facultyData.department}</p>
-                )}
+
+                <p className="text-gray-800">{facultyData.department}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Position
                 </label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    name="position"
-                    value={facultyData.position}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border rounded focus:ring focus:ring-indigo-200"
-                  />
-                ) : (
-                  <p className="text-gray-800">{facultyData.position}</p>
-                )}
+
+                <p className="text-gray-800">{facultyData.position}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

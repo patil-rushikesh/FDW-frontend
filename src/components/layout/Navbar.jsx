@@ -13,7 +13,7 @@ export default function Navbar({ onMenuClick }) {
           >
             <Menu size={24} className="text-gray-600" />
           </button>
-          <h1 className="text-lg lg:text-xl font-semibold text-gray-800 truncate">
+          <h1 className=" ml-5 text-lg lg:text-xl font-semibold text-gray-800 truncate">
             Faculty Performance Evaluation
           </h1>
         </div>
