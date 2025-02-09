@@ -1,15 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [facultyData, setFacultyData] = useState({
-    userId: "122B1B133",
-    name: "Dr. Jane Smith",
-    department: "Computer Science",
-    position: "Associate Professor",
-    email: "jane.smith@university.edu",
-    phone: "+1 (555) 123-4567",
-  });
+  const [facultyData, setFacultyData] = useState(null);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    if (userData) {
+      setFacultyData({
+        userId: userData._id,
+        name: userData.name,
+        department: userData.dept,
+        position: userData.role,
+        email: userData.mail,
+        phone: userData.mob
+      });
+    }
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -26,9 +37,15 @@ const Profile = () => {
     console.log("Updated faculty data:", facultyData);
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  if (!facultyData) return null;
+
   return (
     <div className="flex bg-gray-100">
-      {/* Main Content */}
       <main className="flex-1 p-8">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-6">
@@ -47,9 +64,8 @@ const Profile = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  userId
+                  Faculty ID
                 </label>
-
                 <p className="text-gray-800 text-xl font-bold text-red-500">
                   {facultyData.userId}
                 </p>
@@ -74,14 +90,12 @@ const Profile = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Department
                 </label>
-
                 <p className="text-gray-800">{facultyData.department}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Position
                 </label>
-
                 <p className="text-gray-800">{facultyData.position}</p>
               </div>
               <div>
@@ -130,27 +144,24 @@ const Profile = () => {
           </form>
         </div>
 
-        <div className="dislpay-4 mt-6 ">
-          <span className="mt-6 mr-4">
-            <button
-              type="Change Passward"
-              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200"
-            >
-              Change Passward
-            </button>
-          </span>
+        <div className="flex justify-center mt-6 space-x-4">
+          <button
+            onClick={() => console.log('Change password clicked')}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200"
+          >
+            Change Password
+          </button>
 
-          <span className="mt-6 ml-4">
-            <button
-              type="Change Passward"
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-400 transition duration-200"
-            >
-              Logout
-            </button>
-          </span>
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-400 transition duration-200"
+          >
+            Logout
+          </button>
         </div>
       </main>
     </div>
   );
 };
+
 export default Profile;
