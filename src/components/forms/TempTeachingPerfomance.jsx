@@ -432,175 +432,89 @@ export default function TeachingPerformance() {
       </SectionCard>
 
       {/* Summary Section */}
-      <div className="mt-4 overflow-x-auto">
-        {(() => {
-          // Recalculate the total marks to use in the table
-          const studentsAbove60 = Number(
-            formData.teaching?.studentsAbove60 || 0
-          );
-          const students50to59 = Number(formData.teaching?.students50to59 || 0);
-          const students40to49 = Number(formData.teaching?.students40to49 || 0);
-          const totalStudents = Number(formData.teaching?.totalStudents || 0);
-          const resultScore =
-            totalStudents > 0
-              ? (studentsAbove60 * 5 +
-                  students50to59 * 4 +
-                  students40to49 * 3) /
-                totalStudents
-              : 0;
-
-          const coAttainmentSem1 = Number(
-            formData.teaching?.coAttainmentSem1 || 0
-          );
-          const coAttainmentSem2 = Number(
-            formData.teaching?.coAttainmentSem2 || 0
-          );
-          const averageCO = (coAttainmentSem1 + coAttainmentSem2) / 2;
-          const coScore = formData.teaching?.timelySubmissionCO
-            ? averageCO / 2
-            : 0;
-
-          const elearningScore =
-            Number(formData.teaching?.elearningInstances || 0) * 10;
-
-          const studentsPresent = Number(
-            formData.teaching?.studentsPresent || 0
-          );
-          const totalEnrolled = Number(
-            formData.teaching?.totalEnrolledStudentsForLectures || 0
-          );
-          const academnicEngagementScore =
-            totalEnrolled > 0 ? 50 * (studentsPresent / totalEnrolled) : 0;
-
-          const loadSem1 = Number(formData.teaching?.weeklyLoadSem1 || 0);
-          const loadSem2 = Number(formData.teaching?.weeklyLoadSem2 || 0);
-          const adminValue = Number(
-            formData.teaching?.adminResponsibility || 0
-          );
-          const avgLoad = (loadSem1 + loadSem2) / 2;
-          let minLoad;
-          switch (formData.teaching?.cadre) {
-            case "Professor":
-              minLoad = 12;
-              break;
-            case "Associate Professor":
-              minLoad = 14;
-              break;
-            case "Assistant Professor":
-              minLoad = 16;
-              break;
-            default:
-              minLoad = 1;
-          }
-          const teachingLoadScore =
-            minLoad > 0
-              ? Math.min(50, 50 * ((avgLoad + adminValue) / minLoad))
-              : 0;
-
-          const projectsGuided = Number(formData.teaching?.projectsGuided || 0);
-          const projectScore = Math.min(40, projectsGuided * 20);
-
-          const feedbackScore = Number(
-            formData.teaching?.feedbackPercentage || 0
-          );
-
-          const ptgMeetings = Number(formData.teaching?.ptgMeetings || 0);
-          const ptgScore = (ptgMeetings * 50) / 6;
-
-          const totalMarks =
-            resultScore +
-            coScore +
-            elearningScore +
-            academnicEngagementScore +
-            teachingLoadScore +
-            projectScore +
-            feedbackScore +
-            ptgScore;
-
-          return (
-            <table className="min-w-full border border-gray-300">
-              <thead>
-                <tr>
-                  <th className="border border-gray-300 p-2" colSpan="5">
-                    <strong>
-                      Part A: Academic Involvement: Obtained Marks Summary
-                    </strong>
-                  </th>
-                </tr>
-                <tr>
-                  <th className="border border-gray-300 p-2">Cadre</th>
-                  <th className="border border-gray-300 p-2"></th>
-                  <th className="border border-gray-300 p-2">Professor</th>
-                  <th className="border border-gray-300 p-2">
-                    Associate Professor
-                  </th>
-                  <th className="border border-gray-300 p-2">
-                    Assistant Professor
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="border border-gray-300 p-2" colSpan="2">
-                    <strong>
-                      Cadre wise maximum considerable marks of Academic
-                      Involvement
-                    </strong>
-                  </td>
-                  <td className="border border-gray-300 p-2">300</td>
-                  <td className="border border-gray-300 p-2">360</td>
-                  <td className="border border-gray-300 p-2">440</td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-2" colSpan="2">
-                    <strong>
-                      Obtained marks Calculated from Academic Involvement (as
-                      per Table 'A')
-                    </strong>
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    {formData.teaching?.cadre === "Professor"
-                      ? totalMarks.toFixed(2)
-                      : ""}
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    {formData.teaching?.cadre === "Associate Professor"
-                      ? totalMarks.toFixed(2)
-                      : ""}
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    {formData.teaching?.cadre === "Assistant Professor"
-                      ? totalMarks.toFixed(2)
-                      : ""}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-2" colSpan="2">
-                    <strong>
-                      Actual Academic involvement Marks in Self Appraisal
-                    </strong>
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    {formData.teaching?.cadre === "Professor"
-                      ? (totalMarks * 0.68).toFixed(2)
-                      : ""}
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    {formData.teaching?.cadre === "Associate Professor"
-                      ? (totalMarks * 0.818).toFixed(2)
-                      : ""}
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    {formData.teaching?.cadre === "Assistant Professor"
-                      ? totalMarks.toFixed(2)
-                      : ""}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          );
-        })()}
-      </div>
+      <SectionCard
+        title="Part A: Academic Involvement - Obtained Marks Summary"
+        icon="📑"
+        borderColor="border-red-500"
+      >
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-gray-300 bg-white shadow-md rounded-lg">
+            <thead className="bg-gray-100 text-gray-700">
+              <tr>
+                <th className="border border-gray-300 p-3 text-left">Cadre</th>
+                <th className="border border-gray-300 p-3"></th>
+                <th className="border border-gray-300 p-3">Professor</th>
+                <th className="border border-gray-300 p-3">
+                  Associate Professor
+                </th>
+                <th className="border border-gray-300 p-3">
+                  Assistant Professor
+                </th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-800">
+              <tr className="hover:bg-gray-50 transition">
+                <td
+                  className="border border-gray-300 p-3 font-semibold"
+                  colSpan="2"
+                >
+                  Cadre wise maximum considerable marks of Academic Involvement
+                </td>
+                <td className="border border-gray-300 p-3 text-center">300</td>
+                <td className="border border-gray-300 p-3 text-center">360</td>
+                <td className="border border-gray-300 p-3 text-center">440</td>
+              </tr>
+              <tr className="hover:bg-gray-50 transition">
+                <td
+                  className="border border-gray-300 p-3 font-semibold"
+                  colSpan="2"
+                >
+                  Obtained marks Calculated from Academic Involvement (as per
+                  Table 'A')
+                </td>
+                <td className="border border-gray-300 p-3 text-center">
+                  {formData.teaching?.cadre === "Professor"
+                    ? totalMarks.toFixed(2)
+                    : ""}
+                </td>
+                <td className="border border-gray-300 p-3 text-center">
+                  {formData.teaching?.cadre === "Associate Professor"
+                    ? totalMarks.toFixed(2)
+                    : ""}
+                </td>
+                <td className="border border-gray-300 p-3 text-center">
+                  {formData.teaching?.cadre === "Assistant Professor"
+                    ? totalMarks.toFixed(2)
+                    : ""}
+                </td>
+              </tr>
+              <tr className="hover:bg-gray-50 transition">
+                <td
+                  className="border border-gray-300 p-3 font-semibold"
+                  colSpan="2"
+                >
+                  Actual Academic Involvement Marks in Self Appraisal
+                </td>
+                <td className="border border-gray-300 p-3 text-center">
+                  {formData.teaching?.cadre === "Professor"
+                    ? (totalMarks * 0.68).toFixed(2)
+                    : ""}
+                </td>
+                <td className="border border-gray-300 p-3 text-center">
+                  {formData.teaching?.cadre === "Associate Professor"
+                    ? (totalMarks * 0.818).toFixed(2)
+                    : ""}
+                </td>
+                <td className="border border-gray-300 p-3 text-center">
+                  {formData.teaching?.cadre === "Assistant Professor"
+                    ? totalMarks.toFixed(2)
+                    : ""}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
     </div>
   );
 }
