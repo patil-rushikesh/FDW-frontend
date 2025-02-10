@@ -1,43 +1,55 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { CourseProvider, useCourses } from "../../context/CourseContext";
+import Header from "./Header";
 
 // Get user data from localStorage
 
-const Header = () => {
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
-  const userData = JSON.parse(localStorage.getItem("userData"));
+// const Header = () => {
+//   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+//   const userData = JSON.parse(localStorage.getItem("userData"));
+
+//   useEffect(() => {
+//     // Set up timer for datetime
+//     const timer = setInterval(() => {
+//       setCurrentDateTime(new Date());
+//     }, 1000);
+//     return () => clearInterval(timer);
+//   }, []);
+
+//   const formatDateTime = (date) => {
+//     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+//   };
+
+//   return (
+//     <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+//       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//         <div className="flex items-center space-x-2">
+//           <span className="text-gray-600">Current Time:</span>
+//           <span className="font-mono text-blue-600 font-medium">
+//             {formatDateTime(currentDateTime)}
+//           </span>
+//         </div>
+//         <div className="flex items-center space-x-2">
+//           <span className="text-gray-600">User:</span>
+//           <span className="font-mono text-green-600 font-medium">
+//             {userData?.name || "User"} {/* Display name from userData */}
+//           </span>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+const TestComponent = () => {
+  const { courses } = useCourses();
 
   useEffect(() => {
-    // Set up timer for datetime
-    const timer = setInterval(() => {
-      setCurrentDateTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    console.log("Accessing Courses Outside Header:", courses[0].code);
+  }, [courses]);
 
-  const formatDateTime = (date) => {
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString();
-  };
-
-  return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex items-center space-x-2">
-          <span className="text-gray-600">Current Time:</span>
-          <span className="font-mono text-blue-600 font-medium">
-            {formatDateTime(currentDateTime)}
-          </span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <span className="text-gray-600">User:</span>
-          <span className="font-mono text-green-600 font-medium">
-            {userData?.name || "User"} {/* Display name from userData */}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
+  return null; // No UI, just logging to console
 };
 
 const ScoreCard = ({ label, score, total }) => (
@@ -314,10 +326,17 @@ const TeachingPerformance = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
-      <Header />
+      <CourseProvider>
+        <Header/>
+        <TestComponent /> {/* Testing courses outside Header */}
+      </CourseProvider>
 
       {/* Result Analysis Section */}
-      <SectionCard title="Result Analysis" icon="📊" borderColor="border-blue-500">
+      <SectionCard
+        title="Result Analysis"
+        icon="📊"
+        borderColor="border-blue-500"
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
             label="Students with CGPA 6.31 and above"
@@ -348,10 +367,12 @@ const TeachingPerformance = () => {
             placeholder="Enter total number of students"
           />
         </div>
-        <ScoreCard label="Result Analysis Score" score={scores.resultScore.toFixed(2)} total="50" />
+        <ScoreCard
+          label="Result Analysis Score"
+          score={scores.resultScore.toFixed(2)}
+          total="50"
+        />
       </SectionCard>
-
-       
 
       {/* Course Outcome Section */}
       <SectionCard
