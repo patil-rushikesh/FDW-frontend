@@ -317,71 +317,41 @@ const TeachingPerformance = () => {
       <Header />
 
       {/* Result Analysis Section */}
-      <SectionCard
-        title="Result Analysis"
-        icon="📊"
-        borderColor="border-blue-500"
-      >
+      <SectionCard title="Result Analysis" icon="📊" borderColor="border-blue-500">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
-            label="Students with 60% and above"
+            label="Students with CGPA 6.31 and above"
             name="studentsAbove60"
             value={formData.studentsAbove60}
-            onChange={(e) => {
-              const value = Math.max(0, parseInt(e.target.value) || 0);
-              handleChange({
-                target: { name: e.target.name, value: value.toString() },
-              });
-            }}
+            onChange={handleChange}
             placeholder="Enter number of students"
-            min="0"
           />
           <InputField
-            label="Students with 50% to 59%"
+            label="Students with CGPA 5.26 to 6.3"
             name="students50to59"
             value={formData.students50to59}
-            onChange={(e) => {
-              const value = Math.max(0, parseInt(e.target.value) || 0);
-              handleChange({
-                target: { name: e.target.name, value: value.toString() },
-              });
-            }}
+            onChange={handleChange}
             placeholder="Enter number of students"
-            min="0"
           />
           <InputField
-            label="Students with 40% to 49%"
+            label="Students with CGPA 4.21 to 5.25"
             name="students40to49"
             value={formData.students40to49}
-            onChange={(e) => {
-              const value = Math.max(0, parseInt(e.target.value) || 0);
-              handleChange({
-                target: { name: e.target.name, value: value.toString() },
-              });
-            }}
+            onChange={handleChange}
             placeholder="Enter number of students"
-            min="0"
           />
           <InputField
             label="Total Students"
             name="totalStudents"
             value={formData.totalStudents}
-            onChange={(e) => {
-              const value = Math.max(0, parseInt(e.target.value) || 0);
-              handleChange({
-                target: { name: e.target.name, value: value.toString() },
-              });
-            }}
+            onChange={handleChange}
             placeholder="Enter total number of students"
-            min="0"
           />
         </div>
-        <ScoreCard
-          label="Result Analysis Score"
-          score={scores.resultScore.toFixed(2)}
-          total="50"
-        />
+        <ScoreCard label="Result Analysis Score" score={scores.resultScore.toFixed(2)} total="50" />
       </SectionCard>
+
+       
 
       {/* Course Outcome Section */}
       <SectionCard
