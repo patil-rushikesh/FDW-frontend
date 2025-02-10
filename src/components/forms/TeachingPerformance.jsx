@@ -105,7 +105,7 @@ const TeachingPerformance = () => {
     e: "",
     projectsGuided: "",
     feedbackPercentage: "",
-    cader: userData.role,
+    cadre: userData.role,
     ptgMeetings: "",
   });
 
