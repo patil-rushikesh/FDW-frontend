@@ -134,10 +134,12 @@ const TeachingPerformance = () => {
     const coAttainmentSem1 = Number(formData.coAttainmentSem1 || 0);
     const coAttainmentSem2 = Number(formData.coAttainmentSem2 || 0);
     const averageCO = (coAttainmentSem1 + coAttainmentSem2) / 2;
-    const coScore = formData.timelySubmissionCO ? (averageCO * 30) / 100 : 0;
+    const coScore = formData.timelySubmissionCO
+      ? (averageCO * 30) / 100 + 20
+      : (averageCO * 30) / 100;
 
     // Other scores calculations as before
-    const elearningScore = Number(formData.elearningInstances || 0) * 10;
+    const elearningScore = Number(Math.min(5,formData.elearningInstances) || 0) * 10;
     const feedbackScore = Number(formData.feedbackPercentage || 0);
     const ptgMeetings = Number(formData.ptgMeetings || 0);
     const ptgScore = (ptgMeetings * 50) / 6;
@@ -315,73 +317,73 @@ const TeachingPerformance = () => {
       <Header />
 
       {/* Result Analysis Section */}
-        <SectionCard
-          title="Result Analysis"
-          icon="📊"
-          borderColor="border-blue-500"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InputField
-          label="Students with 60% and above"
-          name="studentsAbove60"
-          value={formData.studentsAbove60}
-          onChange={(e) => {
-            const value = Math.max(0, parseInt(e.target.value) || 0);
-            handleChange({
-              target: { name: e.target.name, value: value.toString() }
-            });
-          }}
-          placeholder="Enter number of students"
-          min="0"
-            />
-            <InputField
-          label="Students with 50% to 59%"
-          name="students50to59"
-          value={formData.students50to59}
-          onChange={(e) => {
-            const value = Math.max(0, parseInt(e.target.value) || 0);
-            handleChange({
-              target: { name: e.target.name, value: value.toString() }
-            });
-          }}
-          placeholder="Enter number of students"
-          min="0"
-            />
-            <InputField
-          label="Students with 40% to 49%"
-          name="students40to49"
-          value={formData.students40to49}
-          onChange={(e) => {
-            const value = Math.max(0, parseInt(e.target.value) || 0);
-            handleChange({
-              target: { name: e.target.name, value: value.toString() }
-            });
-          }}
-          placeholder="Enter number of students"
-          min="0"
-            />
-            <InputField
-          label="Total Students"
-          name="totalStudents"
-          value={formData.totalStudents}
-          onChange={(e) => {
-            const value = Math.max(0, parseInt(e.target.value) || 0);
-            handleChange({
-              target: { name: e.target.name, value: value.toString() }
-            });
-          }}
-          placeholder="Enter total number of students"
-          min="0"
-            />
-          </div>
-          <ScoreCard
-            label="Result Analysis Score"
-            score={scores.resultScore.toFixed(2)}
-            total="50"
+      <SectionCard
+        title="Result Analysis"
+        icon="📊"
+        borderColor="border-blue-500"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InputField
+            label="Students with 60% and above"
+            name="studentsAbove60"
+            value={formData.studentsAbove60}
+            onChange={(e) => {
+              const value = Math.max(0, parseInt(e.target.value) || 0);
+              handleChange({
+                target: { name: e.target.name, value: value.toString() },
+              });
+            }}
+            placeholder="Enter number of students"
+            min="0"
           />
-        </SectionCard>
+          <InputField
+            label="Students with 50% to 59%"
+            name="students50to59"
+            value={formData.students50to59}
+            onChange={(e) => {
+              const value = Math.max(0, parseInt(e.target.value) || 0);
+              handleChange({
+                target: { name: e.target.name, value: value.toString() },
+              });
+            }}
+            placeholder="Enter number of students"
+            min="0"
+          />
+          <InputField
+            label="Students with 40% to 49%"
+            name="students40to49"
+            value={formData.students40to49}
+            onChange={(e) => {
+              const value = Math.max(0, parseInt(e.target.value) || 0);
+              handleChange({
+                target: { name: e.target.name, value: value.toString() },
+              });
+            }}
+            placeholder="Enter number of students"
+            min="0"
+          />
+          <InputField
+            label="Total Students"
+            name="totalStudents"
+            value={formData.totalStudents}
+            onChange={(e) => {
+              const value = Math.max(0, parseInt(e.target.value) || 0);
+              handleChange({
+                target: { name: e.target.name, value: value.toString() },
+              });
+            }}
+            placeholder="Enter total number of students"
+            min="0"
+          />
+        </div>
+        <ScoreCard
+          label="Result Analysis Score"
+          score={scores.resultScore.toFixed(2)}
+          total="50"
+        />
+      </SectionCard>
 
-        {/* Course Outcome Section */}
+      {/* Course Outcome Section */}
       <SectionCard
         title="Course Outcome Analysis"
         icon="📈"
