@@ -102,7 +102,7 @@ const Profile = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email
                 </label>
-                {isEditing ? (
+                {/* {isEditing ? (
                   <input
                     type="email"
                     name="email"
@@ -110,9 +110,9 @@ const Profile = () => {
                     onChange={handleInputChange}
                     className="w-full p-2 border rounded focus:ring focus:ring-indigo-200"
                   />
-                ) : (
+                ) : ( */}
                   <p className="text-gray-800">{facultyData.email}</p>
-                )}
+                {/* )} */}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
