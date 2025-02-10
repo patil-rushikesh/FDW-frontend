@@ -291,21 +291,21 @@ const TeachingPerformance = () => {
       <SectionCard title="Result Analysis" icon="📊" borderColor="border-blue-500">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
-            label="Students with 60% and above"
+            label="Students with CGPA 6.31 and above"
             name="studentsAbove60"
             value={formData.studentsAbove60}
             onChange={handleChange}
             placeholder="Enter number of students"
           />
           <InputField
-            label="Students with 50% to 59%"
+            label="Students with CGPA 5.26 to 6.3"
             name="students50to59"
             value={formData.students50to59}
             onChange={handleChange}
             placeholder="Enter number of students"
           />
           <InputField
-            label="Students with 40% to 49%"
+            label="Students with CGPA 4.21 to 5.25"
             name="students40to49"
             value={formData.students40to49}
             onChange={handleChange}
