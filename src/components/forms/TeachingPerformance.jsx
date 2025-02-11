@@ -4,47 +4,8 @@ import { useAuth } from "../../context/AuthContext";
 import { CourseProvider, useCourses } from "../../context/CourseContext";
 import Header from "./Header";
 
-// Get user data from localStorage
-
-// const Header = () => {
-//   const [currentDateTime, setCurrentDateTime] = useState(new Date());
-//   const userData = JSON.parse(localStorage.getItem("userData"));
-
-//   useEffect(() => {
-//     // Set up timer for datetime
-//     const timer = setInterval(() => {
-//       setCurrentDateTime(new Date());
-//     }, 1000);
-//     return () => clearInterval(timer);
-//   }, []);
-
-//   const formatDateTime = (date) => {
-//     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
-//   };
-
-//   return (
-//     <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-//       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//         <div className="flex items-center space-x-2">
-//           <span className="text-gray-600">Current Time:</span>
-//           <span className="font-mono text-blue-600 font-medium">
-//             {formatDateTime(currentDateTime)}
-//           </span>
-//         </div>
-//         <div className="flex items-center space-x-2">
-//           <span className="text-gray-600">User:</span>
-//           <span className="font-mono text-green-600 font-medium">
-//             {userData?.name || "User"} {/* Display name from userData */}
-//           </span>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
 const TestComponent = () => {
   const { courses } = useCourses();
-
   useEffect(() => {
     console.log("Accessing Courses Outside Header:", courses[0].code);
   }, [courses]);
@@ -100,6 +61,12 @@ const TeachingPerformance = () => {
   const userData = JSON.parse(localStorage.getItem("userData"));
   console.log(userData);
   const navigate = useNavigate();
+  const { courses, setCourses } = useCourses(); // Correctly destructure the context value
+
+  // Add useEffect to log courses whenever they change
+  useEffect(() => {
+    console.log("Current courses in TeachingPerformance:", courses);
+  }, [courses]);
   const { isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     studentsAbove60: "",
@@ -171,7 +138,6 @@ const TeachingPerformance = () => {
     const avgLoad = (loadSem1 + loadSem2) / 2;
 
     let minLoad;
-    console.log(userData.role);
     switch (userData.role) {
       case "Professor":
         minLoad = 12;
@@ -185,9 +151,6 @@ const TeachingPerformance = () => {
       default:
         (minLoad = 1), (e = e + 2);
     }
-    console.log(minLoad);
-    console.log(avgLoad);
-    console.log(e);
 
     const teachingLoadScore =
       minLoad > 0 ? Math.min(50, 50 * ((avgLoad + e) / minLoad)) : 0;
@@ -245,21 +208,36 @@ const TeachingPerformance = () => {
       alert("Department and User ID are required. Please login again.");
       return;
     }
-
     const scores = calculateScores();
 
     const payload = {
       1: {
-        studentsAbove60: Number(formData.studentsAbove60),
-        students50to59: Number(formData.students50to59),
-        students40to49: Number(formData.students40to49),
-        totalStudents: Number(formData.totalStudents),
+        courses: Object.fromEntries(
+          courses.map((course) => [
+            course.code,
+            {
+              studentsAbove60: Number(formData.studentsAbove60),
+              students50to59: Number(formData.students50to59),
+              students40to49: Number(formData.students40to49),
+              totalStudents: Number(formData.totalStudents),
+              marks: scores.resultScore,
+            },
+          ])
+        ),
         marks: scores.resultScore,
       },
       2: {
-        coAttainmentSem1: Number(formData.coAttainmentSem1),
-        coAttainmentSem2: Number(formData.coAttainmentSem2),
-        timelySubmissionCO: formData.timelySubmissionCO,
+        courses: Object.fromEntries(
+          courses.map((course) => [
+            course.code,
+            {
+              coAttainmentSem1: Number(formData.coAttainmentSem1),
+              coAttainmentSem2: Number(formData.coAttainmentSem2),
+              timelySubmissionCO: formData.timelySubmissionCO,
+              marks: scores.coScore,
+            },
+          ])
+        ),
         marks: scores.coScore,
       },
       3: {
@@ -267,9 +245,17 @@ const TeachingPerformance = () => {
         marks: scores.elearningScore,
       },
       4: {
-        studentsPresent: Number(formData.studentsPresent),
-        totalEnrolledStudents: Number(
-          formData.totalEnrolledStudentsForLectures
+        courses: Object.fromEntries(
+          courses.map((course) => [
+            course.code,
+            {
+              studentsPresent: Number(formData.studentsPresent),
+              totalEnrolledStudents: Number(
+                formData.totalEnrolledStudentsForLectures
+              ),
+              marks: scores.academicEngagementScore,
+            },
+          ])
         ),
         marks: scores.academicEngagementScore,
       },
@@ -285,7 +271,15 @@ const TeachingPerformance = () => {
         marks: scores.projectScore,
       },
       7: {
-        feedbackPercentage: Number(formData.feedbackPercentage),
+        courses: Object.fromEntries(
+          courses.map((course) => [
+            course.code,
+            {
+              feedbackPercentage: Number(formData.feedbackPercentage),
+              marks: scores.feedbackScore,
+            },
+          ])
+        ),
         marks: scores.feedbackScore,
       },
       8: {
@@ -327,10 +321,8 @@ const TeachingPerformance = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
-      <CourseProvider>
         <Header/>
         <TestComponent /> {/* Testing courses outside Header */}
-      </CourseProvider>
 
       {/* Result Analysis Section */}
       <SectionCard
@@ -665,4 +657,11 @@ const TeachingPerformance = () => {
   );
 };
 
-export default TeachingPerformance;
+
+const TeachingPerformanceWithProvider = () => (
+  <CourseProvider>
+    <TeachingPerformance />
+  </CourseProvider>
+);
+
+export default TeachingPerformanceWithProvider;

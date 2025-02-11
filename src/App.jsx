@@ -56,7 +56,7 @@ function AppContent() {
                     path="/teaching"
                     element={
                       <ProtectedRoute>
-                        <TeachingPerformance/>
+                          <TeachingPerformance />
                       </ProtectedRoute>
                     }
                   />
