@@ -57,20 +57,23 @@ const Header = () => {
       <div className="mt-4">
         <h2 className="text-lg font-semibold text-gray-700">Courses</h2>
         {courses.map((course) => (
-          <div key={course.id} className="flex items-center space-x-3 mt-2">
+          <div
+            key={course.id}
+            className="flex flex-wrap items-center gap-2 sm:space-x-3 mt-2"
+          >
             <input
               type="text"
               placeholder="Course Code"
               value={course.code}
               onChange={(e) => updateCourse(course.id, "code", e.target.value)}
-              className="border rounded-lg p-2 w-40"
+              className="border rounded-lg p-2 w-full sm:w-40"
             />
             <select
               value={course.semester}
               onChange={(e) =>
                 updateCourse(course.id, "semester", e.target.value)
               }
-              className="border rounded-lg p-2"
+              className="border rounded-lg p-2 w-full sm:w-auto"
             >
               <option value="Sem I">Sem I</option>
               <option value="Sem II">Sem II</option>
