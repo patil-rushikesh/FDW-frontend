@@ -21,7 +21,7 @@ const navItems = [
   {
     icon: Building2,
     label: "Part C: Self Development",
-    path: "/administrative",
+    path: "/selfdevelopment",
   },
   {
     icon: GraduationCap,

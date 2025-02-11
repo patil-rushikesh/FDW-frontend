@@ -448,7 +448,7 @@ const calculateCourseScore = (course) => {
     const payload = {
       1: {
         courses: resultAnalysisCourses,
-        marks: scores.resultScore,
+        total_marks: scores.resultScore,
       },
       2: {
         courses: Object.fromEntries(
@@ -466,11 +466,11 @@ const calculateCourseScore = (course) => {
           "Sem I": scores.sem1COScore,
           "Sem II": scores.sem2COScore
         },
-        marks: scores.coScore,
+        total_marks: scores.coScore,
       },
       3: {
         elearningInstances: Number(formData.elearningInstances),
-        marks: scores.elearningScore,
+        total_marks: scores.elearningScore,
       },
       4: {
         courses: Object.fromEntries(
@@ -483,18 +483,18 @@ const calculateCourseScore = (course) => {
             }
           ])
         ),
-        marks: scores.academicEngagementScore,
+        total_marks: scores.academicEngagementScore,
       },
       5: {
         weeklyLoadSem1: Number(formData.weeklyLoadSem1),
         weeklyLoadSem2: Number(formData.weeklyLoadSem2),
         adminResponsibility: formData.adminResponsibility ? 1 : 0,
         cadre: userData.role,
-        marks: scores.teachingLoadScore,
+        total_marks: scores.teachingLoadScore,
       },
       6: {
         projectsGuided: Number(formData.projectsGuided),
-        marks: scores.projectScore,
+        total_marks: scores.projectScore,
       },
       7: {
         courses: Object.fromEntries(
@@ -506,11 +506,11 @@ const calculateCourseScore = (course) => {
             },
           ])
         ),
-        marks: scores.feedbackScore,
+        total_marks: scores.feedbackScore,
       },
       8: {
         ptgMeetings: Number(formData.ptgMeetings),
-        marks: scores.ptgScore,
+        total_marks: scores.ptgScore,
       },
       9: {
         total: scores.finalScore,

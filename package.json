@@ -29,6 +29,7 @@
     "globals": "^15.14.0",
     "postcss": "^8.5.1",
     "prettier": "^3.5.0",
+    "shadcn-ui": "^0.9.4",
     "tailwindcss": "^4.0.5",
     "vite": "^6.1.0"
   }

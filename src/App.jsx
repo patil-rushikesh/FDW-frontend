@@ -15,6 +15,7 @@ import { Menu } from "lucide-react";
 import LoginPage from "./components/LoginPage";
 import SplashScreen from "./components/SplashScreen";
 import TeachingPerformance from "./components/forms/TeachingPerformance";
+import SelfDevelopment from "./components/forms/SelfDevelopment";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -65,6 +66,14 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <ResearchPublications />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/selfdevelopment"
+                    element={
+                      <ProtectedRoute>
+                        <SelfDevelopment />
                       </ProtectedRoute>
                     }
                   />
