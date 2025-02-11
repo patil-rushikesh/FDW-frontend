@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useCourses } from "../../context/CourseContext"; // Import context
-import { Trash2 } from "lucide-react"; // Import delete icon
+import { Trash2, Plus } from "lucide-react"; // Import delete icon
 
 const Header = () => {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
@@ -86,9 +86,9 @@ const Header = () => {
         ))}
         <button
           onClick={addCourse}
-          className="mt-3 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+          className="mt-3 bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 flex items-center justify-center"
         >
-          Add Course
+          <Plus size={20} />
         </button>
       </div>
     </div>

@@ -323,6 +323,7 @@ const TeachingPerformance = () => {
   };
 
   const scores = calculateScores();
+  
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
