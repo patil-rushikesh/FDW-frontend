@@ -14,7 +14,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Menu } from "lucide-react";
 import LoginPage from "./components/LoginPage";
 import SplashScreen from "./components/SplashScreen";
-import TeachingPerformance from "./components/forms/TeachingPerformance";
+import TeachingPerformance from "./components/forms/TempTeachingPerfomance";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {

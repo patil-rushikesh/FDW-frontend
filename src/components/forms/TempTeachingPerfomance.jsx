@@ -4,52 +4,23 @@ import { useAuth } from "../../context/AuthContext";
 import { CourseProvider, useCourses } from "../../context/CourseContext";
 import Header from "./Header";
 
-// Get user data from localStorage
-
-// const Header = () => {
-//   const [currentDateTime, setCurrentDateTime] = useState(new Date());
-//   const userData = JSON.parse(localStorage.getItem("userData"));
-
-//   useEffect(() => {
-//     // Set up timer for datetime
-//     const timer = setInterval(() => {
-//       setCurrentDateTime(new Date());
-//     }, 1000);
-//     return () => clearInterval(timer);
-//   }, []);
-
-//   const formatDateTime = (date) => {
-//     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
-//   };
-
-//   return (
-//     <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-//       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//         <div className="flex items-center space-x-2">
-//           <span className="text-gray-600">Current Time:</span>
-//           <span className="font-mono text-blue-600 font-medium">
-//             {formatDateTime(currentDateTime)}
-//           </span>
-//         </div>
-//         <div className="flex items-center space-x-2">
-//           <span className="text-gray-600">User:</span>
-//           <span className="font-mono text-green-600 font-medium">
-//             {userData?.name || "User"} {/* Display name from userData */}
-//           </span>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-const TestComponent = () => {
+const TestComponent = ({ onCoursesUpdate }) => {
   const { courses } = useCourses();
 
   useEffect(() => {
-    console.log("Accessing Courses Outside Header:", courses[0].code);
-  }, [courses]);
+    if (courses && courses.length > 0) {
+      const initialCourseResults = courses.map((course) => ({
+        courseCode: course.code,
+        studentsAbove60: "",
+        students50to59: "",
+        students40to49: "",
+        totalStudents: "",
+      }));
+      onCoursesUpdate(initialCourseResults);
+    }
+  }, [courses, onCoursesUpdate]);
 
-  return null; // No UI, just logging to console
+  return null;
 };
 
 const ScoreCard = ({ label, score, total }) => (
@@ -96,16 +67,50 @@ const InputField = ({
   </div>
 );
 
+const CourseResultInput = ({ courseData, onChange, index }) => (
+  <div className="border-b border-gray-200 pb-4 mb-4">
+    <h4 className="text-lg font-medium text-gray-800 mb-3">
+      Course: {courseData.courseCode}
+    </h4>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <InputField
+        label="Students with CGPA 6.31 and above"
+        name={`studentsAbove60`}
+        value={courseData.studentsAbove60}
+        onChange={(e) => onChange(index, "studentsAbove60", e.target.value)}
+        placeholder="Enter number of students"
+      />
+      <InputField
+        label="Students with CGPA 5.26 to 6.3"
+        name={`students50to59`}
+        value={courseData.students50to59}
+        onChange={(e) => onChange(index, "students50to59", e.target.value)}
+        placeholder="Enter number of students"
+      />
+      <InputField
+        label="Students with CGPA 4.21 to 5.25"
+        name={`students40to49`}
+        value={courseData.students40to49}
+        onChange={(e) => onChange(index, "students40to49", e.target.value)}
+        placeholder="Enter number of students"
+      />
+      <InputField
+        label="Total Students"
+        name={`totalStudents`}
+        value={courseData.totalStudents}
+        onChange={(e) => onChange(index, "totalStudents", e.target.value)}
+        placeholder="Enter total number of students"
+      />
+    </div>
+  </div>
+);
+
 const TeachingPerformance = () => {
   const userData = JSON.parse(localStorage.getItem("userData"));
-  console.log(userData);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const [courseResults, setCourseResults] = useState([]);
   const [formData, setFormData] = useState({
-    studentsAbove60: "",
-    students50to59: "",
-    students40to49: "",
-    totalStudents: "",
     coAttainmentSem1: "",
     coAttainmentSem2: "",
     timelySubmissionCO: false,
@@ -114,7 +119,7 @@ const TeachingPerformance = () => {
     totalEnrolledStudentsForLectures: "",
     weeklyLoadSem1: "",
     weeklyLoadSem2: "",
-    e: "",
+    adminResponsibility: false,
     projectsGuided: "",
     feedbackPercentage: "",
     cadre: userData.role,
@@ -129,18 +134,44 @@ const TeachingPerformance = () => {
     }));
   };
 
+  const handleCourseResultChange = (index, field, value) => {
+    setCourseResults((prevResults) => {
+      const newResults = [...prevResults];
+      newResults[index] = {
+        ...newResults[index],
+        [field]: value,
+      };
+      return newResults;
+    });
+  };
+
+  const calculateResultScore = () => {
+    let totalScore = 0;
+    let totalCourses = courseResults.length;
+
+    if (totalCourses === 0) return 0;
+
+    courseResults.forEach((course) => {
+      const studentsAbove60 = Number(course.studentsAbove60 || 0);
+      const students50to59 = Number(course.students50to59 || 0);
+      const students40to49 = Number(course.students40to49 || 0);
+      const totalStudents = Number(course.totalStudents || 0);
+
+      if (totalStudents > 0) {
+        const courseScore =
+          ((studentsAbove60 * 5 + students50to59 * 4 + students40to49 * 3) /
+            totalStudents) *
+          10;
+        totalScore += courseScore;
+      }
+    });
+
+    return totalScore / totalCourses;
+  };
+
   const calculateScores = () => {
     // Result Analysis Score
-    const studentsAbove60 = Number(formData.studentsAbove60 || 0);
-    const students50to59 = Number(formData.students50to59 || 0);
-    const students40to49 = Number(formData.students40to49 || 0);
-    const totalStudents = Number(formData.totalStudents || 0);
-    const resultScore =
-      totalStudents > 0
-        ? ((studentsAbove60 * 5 + students50to59 * 4 + students40to49 * 3) /
-            totalStudents) *
-          10
-        : 0;
+    const resultScore = calculateResultScore();
 
     // CO Attainment Score
     const coAttainmentSem1 = Number(formData.coAttainmentSem1 || 0);
@@ -150,8 +181,9 @@ const TeachingPerformance = () => {
       ? (averageCO * 30) / 100 + 20
       : (averageCO * 30) / 100;
 
-    // Other scores calculations as before
-    const elearningScore = Number(Math.min(5,formData.elearningInstances) || 0) * 10;
+    // Other scores calculations
+    const elearningScore =
+      Number(Math.min(5, formData.elearningInstances) || 0) * 10;
     const feedbackScore = Number(formData.feedbackPercentage || 0);
     const ptgMeetings = Number(formData.ptgMeetings || 0);
     const ptgScore = (ptgMeetings * 50) / 6;
@@ -171,7 +203,6 @@ const TeachingPerformance = () => {
     const avgLoad = (loadSem1 + loadSem2) / 2;
 
     let minLoad;
-    console.log(userData.role);
     switch (userData.role) {
       case "Professor":
         minLoad = 12;
@@ -183,11 +214,9 @@ const TeachingPerformance = () => {
         minLoad = 16;
         break;
       default:
-        (minLoad = 1), (e = e + 2);
+        minLoad = 1;
+        e = e + 2;
     }
-    console.log(minLoad);
-    console.log(avgLoad);
-    console.log(e);
 
     const teachingLoadScore =
       minLoad > 0 ? Math.min(50, 50 * ((avgLoad + e) / minLoad)) : 0;
@@ -250,10 +279,13 @@ const TeachingPerformance = () => {
 
     const payload = {
       1: {
-        studentsAbove60: Number(formData.studentsAbove60),
-        students50to59: Number(formData.students50to59),
-        students40to49: Number(formData.students40to49),
-        totalStudents: Number(formData.totalStudents),
+        courses: courseResults.map((course) => ({
+          courseCode: course.courseCode,
+          studentsAbove60: Number(course.studentsAbove60),
+          students50to59: Number(course.students50to59),
+          students40to49: Number(course.students40to49),
+          totalStudents: Number(course.totalStudents),
+        })),
         marks: scores.resultScore,
       },
       2: {
@@ -327,8 +359,8 @@ const TeachingPerformance = () => {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
       <CourseProvider>
-        <Header/>
-        <TestComponent /> {/* Testing courses outside Header */}
+        <Header />
+        <TestComponent onCoursesUpdate={setCourseResults} />
       </CourseProvider>
 
       {/* Result Analysis Section */}
@@ -337,38 +369,16 @@ const TeachingPerformance = () => {
         icon="📊"
         borderColor="border-blue-500"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField
-            label="Students with CGPA 6.31 and above"
-            name="studentsAbove60"
-            value={formData.studentsAbove60}
-            onChange={handleChange}
-            placeholder="Enter number of students"
+        {courseResults.map((courseData, index) => (
+          <CourseResultInput
+            key={courseData.courseCode}
+            courseData={courseData}
+            onChange={handleCourseResultChange}
+            index={index}
           />
-          <InputField
-            label="Students with CGPA 5.26 to 6.3"
-            name="students50to59"
-            value={formData.students50to59}
-            onChange={handleChange}
-            placeholder="Enter number of students"
-          />
-          <InputField
-            label="Students with CGPA 4.21 to 5.25"
-            name="students40to49"
-            value={formData.students40to49}
-            onChange={handleChange}
-            placeholder="Enter number of students"
-          />
-          <InputField
-            label="Total Students"
-            name="totalStudents"
-            value={formData.totalStudents}
-            onChange={handleChange}
-            placeholder="Enter total number of students"
-          />
-        </div>
+        ))}
         <ScoreCard
-          label="Result Analysis Score"
+          label="Result Analysis Score (Average across all courses)"
           score={scores.resultScore.toFixed(2)}
           total="50"
         />
@@ -402,15 +412,7 @@ const TeachingPerformance = () => {
               type="checkbox"
               name="timelySubmissionCO"
               checked={formData.timelySubmissionCO}
-              onChange={(e) =>
-                handleChange({
-                  target: {
-                    name: "timelySubmissionCO",
-                    type: "checkbox",
-                    checked: e.target.checked,
-                  },
-                })
-              }
+              onChange={handleChange}
               className="form-checkbox h-5 w-5 text-blue-600 rounded"
             />
             <span className="text-gray-700">
@@ -424,7 +426,6 @@ const TeachingPerformance = () => {
           total="50"
         />
       </SectionCard>
-
       {/* E-learning Section */}
       <SectionCard
         title="E-learning Content Development"
