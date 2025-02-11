@@ -52,7 +52,14 @@ const InputField = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      onWheel={(e) => e.target.blur()} // Prevent scrolling effect
+      min="0" // Add min attribute to prevent negative values
+      onKeyDown={(e) => {
+        // Prevent minus sign
+        if (e.key === '-') {
+          e.preventDefault();
+        }
+      }}
+      onWheel={(e) => e.target.blur()} 
       className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
     />
   </div>
