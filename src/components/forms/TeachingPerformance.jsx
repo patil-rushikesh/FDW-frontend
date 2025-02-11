@@ -91,6 +91,7 @@ const InputField = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
+      onWheel={(e) => e.target.blur()} // Prevent scrolling effect
       className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
     />
   </div>
@@ -151,7 +152,8 @@ const TeachingPerformance = () => {
       : (averageCO * 30) / 100;
 
     // Other scores calculations as before
-    const elearningScore = Number(Math.min(5,formData.elearningInstances) || 0) * 10;
+    const elearningScore =
+      Number(Math.min(5, formData.elearningInstances) || 0) * 10;
     const feedbackScore = Number(formData.feedbackPercentage || 0);
     const ptgMeetings = Number(formData.ptgMeetings || 0);
     const ptgScore = (ptgMeetings * 50) / 6;
@@ -323,12 +325,11 @@ const TeachingPerformance = () => {
   };
 
   const scores = calculateScores();
-  
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
       <CourseProvider>
-        <Header/>
+        <Header />
         <TestComponent /> {/* Testing courses outside Header */}
       </CourseProvider>
 
