@@ -1,39 +1,55 @@
 import React, { useState, useEffect } from "react";
-import { useFormContext } from "../../context/FormContext";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { CourseProvider, useCourses } from "../../context/CourseContext";
+import Header from "./Header";
 
-// Reusable Components
-const Header = ({ userLogin }) => {
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+// Get user data from localStorage
+
+// const Header = () => {
+//   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+//   const userData = JSON.parse(localStorage.getItem("userData"));
+
+//   useEffect(() => {
+//     // Set up timer for datetime
+//     const timer = setInterval(() => {
+//       setCurrentDateTime(new Date());
+//     }, 1000);
+//     return () => clearInterval(timer);
+//   }, []);
+
+//   const formatDateTime = (date) => {
+//     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+//   };
+
+//   return (
+//     <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+//       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//         <div className="flex items-center space-x-2">
+//           <span className="text-gray-600">Current Time:</span>
+//           <span className="font-mono text-blue-600 font-medium">
+//             {formatDateTime(currentDateTime)}
+//           </span>
+//         </div>
+//         <div className="flex items-center space-x-2">
+//           <span className="text-gray-600">User:</span>
+//           <span className="font-mono text-green-600 font-medium">
+//             {userData?.name || "User"} {/* Display name from userData */}
+//           </span>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+const TestComponent = () => {
+  const { courses } = useCourses();
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentDateTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    console.log("Accessing Courses Outside Header:", courses[0].code);
+  }, [courses]);
 
-  const formatDateTime = (date) => {
-    return date.toISOString().slice(0, 19).replace("T", " ");
-  };
-
-  return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex items-center space-x-2">
-          <span className="text-gray-600">UTC Time:</span>
-          <span className="font-mono text-blue-600 font-medium">
-            {formatDateTime(currentDateTime)}
-          </span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <span className="text-gray-600">User:</span>
-          <span className="font-mono text-green-600 font-medium">
-            {userLogin}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
+  return null; // No UI, just logging to console
 };
 
 const ScoreCard = ({ label, score, total }) => (
@@ -75,95 +91,245 @@ const InputField = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      onWheel={(e) => e.target.blur()}
       className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
     />
   </div>
 );
 
-export default function TeachingPerformance() {
-  const { formData, updateFormData } = useFormContext();
+const TeachingPerformance = () => {
+  const userData = JSON.parse(localStorage.getItem("userData"));
+  console.log(userData);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const [formData, setFormData] = useState({
+    studentsAbove60: "",
+    students50to59: "",
+    students40to49: "",
+    totalStudents: "",
+    coAttainmentSem1: "",
+    coAttainmentSem2: "",
+    timelySubmissionCO: false,
+    elearningInstances: "",
+    studentsPresent: "",
+    totalEnrolledStudentsForLectures: "",
+    weeklyLoadSem1: "",
+    weeklyLoadSem2: "",
+    e: "",
+    projectsGuided: "",
+    feedbackPercentage: "",
+    cadre: userData.role,
+    ptgMeetings: "",
+  });
 
   const handleChange = (e) => {
-    updateFormData("teaching", { [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
-  // Result Analysis Calculations
-  const studentsAbove60 = Number(formData.teaching?.studentsAbove60 || 0);
-  const students50to59 = Number(formData.teaching?.students50to59 || 0);
-  const students40to49 = Number(formData.teaching?.students40to49 || 0);
-  const totalStudents = Number(formData.teaching?.totalStudents || 0);
+  const calculateScores = () => {
+    // Result Analysis Score
+    const studentsAbove60 = Number(formData.studentsAbove60 || 0);
+    const students50to59 = Number(formData.students50to59 || 0);
+    const students40to49 = Number(formData.students40to49 || 0);
+    const totalStudents = Number(formData.totalStudents || 0);
+    const resultScore =
+      totalStudents > 0
+        ? ((studentsAbove60 * 5 + students50to59 * 4 + students40to49 * 3) /
+            totalStudents) *
+          10
+        : 0;
 
-  const resultScore =
-    totalStudents > 0
-      ? ((studentsAbove60 * 5 + students50to59 * 4 + students40to49 * 3) /
-          totalStudents) *
-        10
-      : 0;
+    // CO Attainment Score
+    const coAttainmentSem1 = Number(formData.coAttainmentSem1 || 0);
+    const coAttainmentSem2 = Number(formData.coAttainmentSem2 || 0);
+    const averageCO = (coAttainmentSem1 + coAttainmentSem2) / 2;
+    const coScore = formData.timelySubmissionCO
+      ? (averageCO * 30) / 100 + 20
+      : (averageCO * 30) / 100;
 
-  // CO Attainment Calculations
-  const coAttainmentSem1 = Number(formData.teaching?.coAttainmentSem1 || 0);
-  const coAttainmentSem2 = Number(formData.teaching?.coAttainmentSem2 || 0);
-  const averageCO = (coAttainmentSem1 + coAttainmentSem2) / 2;
-  const coScore = formData.teaching?.timelySubmissionCO ? averageCO / 2 : 0;
+    // Other scores calculations as before
+    const elearningScore = Number(Math.min(5,formData.elearningInstances) || 0) * 10;
+    const feedbackScore = Number(formData.feedbackPercentage || 0);
+    const ptgMeetings = Number(formData.ptgMeetings || 0);
+    const ptgScore = (ptgMeetings * 50) / 6;
 
-  // Other scores calculations
-  const elearningScore =
-    Number(formData.teaching?.elearningInstances || 0) * 10;
-  const feedbackScore = Number(formData.teaching?.feedbackPercentage || 0);
-  const ptgMeetings = Number(formData.teaching?.ptgMeetings || 0);
-  const ptgScore = (ptgMeetings * 50) / 6;
+    // Academic Engagement Score
+    const studentsPresent = Number(formData.studentsPresent || 0);
+    const totalEnrolled = Number(
+      formData.totalEnrolledStudentsForLectures || 0
+    );
+    const academicEngagementScore =
+      totalEnrolled > 0 ? 50 * (studentsPresent / totalEnrolled) : 0;
 
-  // Academic Engagement Score
-  const studentsPresent = Number(formData.teaching?.studentsPresent || 0);
-  const totalEnrolled = Number(
-    formData.teaching?.totalEnrolledStudentsForLectures || 0
-  );
-  const academicEngagementScore =
-    totalEnrolled > 0 ? 50 * (studentsPresent / totalEnrolled) : 0;
+    // Teaching Load Score
+    const loadSem1 = Number(formData.weeklyLoadSem1 || 0);
+    const loadSem2 = Number(formData.weeklyLoadSem2 || 0);
+    let e = formData.adminResponsibility ? 2 : 0;
+    const avgLoad = (loadSem1 + loadSem2) / 2;
 
-  // Teaching Load Score
-  const loadSem1 = Number(formData.teaching?.weeklyLoadSem1 || 0);
-  const loadSem2 = Number(formData.teaching?.weeklyLoadSem2 || 0);
-  const adminValue = Number(formData.teaching?.adminResponsibility || 0);
-  const avgLoad = (loadSem1 + loadSem2) / 2;
+    let minLoad;
+    console.log(userData.role);
+    switch (userData.role) {
+      case "Professor":
+        minLoad = 12;
+        break;
+      case "Associate Professor":
+        minLoad = 14;
+        break;
+      case "Assistant Professor":
+        minLoad = 16;
+        break;
+      default:
+        (minLoad = 1), (e = e + 2);
+    }
+    console.log(minLoad);
+    console.log(avgLoad);
+    console.log(e);
 
-  let minLoad;
-  switch (formData.teaching?.cadre) {
-    case "Professor":
-      minLoad = 12;
-      break;
-    case "Associate Professor":
-      minLoad = 14;
-      break;
-    case "Assistant Professor":
-      minLoad = 16;
-      break;
-    default:
-      minLoad = 1;
-  }
+    const teachingLoadScore =
+      minLoad > 0 ? Math.min(50, 50 * ((avgLoad + e) / minLoad)) : 0;
 
-  const teachingLoadScore =
-    minLoad > 0 ? Math.min(50, 50 * ((avgLoad + adminValue) / minLoad)) : 0;
+    // Projects Score
+    const projectsGuided = Number(formData.projectsGuided || 0);
+    const projectScore = Math.min(40, projectsGuided * 20);
 
-  // Projects Score
-  const projectsGuided = Number(formData.teaching?.projectsGuided || 0);
-  const projectScore = Math.min(40, projectsGuided * 20);
+    // Calculate total score based on cadre
+    const rawTotal =
+      resultScore +
+      coScore +
+      elearningScore +
+      academicEngagementScore +
+      teachingLoadScore +
+      projectScore +
+      feedbackScore +
+      ptgScore;
 
-  // Total Score
-  const totalScore =
-    resultScore +
-    coScore +
-    elearningScore +
-    academicEngagementScore +
-    teachingLoadScore +
-    projectScore +
-    feedbackScore +
-    ptgScore;
+    let finalScore;
+    switch (userData.role) {
+      case "Professor":
+        finalScore = rawTotal * 0.68;
+        break;
+      case "Associate Professor":
+        finalScore = rawTotal * 0.818;
+        break;
+      case "Assistant Professor":
+        finalScore = rawTotal;
+        break;
+      default:
+        finalScore = 0;
+    }
+
+    return {
+      resultScore,
+      coScore,
+      elearningScore,
+      academicEngagementScore,
+      teachingLoadScore,
+      projectScore,
+      feedbackScore,
+      ptgScore,
+      rawTotal,
+      finalScore,
+    };
+  };
+
+  const handleSubmit = async () => {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const department = userData.dept;
+    const user_id = userData._id;
+
+    if (!department || !user_id) {
+      alert("Department and User ID are required. Please login again.");
+      return;
+    }
+
+    const scores = calculateScores();
+
+    const payload = {
+      1: {
+        studentsAbove60: Number(formData.studentsAbove60),
+        students50to59: Number(formData.students50to59),
+        students40to49: Number(formData.students40to49),
+        totalStudents: Number(formData.totalStudents),
+        marks: scores.resultScore,
+      },
+      2: {
+        coAttainmentSem1: Number(formData.coAttainmentSem1),
+        coAttainmentSem2: Number(formData.coAttainmentSem2),
+        timelySubmissionCO: formData.timelySubmissionCO,
+        marks: scores.coScore,
+      },
+      3: {
+        elearningInstances: Number(formData.elearningInstances),
+        marks: scores.elearningScore,
+      },
+      4: {
+        studentsPresent: Number(formData.studentsPresent),
+        totalEnrolledStudents: Number(
+          formData.totalEnrolledStudentsForLectures
+        ),
+        marks: scores.academicEngagementScore,
+      },
+      5: {
+        weeklyLoadSem1: Number(formData.weeklyLoadSem1),
+        weeklyLoadSem2: Number(formData.weeklyLoadSem2),
+        adminResponsibility: formData.adminResponsibility ? 1 : 0,
+        cadre: userData.role,
+        marks: scores.teachingLoadScore,
+      },
+      6: {
+        projectsGuided: Number(formData.projectsGuided),
+        marks: scores.projectScore,
+      },
+      7: {
+        feedbackPercentage: Number(formData.feedbackPercentage),
+        marks: scores.feedbackScore,
+      },
+      8: {
+        ptgMeetings: Number(formData.ptgMeetings),
+        marks: scores.ptgScore,
+      },
+      9: {
+        total: scores.finalScore,
+      },
+    };
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5000/${department}/${user_id}/A`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to submit data");
+      }
+
+      const result = await response.json();
+      alert(result.message);
+      navigate("/dashboard");
+    } catch (error) {
+      alert("Error submitting data: " + error.message);
+    }
+  };
+
+  const scores = calculateScores();
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
-      <Header userLogin="ashirwad5555" />
+      <CourseProvider>
+        <Header/>
+        <TestComponent /> {/* Testing courses outside Header */}
+      </CourseProvider>
 
       {/* Result Analysis Section */}
       <SectionCard
@@ -173,33 +339,37 @@ export default function TeachingPerformance() {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
+            label="Students with CGPA 6.31 and above"
             name="studentsAbove60"
-            value={formData.teaching?.studentsAbove60 || ""}
+            value={formData.studentsAbove60}
             onChange={handleChange}
-            placeholder="No. of students with 60% and above"
+            placeholder="Enter number of students"
           />
           <InputField
+            label="Students with CGPA 5.26 to 6.3"
             name="students50to59"
-            value={formData.teaching?.students50to59 || ""}
+            value={formData.students50to59}
             onChange={handleChange}
-            placeholder="No. of students with 50% to 59%"
+            placeholder="Enter number of students"
           />
           <InputField
+            label="Students with CGPA 4.21 to 5.25"
             name="students40to49"
-            value={formData.teaching?.students40to49 || ""}
+            value={formData.students40to49}
             onChange={handleChange}
-            placeholder="No. of students with 40% to 49%"
+            placeholder="Enter number of students"
           />
           <InputField
+            label="Total Students"
             name="totalStudents"
-            value={formData.teaching?.totalStudents || ""}
+            value={formData.totalStudents}
             onChange={handleChange}
-            placeholder="Total No. of students"
+            placeholder="Enter total number of students"
           />
         </div>
         <ScoreCard
           label="Result Analysis Score"
-          score={resultScore.toFixed(2)}
+          score={scores.resultScore.toFixed(2)}
           total="50"
         />
       </SectionCard>
@@ -212,16 +382,18 @@ export default function TeachingPerformance() {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
+            label="CO Attainment Semester I (%)"
             name="coAttainmentSem1"
-            value={formData.teaching?.coAttainmentSem1 || ""}
+            value={formData.coAttainmentSem1}
             onChange={handleChange}
-            placeholder="CO Attainment Semester I (%)"
+            placeholder="Enter CO attainment percentage"
           />
           <InputField
+            label="CO Attainment Semester II (%)"
             name="coAttainmentSem2"
-            value={formData.teaching?.coAttainmentSem2 || ""}
+            value={formData.coAttainmentSem2}
             onChange={handleChange}
-            placeholder="CO Attainment Semester II (%)"
+            placeholder="Enter CO attainment percentage"
           />
         </div>
         <div className="mt-4">
@@ -229,10 +401,14 @@ export default function TeachingPerformance() {
             <input
               type="checkbox"
               name="timelySubmissionCO"
-              checked={formData.teaching?.timelySubmissionCO || false}
+              checked={formData.timelySubmissionCO}
               onChange={(e) =>
-                updateFormData("teaching", {
-                  timelySubmissionCO: e.target.checked,
+                handleChange({
+                  target: {
+                    name: "timelySubmissionCO",
+                    type: "checkbox",
+                    checked: e.target.checked,
+                  },
                 })
               }
               className="form-checkbox h-5 w-5 text-blue-600 rounded"
@@ -244,7 +420,7 @@ export default function TeachingPerformance() {
         </div>
         <ScoreCard
           label="CO Analysis Score"
-          score={coScore.toFixed(2)}
+          score={scores.coScore.toFixed(2)}
           total="50"
         />
       </SectionCard>
@@ -256,14 +432,15 @@ export default function TeachingPerformance() {
         borderColor="border-purple-500"
       >
         <InputField
+          label="Number of e-learning contents developed"
           name="elearningInstances"
-          value={formData.teaching?.elearningInstances || ""}
+          value={formData.elearningInstances}
           onChange={handleChange}
-          placeholder="Number of e-learning contents developed"
+          placeholder="Enter number of e-learning contents"
         />
         <ScoreCard
           label="E-learning Score"
-          score={elearningScore.toFixed(2)}
+          score={scores.elearningScore.toFixed(2)}
           total="50"
         />
       </SectionCard>
@@ -276,31 +453,23 @@ export default function TeachingPerformance() {
       >
         <div className="grid grid-cols-1 gap-4">
           <InputField
+            label="Students present for lectures/practical labs/tutorials"
             name="studentsPresent"
-            value={formData.teaching?.studentsPresent || ""}
+            value={formData.studentsPresent}
             onChange={handleChange}
-            placeholder="Number of students present for lectures/practical labs/tutorials in AY"
+            placeholder="Enter number of students present"
           />
           <InputField
+            label="Total enrolled students"
             name="totalEnrolledStudentsForLectures"
-            value={formData.teaching?.totalEnrolledStudentsForLectures || ""}
+            value={formData.totalEnrolledStudentsForLectures}
             onChange={handleChange}
-            placeholder="Total number of enrolled students for these subjects"
+            placeholder="Enter total enrolled students"
           />
         </div>
         <ScoreCard
-          label="Computed Academic Engagement Score"
-          score={(() => {
-            const studentsPresent = Number(
-              formData.teaching?.studentsPresent || 0
-            );
-            const totalEnrolled = Number(
-              formData.teaching?.totalEnrolledStudentsForLectures || 0
-            );
-            return totalEnrolled > 0
-              ? (50 * (studentsPresent / totalEnrolled)).toFixed(2)
-              : "0.00";
-          })()}
+          label="Academic Engagement Score"
+          score={scores.academicEngagementScore.toFixed(2)}
           total="50"
         />
       </SectionCard>
@@ -313,209 +482,186 @@ export default function TeachingPerformance() {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
+            label="Weekly Load Semester I"
             name="weeklyLoadSem1"
-            value={formData.teaching?.weeklyLoadSem1 || ""}
+            value={formData.weeklyLoadSem1}
             onChange={handleChange}
-            placeholder="Weekly Load Semester I"
+            placeholder="Enter weekly load"
           />
           <InputField
+            label="Weekly Load Semester II"
             name="weeklyLoadSem2"
-            value={formData.teaching?.weeklyLoadSem2 || ""}
+            value={formData.weeklyLoadSem2}
             onChange={handleChange}
-            placeholder="Weekly Load Semester II"
+            placeholder="Enter weekly load"
           />
           <InputField
+            label="Are You Ph.D Supervisor Having Scholers Enrolled at PCCOE Research Center"
             name="adminResponsibility"
-            value={formData.teaching?.adminResponsibility || ""}
+            type="checkbox"
+            checked={formData.adminResponsibility}
             onChange={handleChange}
-            placeholder="Administrative Responsibility (E value)"
           />
-          <select
-            name="cadre"
-            value={formData.teaching?.cadre || ""}
-            onChange={handleChange}
-            className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">Select Cadre</option>
-            <option value="Professor">Professor</option>
-            <option value="Associate Professor">Associate Professor</option>
-            <option value="Assistant Professor">Assistant Professor</option>
-          </select>
+
+          {/* <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Select Cadre</label>
+            <select
+              name="cadre"
+              value={formData.cadre}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            >
+              <option value="">Select Cadre</option>
+              <option value="Professor">Professor</option>
+              <option value="Associate Professor">Associate Professor</option>
+              <option value="Assistant Professor">Assistant Professor</option>
+            </select>
+          </div> */}
         </div>
         <ScoreCard
           label="Teaching Load Score"
-          score={teachingLoadScore.toFixed(2)}
+          score={scores.teachingLoadScore.toFixed(2)}
           total="50"
         />
       </SectionCard>
 
-      {/* UG Project / PG Dissertations Guided Section */}
+      {/* Projects Guided Section */}
       <SectionCard
         title="UG Project / PG Dissertations Guided"
         icon="🎓"
         borderColor="border-green-500"
       >
-        <div className="grid grid-cols-1 gap-4">
-          <InputField
-            name="projectsGuided"
-            value={formData.teaching?.projectsGuided || ""}
-            onChange={handleChange}
-            placeholder="Total number of UG projects and PG dissertations guided in AY"
-          />
-        </div>
+        <InputField
+          label="Number of projects guided"
+          name="projectsGuided"
+          value={formData.projectsGuided}
+          onChange={handleChange}
+          placeholder="Enter number of projects guided"
+        />
         <ScoreCard
-          label="Computed Score"
-          score={Math.min(
-            40,
-            (Number(formData.teaching?.projectsGuided) || 0) * 20
-          ).toFixed(2)}
+          label="Projects Score"
+          score={scores.projectScore.toFixed(2)}
           total="40"
         />
       </SectionCard>
 
-      {/* Feedback of Faculty by Student Section */}
+      {/* Feedback Section */}
       <SectionCard
         title="Feedback of Faculty by Student"
         icon="📊"
         borderColor="border-blue-500"
       >
-        <div className="grid grid-cols-1 gap-4">
-          <InputField
-            name="feedbackPercentage"
-            value={formData.teaching?.feedbackPercentage || ""}
-            onChange={handleChange}
-            placeholder="Average feedback percentage for subjects taught in current AY"
-          />
-        </div>
+        <InputField
+          label="Average feedback percentage"
+          name="feedbackPercentage"
+          value={formData.feedbackPercentage}
+          onChange={handleChange}
+          placeholder="Enter feedback percentage"
+        />
         <ScoreCard
-          label="Computed Feedback Score"
-          score={(Number(formData.teaching?.feedbackPercentage) || 0).toFixed(
-            2
-          )}
+          label="Feedback Score"
+          score={scores.feedbackScore.toFixed(2)}
           total="100"
         />
       </SectionCard>
 
-      {/* Conduction of Guardian [PTG] Meetings Section */}
+      {/* PTG Meetings Section */}
       <SectionCard
         title="Conduction of Guardian [PTG] Meetings"
         icon="📅"
         borderColor="border-purple-500"
       >
-        <div className="grid grid-cols-1 gap-4">
-          <InputField
-            name="ptgMeetings"
-            value={formData.teaching?.ptgMeetings || ""}
-            onChange={handleChange}
-            placeholder="Total number of PTG meetings conducted in AY"
-          />
-        </div>
+        <InputField
+          label="Number of PTG meetings conducted"
+          name="ptgMeetings"
+          value={formData.ptgMeetings}
+          onChange={handleChange}
+          placeholder="Enter number of PTG meetings"
+        />
         <div className="mt-2 text-sm text-gray-600">
+          <p className="font-semibold">Note:</p>
           <p>
-            <strong>Instructions:</strong>
+            Minimum 6 meetings required in a year. For Student Counseling
+            efforts, marks will be taken as 50 in case of Deputy
+            Director/Deans/HoDs/PG Coordinators/Ph. D. Coordinators.
           </p>
-          <p>
-            Proper conduction of PTG meetings in a semester (Minimum 6 meetings
-            in a year). (For Student Counseling efforts, marks will be taken as
-            50 in case of Deputy Director/Deans/HoDs/PG Coordinators/Ph. D.
-            Coordinators).
-          </p>
-          <p>Marks = (Total number of PTG meetings * 50) / 6</p>
         </div>
         <ScoreCard
-          label="Computed PTG Meetings Score"
-          score={(
-            ((Number(formData.teaching?.ptgMeetings) || 0) * 50) /
-            6
-          ).toFixed(2)}
+          label="PTG Meetings Score"
+          score={scores.ptgScore.toFixed(2)}
           total="50"
         />
       </SectionCard>
 
-      {/* Summary Section */}
+      {/* Total Score Section */}
       <SectionCard
-        title="Part A: Academic Involvement - Obtained Marks Summary"
+        title="Total Academic Performance Score"
         icon="📑"
         borderColor="border-red-500"
       >
         <div className="overflow-x-auto">
-          <table className="min-w-full border border-gray-300 bg-white shadow-md rounded-lg">
-            <thead className="bg-gray-100 text-gray-700">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="border border-gray-300 p-3 text-left">Cadre</th>
-                <th className="border border-gray-300 p-3"></th>
-                <th className="border border-gray-300 p-3">Professor</th>
-                <th className="border border-gray-300 p-3">
-                  Associate Professor
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Cadre
                 </th>
-                <th className="border border-gray-300 p-3">
-                  Assistant Professor
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Maximum Marks
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Your Score
                 </th>
               </tr>
             </thead>
-            <tbody className="text-gray-800">
-              <tr className="hover:bg-gray-50 transition">
-                <td
-                  className="border border-gray-300 p-3 font-semibold"
-                  colSpan="2"
-                >
-                  Cadre wise maximum considerable marks of Academic Involvement
-                </td>
-                <td className="border border-gray-300 p-3 text-center">300</td>
-                <td className="border border-gray-300 p-3 text-center">360</td>
-                <td className="border border-gray-300 p-3 text-center">440</td>
-              </tr>
-              <tr className="hover:bg-gray-50 transition">
-                <td
-                  className="border border-gray-300 p-3 font-semibold"
-                  colSpan="2"
-                >
-                  Obtained marks Calculated from Academic Involvement (as per
-                  Table 'A')
-                </td>
-                <td className="border border-gray-300 p-3 text-center">
-                  {formData.teaching?.cadre === "Professor"
-                    ? totalMarks.toFixed(2)
-                    : ""}
-                </td>
-                <td className="border border-gray-300 p-3 text-center">
-                  {formData.teaching?.cadre === "Associate Professor"
-                    ? totalMarks.toFixed(2)
-                    : ""}
-                </td>
-                <td className="border border-gray-300 p-3 text-center">
-                  {formData.teaching?.cadre === "Assistant Professor"
-                    ? totalMarks.toFixed(2)
-                    : ""}
+            <tbody className="bg-white divide-y divide-gray-200">
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap">Professor</td>
+                <td className="px-6 py-4 whitespace-nowrap">300</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {userData.role === "Professor"
+                    ? scores.finalScore.toFixed(2)
+                    : "-"}
                 </td>
               </tr>
-              <tr className="hover:bg-gray-50 transition">
-                <td
-                  className="border border-gray-300 p-3 font-semibold"
-                  colSpan="2"
-                >
-                  Actual Academic Involvement Marks in Self Appraisal
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  Associate Professor
                 </td>
-                <td className="border border-gray-300 p-3 text-center">
-                  {formData.teaching?.cadre === "Professor"
-                    ? (totalMarks * 0.68).toFixed(2)
-                    : ""}
+                <td className="px-6 py-4 whitespace-nowrap">360</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {userData.role === "Associate Professor"
+                    ? scores.finalScore.toFixed(2)
+                    : "-"}
                 </td>
-                <td className="border border-gray-300 p-3 text-center">
-                  {formData.teaching?.cadre === "Associate Professor"
-                    ? (totalMarks * 0.818).toFixed(2)
-                    : ""}
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  Assistant Professor
                 </td>
-                <td className="border border-gray-300 p-3 text-center">
-                  {formData.teaching?.cadre === "Assistant Professor"
-                    ? totalMarks.toFixed(2)
-                    : ""}
+                <td className="px-6 py-4 whitespace-nowrap">440</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {userData.role === "Assistant Professor"
+                    ? scores.finalScore.toFixed(2)
+                    : "-"}
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
       </SectionCard>
+
+      {/* Submit Button */}
+      <div className="flex justify-end mt-8">
+        <button
+          onClick={handleSubmit}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out"
+        >
+          Submit Teaching Performance Data
+        </button>
+      </div>
     </div>
   );
-}
+};
+
+export default TeachingPerformance;
