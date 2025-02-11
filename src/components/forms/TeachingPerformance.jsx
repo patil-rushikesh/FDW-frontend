@@ -4,14 +4,144 @@ import { useAuth } from "../../context/AuthContext";
 import { CourseProvider, useCourses } from "../../context/CourseContext";
 import Header from "./Header";
 
-const TestComponent = () => {
+const TestComponent = ({ onCoursesUpdate }) => {
   const { courses } = useCourses();
-  useEffect(() => {
-    console.log("Accessing Courses Outside Header:", courses[0].code);
-  }, [courses]);
 
-  return null; // No UI, just logging to console
+  useEffect(() => {
+    if (courses && courses.length > 0) {
+      const initialCourseResults = courses.map((course) => ({
+        courseCode: course.code,
+        courseSem: course.semester,
+        // Result Analysis fields
+        studentsAbove60: "",
+        students50to59: "",
+        students40to49: "",
+        totalStudents: "",
+        // Academic Engagement fields
+        studentsPresent: "",
+        totalEnrolledStudents: "",
+        // Feedback field
+        feedbackPercentage: "",
+        // Course Outcome fields
+        coAttainment: "",
+        timelySubmissionCO: false,
+      }));
+      onCoursesUpdate(initialCourseResults);
+    }
+  }, [courses, onCoursesUpdate]);
+
+  return null;
 };
+
+const CourseResultInput = ({ courseData, onChange, index }) => (
+  <div className="border-b border-gray-200 pb-4 mb-4">
+    <h4 className="text-lg font-medium text-gray-800 mb-3">
+      Course: {courseData.courseCode}
+    </h4>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <InputField
+        label="Students with CGPA 6.31 and above"
+        name={`studentsAbove60`}
+        value={courseData.studentsAbove60}
+        onChange={(e) => onChange(index, "studentsAbove60", e.target.value)}
+        placeholder="Enter number of students"
+      />
+      <InputField
+        label="Students with CGPA 5.26 to 6.3"
+        name={`students50to59`}
+        value={courseData.students50to59}
+        onChange={(e) => onChange(index, "students50to59", e.target.value)}
+        placeholder="Enter number of students"
+      />
+      <InputField
+        label="Students with CGPA 4.21 to 5.25"
+        name={`students40to49`}
+        value={courseData.students40to49}
+        onChange={(e) => onChange(index, "students40to49", e.target.value)}
+        placeholder="Enter number of students"
+      />
+      <InputField
+        label="Total Students"
+        name={`totalStudents`}
+        value={courseData.totalStudents}
+        onChange={(e) => onChange(index, "totalStudents", e.target.value)}
+        placeholder="Enter total number of students"
+      />
+    </div>
+  </div>
+);
+
+const CourseOutcomeInput = ({ courseData, onChange, index }) => (
+  <div className="border-b border-gray-200 pb-4 mb-4">
+    <h4 className="text-lg font-medium text-gray-800 mb-3">
+      Course: {courseData.courseCode} ({courseData.courseSem})
+    </h4>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <InputField
+        label="CO Attainment (%)"
+        name="coAttainment"
+        value={courseData.coAttainment}
+        onChange={(e) => onChange(index, "coAttainment", e.target.value)}
+        placeholder="Enter CO attainment percentage"
+      />
+      <div className="space-y-2">
+        <label className="inline-flex items-center space-x-3">
+          <input
+            type="checkbox"
+            checked={courseData.timelySubmissionCO}
+            onChange={(e) => onChange(index, "timelySubmissionCO", e.target.checked)}
+            className="form-checkbox h-5 w-5 text-blue-600 rounded"
+          />
+          <span className="text-gray-700">Timely submission of CO attainment</span>
+        </label>
+      </div>
+    </div>
+  </div>
+);
+
+
+// Create a new component for Academic Engagement Input
+const AcademicEngagementInput = ({ courseData, onChange, index }) => (
+  <div className="border-b border-gray-200 pb-4 mb-4">
+    <h4 className="text-lg font-medium text-gray-800 mb-3">
+      Course: {courseData.courseCode}
+    </h4>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <InputField
+        label="Students present for lectures/practical labs/tutorials"
+        name="studentsPresent"
+        value={courseData.studentsPresent}
+        onChange={(e) => onChange(index, "studentsPresent", e.target.value)}
+        placeholder="Enter number of students present"
+      />
+      <InputField
+        label="Total enrolled students"
+        name="totalEnrolledStudents"
+        value={courseData.totalEnrolledStudents}
+        onChange={(e) => onChange(index, "totalEnrolledStudents", e.target.value)}
+        placeholder="Enter total enrolled students"
+      />
+    </div>
+  </div>
+);
+
+
+const FeedbackInput = ({ courseData, onChange, index }) => (
+  <div className="border-b border-gray-200 pb-4 mb-4">
+    <h4 className="text-lg font-medium text-gray-800 mb-3">
+      Course: {courseData.courseCode}
+    </h4>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <InputField
+        label="Feedback Percentage"
+        name="feedbackPercentage"
+        value={courseData.feedbackPercentage}
+        onChange={(e) => onChange(index, "feedbackPercentage", e.target.value)}
+        placeholder="Enter feedback percentage"
+      />
+    </div>
+  </div>
+);
 
 const ScoreCard = ({ label, score, total }) => (
   <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg flex items-center justify-between shadow-sm">
@@ -70,11 +200,7 @@ const TeachingPerformance = () => {
   console.log(userData);
   const navigate = useNavigate();
   const { courses, setCourses } = useCourses(); // Correctly destructure the context value
-
-  // Add useEffect to log courses whenever they change
-  useEffect(() => {
-    console.log("Current courses in TeachingPerformance:", courses);
-  }, [courses]);
+  const [courseResults, setCourseResults] = useState([]);
   const { isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     studentsAbove60: "",
@@ -104,41 +230,102 @@ const TeachingPerformance = () => {
     }));
   };
 
+  const handleCourseResultChange = (index, field, value) => {
+    setCourseResults((prevResults) => {
+      const newResults = [...prevResults];
+      newResults[index] = {
+        ...newResults[index],
+        [field]: value,
+      };
+      return newResults;
+    });
+  };
+
+  const calculateResultScore = () => {
+    let totalScore = 0;
+    let totalCourses = courseResults.length;
+
+    if (totalCourses === 0) return 0;
+
+    courseResults.forEach((course) => {
+      const studentsAbove60 = Number(course.studentsAbove60 || 0);
+      const students50to59 = Number(course.students50to59 || 0);
+      const students40to49 = Number(course.students40to49 || 0);
+      const totalStudents = Number(course.totalStudents || 0);
+
+      if (totalStudents > 0) {
+        const courseScore =
+          ((studentsAbove60 * 5 + students50to59 * 4 + students40to49 * 3) /
+            totalStudents) *
+          10;
+        totalScore += courseScore;
+      }
+    });
+
+    return totalScore / totalCourses;
+  }; 
+
+// Add helper functions to calculate CO scores
+const calculateSemesterCOScore = (courses, semester) => {
+  const semesterCourses = courses.filter(course => course.courseSem === semester);
+  
+  if (semesterCourses.length === 0) return 0;
+  
+  const semesterTotal = semesterCourses.reduce((total, course) => {
+    const coAttainment = Number(course.coAttainment || 0);
+    const timelyBonus = course.timelySubmissionCO ? 20 : 0;
+    const courseScore = (coAttainment * 30) / 100 + timelyBonus;
+    return total + courseScore;
+  }, 0);
+  
+  return semesterTotal / semesterCourses.length;
+};
+
+
+  // Add this helper function to calculate individual academic engagement scores
+const calculateAcademicEngagementScore = (course) => {
+  const studentsPresent = Number(course.studentsPresent || 0);
+  const totalEnrolled = Number(course.totalEnrolledStudents || 0);
+  
+  if (totalEnrolled > 0) {
+    return 50 * (studentsPresent / totalEnrolled);
+  }
+  return 0;
+};
+
+
+const calculateFeedbackScore = (course) => {
+  return Number(course.feedbackPercentage || 0);
+};
+
   const calculateScores = () => {
     // Result Analysis Score
-    const studentsAbove60 = Number(formData.studentsAbove60 || 0);
-    const students50to59 = Number(formData.students50to59 || 0);
-    const students40to49 = Number(formData.students40to49 || 0);
-    const totalStudents = Number(formData.totalStudents || 0);
-    const resultScore =
-      totalStudents > 0
-        ? ((studentsAbove60 * 5 + students50to59 * 4 + students40to49 * 3) /
-            totalStudents) *
-          10
-        : 0;
+    const resultScore = calculateResultScore();
 
-    // CO Attainment Score
-    const coAttainmentSem1 = Number(formData.coAttainmentSem1 || 0);
-    const coAttainmentSem2 = Number(formData.coAttainmentSem2 || 0);
-    const averageCO = (coAttainmentSem1 + coAttainmentSem2) / 2;
-    const coScore = formData.timelySubmissionCO
-      ? (averageCO * 30) / 100 + 20
-      : (averageCO * 30) / 100;
+  // Calculate CO Score semester-wise
+  const sem1Score = calculateSemesterCOScore(courseResults, "Sem I");
+  const sem2Score = calculateSemesterCOScore(courseResults, "Sem II");
+  
+  // Calculate final CO score as average of both semesters
+  const coScore = (sem1Score + sem2Score) / 2;
 
     // Other scores calculations as before
     const elearningScore =
       Number(Math.min(5, formData.elearningInstances) || 0) * 10;
-    const feedbackScore = Number(formData.feedbackPercentage || 0);
+    // Feedback Score
+      const feedbackScores = courseResults.map(course => calculateFeedbackScore(course));
+      const feedbackScore = feedbackScores.length > 0
+        ? feedbackScores.reduce((a, b) => a + b, 0) / feedbackScores.length
+        : 0;
+    // PTG Meetings Score
     const ptgMeetings = Number(formData.ptgMeetings || 0);
     const ptgScore = (ptgMeetings * 50) / 6;
 
     // Academic Engagement Score
-    const studentsPresent = Number(formData.studentsPresent || 0);
-    const totalEnrolled = Number(
-      formData.totalEnrolledStudentsForLectures || 0
-    );
-    const academicEngagementScore =
-      totalEnrolled > 0 ? 50 * (studentsPresent / totalEnrolled) : 0;
+    const academicEngagementScores = courseResults.map(course => calculateAcademicEngagementScore(course));
+    const academicEngagementScore = academicEngagementScores.length > 0
+      ? academicEngagementScores.reduce((a, b) => a + b, 0) / academicEngagementScores.length
+      : 0;
 
     // Teaching Load Score
     const loadSem1 = Number(formData.weeklyLoadSem1 || 0);
@@ -197,6 +384,8 @@ const TeachingPerformance = () => {
     return {
       resultScore,
       coScore,
+      sem1COScore: sem1Score,
+      sem2COScore: sem2Score,
       elearningScore,
       academicEngagementScore,
       teachingLoadScore,
@@ -207,6 +396,19 @@ const TeachingPerformance = () => {
       finalScore,
     };
   };
+
+  // Add this helper function to calculate individual course scores
+const calculateCourseScore = (course) => {
+  const studentsAbove60 = Number(course.studentsAbove60 || 0);
+  const students50to59 = Number(course.students50to59 || 0);
+  const students40to49 = Number(course.students40to49 || 0);
+  const totalStudents = Number(course.totalStudents || 0);
+
+  if (totalStudents > 0) {
+    return ((studentsAbove60 * 5 + students50to59 * 4 + students40to49 * 3) / totalStudents) * 10;
+  }
+  return 0;
+};
 
   const handleSubmit = async () => {
     const userData = JSON.parse(localStorage.getItem("userData"));
@@ -219,34 +421,39 @@ const TeachingPerformance = () => {
     }
     const scores = calculateScores();
 
+    const resultAnalysisCourses = {};
+    courseResults.forEach((course) => {
+      resultAnalysisCourses[course.courseCode] = {
+        studentsAbove60: Number(course.studentsAbove60) || 0,
+        students50to59: Number(course.students50to59) || 0,
+        students40to49: Number(course.students40to49) || 0,
+        totalStudents: Number(course.totalStudents) || 0,
+        // Calculate individual course marks
+        marks: calculateCourseScore(course)
+      };
+    });
+
     const payload = {
       1: {
-        courses: Object.fromEntries(
-          courses.map((course) => [
-            course.code,
-            {
-              studentsAbove60: Number(formData.studentsAbove60),
-              students50to59: Number(formData.students50to59),
-              students40to49: Number(formData.students40to49),
-              totalStudents: Number(formData.totalStudents),
-              marks: scores.resultScore,
-            },
-          ])
-        ),
+        courses: resultAnalysisCourses,
         marks: scores.resultScore,
       },
       2: {
         courses: Object.fromEntries(
-          courses.map((course) => [
-            course.code,
+          courseResults.map((course) => [
+            course.courseCode,
             {
-              coAttainmentSem1: Number(formData.coAttainmentSem1),
-              coAttainmentSem2: Number(formData.coAttainmentSem2),
-              timelySubmissionCO: formData.timelySubmissionCO,
-              marks: scores.coScore,
+              coAttainment: Number(course.coAttainment) || 0,
+              timelySubmissionCO: course.timelySubmissionCO,
+              semester: course.courseSem,
+              marks: (Number(course.coAttainment || 0) * 30) / 100 + (course.timelySubmissionCO ? 20 : 0)
             },
           ])
         ),
+        semesterScores: {
+          "Sem I": scores.sem1COScore,
+          "Sem II": scores.sem2COScore
+        },
         marks: scores.coScore,
       },
       3: {
@@ -255,15 +462,13 @@ const TeachingPerformance = () => {
       },
       4: {
         courses: Object.fromEntries(
-          courses.map((course) => [
-            course.code,
+          courseResults.map((course) => [
+            course.courseCode,
             {
-              studentsPresent: Number(formData.studentsPresent),
-              totalEnrolledStudents: Number(
-                formData.totalEnrolledStudentsForLectures
-              ),
-              marks: scores.academicEngagementScore,
-            },
+              studentsPresent: Number(course.studentsPresent) || 0,
+              totalEnrolledStudents: Number(course.totalEnrolledStudents) || 0,
+              marks: calculateAcademicEngagementScore(course),
+            }
           ])
         ),
         marks: scores.academicEngagementScore,
@@ -281,11 +486,11 @@ const TeachingPerformance = () => {
       },
       7: {
         courses: Object.fromEntries(
-          courses.map((course) => [
-            course.code,
+          courseResults.map((course) => [
+            course.courseCode,
             {
-              feedbackPercentage: Number(formData.feedbackPercentage),
-              marks: scores.feedbackScore,
+              feedbackPercentage: Number(course.feedbackPercentage) || 0,
+              marks: calculateFeedbackScore(course),
             },
           ])
         ),
@@ -331,7 +536,7 @@ const TeachingPerformance = () => {
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
         <Header/>
 
-        <TestComponent /> {/* Testing courses outside Header */}
+        <TestComponent onCoursesUpdate={setCourseResults} />
 
       {/* Result Analysis Section */}
       <SectionCard
@@ -339,38 +544,16 @@ const TeachingPerformance = () => {
         icon="📊"
         borderColor="border-blue-500"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField
-            label="Students with CGPA 6.31 and above"
-            name="studentsAbove60"
-            value={formData.studentsAbove60}
-            onChange={handleChange}
-            placeholder="Enter number of students"
+        {courseResults.map((courseData, index) => (
+          <CourseResultInput
+            key={courseData.courseCode}
+            courseData={courseData}
+            onChange={handleCourseResultChange}
+            index={index}
           />
-          <InputField
-            label="Students with CGPA 5.26 to 6.3"
-            name="students50to59"
-            value={formData.students50to59}
-            onChange={handleChange}
-            placeholder="Enter number of students"
-          />
-          <InputField
-            label="Students with CGPA 4.21 to 5.25"
-            name="students40to49"
-            value={formData.students40to49}
-            onChange={handleChange}
-            placeholder="Enter number of students"
-          />
-          <InputField
-            label="Total Students"
-            name="totalStudents"
-            value={formData.totalStudents}
-            onChange={handleChange}
-            placeholder="Enter total number of students"
-          />
-        </div>
+        ))}
         <ScoreCard
-          label="Result Analysis Score"
+          label="Result Analysis Score (Average across all courses)"
           score={scores.resultScore.toFixed(2)}
           total="50"
         />
@@ -378,54 +561,36 @@ const TeachingPerformance = () => {
 
       {/* Course Outcome Section */}
       <SectionCard
-        title="Course Outcome Analysis"
-        icon="📈"
-        borderColor="border-green-500"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField
-            label="CO Attainment Semester I (%)"
-            name="coAttainmentSem1"
-            value={formData.coAttainmentSem1}
-            onChange={handleChange}
-            placeholder="Enter CO attainment percentage"
-          />
-          <InputField
-            label="CO Attainment Semester II (%)"
-            name="coAttainmentSem2"
-            value={formData.coAttainmentSem2}
-            onChange={handleChange}
-            placeholder="Enter CO attainment percentage"
-          />
-        </div>
-        <div className="mt-4">
-          <label className="inline-flex items-center space-x-3">
-            <input
-              type="checkbox"
-              name="timelySubmissionCO"
-              checked={formData.timelySubmissionCO}
-              onChange={(e) =>
-                handleChange({
-                  target: {
-                    name: "timelySubmissionCO",
-                    type: "checkbox",
-                    checked: e.target.checked,
-                  },
-                })
-              }
-              className="form-checkbox h-5 w-5 text-blue-600 rounded"
-            />
-            <span className="text-gray-700">
-              Timely submission of CO attainment
-            </span>
-          </label>
-        </div>
-        <ScoreCard
-          label="CO Analysis Score"
-          score={scores.coScore.toFixed(2)}
-          total="50"
-        />
-      </SectionCard>
+    title="Course Outcome Analysis"
+    icon="📈"
+    borderColor="border-green-500"
+  >
+    {courseResults.map((courseData, index) => (
+      <CourseOutcomeInput
+        key={courseData.courseCode}
+        courseData={courseData}
+        onChange={handleCourseResultChange}
+        index={index}
+      />
+    ))}
+    <div className="mt-4 space-y-4">
+      <ScoreCard
+        label="Semester I CO Score"
+        score={scores.sem1COScore.toFixed(2)}
+        total="50"
+      />
+      <ScoreCard
+        label="Semester II CO Score"
+        score={scores.sem2COScore.toFixed(2)}
+        total="50"
+      />
+      <ScoreCard
+        label="Final CO Analysis Score (Average of both semesters)"
+        score={scores.coScore.toFixed(2)}
+        total="50"
+      />
+    </div>
+  </SectionCard>
 
       {/* E-learning Section */}
       <SectionCard
@@ -446,35 +611,25 @@ const TeachingPerformance = () => {
           total="50"
         />
       </SectionCard>
-
-      {/* Academic Engagement Section */}
-      <SectionCard
-        title="Academic Engagement"
-        icon="📖"
-        borderColor="border-indigo-500"
-      >
-        <div className="grid grid-cols-1 gap-4">
-          <InputField
-            label="Students present for lectures/practical labs/tutorials"
-            name="studentsPresent"
-            value={formData.studentsPresent}
-            onChange={handleChange}
-            placeholder="Enter number of students present"
-          />
-          <InputField
-            label="Total enrolled students"
-            name="totalEnrolledStudentsForLectures"
-            value={formData.totalEnrolledStudentsForLectures}
-            onChange={handleChange}
-            placeholder="Enter total enrolled students"
-          />
-        </div>
-        <ScoreCard
-          label="Academic Engagement Score"
-          score={scores.academicEngagementScore.toFixed(2)}
-          total="50"
-        />
-      </SectionCard>
+<SectionCard
+  title="Academic Engagement"
+  icon="📖"
+  borderColor="border-indigo-500"
+>
+  {courseResults.map((courseData, index) => (
+    <AcademicEngagementInput
+      key={courseData.courseCode}
+      courseData={courseData}
+      onChange={handleCourseResultChange}
+      index={index}
+    />
+  ))}
+  <ScoreCard
+    label="Academic Engagement Score (Average across all courses)"
+    score={scores.academicEngagementScore.toFixed(2)}
+    total="50"
+  />
+</SectionCard>
 
       {/* Teaching Load Section */}
       <SectionCard
@@ -549,23 +704,24 @@ const TeachingPerformance = () => {
 
       {/* Feedback Section */}
       <SectionCard
-        title="Feedback of Faculty by Student"
-        icon="📊"
-        borderColor="border-blue-500"
-      >
-        <InputField
-          label="Average feedback percentage"
-          name="feedbackPercentage"
-          value={formData.feedbackPercentage}
-          onChange={handleChange}
-          placeholder="Enter feedback percentage"
-        />
-        <ScoreCard
-          label="Feedback Score"
-          score={scores.feedbackScore.toFixed(2)}
-          total="100"
-        />
-      </SectionCard>
+    title="Feedback of Faculty by Student"
+    icon="📊"
+    borderColor="border-blue-500"
+  >
+    {courseResults.map((courseData, index) => (
+      <FeedbackInput
+        key={courseData.courseCode}
+        courseData={courseData}
+        onChange={handleCourseResultChange}
+        index={index}
+      />
+    ))}
+    <ScoreCard
+      label="Average Feedback Score (across all courses)"
+      score={scores.feedbackScore.toFixed(2)}
+      total="100"
+    />
+  </SectionCard>
 
       {/* PTG Meetings Section */}
       <SectionCard
