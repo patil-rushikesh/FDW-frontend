@@ -35,8 +35,8 @@ const TestComponent = ({ onCoursesUpdate }) => {
 
 const CourseResultInput = ({ courseData, onChange, index }) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
-    <h4 className="text-lg font-medium text-gray-800 mb-3">
-      Course: {courseData.courseCode}
+    <h4 className="text-lg font-medium  mb-3">
+      <CourseNameCard name={courseData.courseCode} />
     </h4>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <InputField
@@ -73,18 +73,21 @@ const CourseResultInput = ({ courseData, onChange, index }) => (
 
 const CourseOutcomeInput = ({ courseData, onChange, index }) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
-    <h4 className="text-lg font-medium text-gray-800 mb-3">
-      Course: {courseData.courseCode} ({courseData.courseSem})
+    <h4 className="text-lg font-medium text-gray-800 mb-3 ">
+      <CourseNameCard name={courseData.courseCode} /> ({courseData.courseSem})
     </h4>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <InputField
-        label="CO Attainment (%)"
-        name="coAttainment"
-        value={courseData.coAttainment}
-        onChange={(e) => onChange(index, "coAttainment", e.target.value)}
-        placeholder="Enter CO attainment percentage"
-      />
-      <div className="space-y-2">
+    <div className="flex items-center gap-4">
+      <div className="flex-1">
+        <InputField
+          label="CO Attainment (%)"
+          name="coAttainment"
+          value={courseData.coAttainment}
+          onChange={(e) => onChange(index, "coAttainment", e.target.value)}
+          placeholder="Enter CO attainment percentage"
+        />
+      </div>
+      <div className="flex-1">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Timely submission</label>
         <label className="inline-flex items-center space-x-3">
           <input
             type="checkbox"
@@ -104,7 +107,7 @@ const CourseOutcomeInput = ({ courseData, onChange, index }) => (
 const AcademicEngagementInput = ({ courseData, onChange, index }) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
     <h4 className="text-lg font-medium text-gray-800 mb-3">
-      Course: {courseData.courseCode}
+      <CourseNameCard name={courseData.courseCode} />
     </h4>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <InputField
@@ -115,10 +118,12 @@ const AcademicEngagementInput = ({ courseData, onChange, index }) => (
         placeholder="Enter number of students present"
       />
       <InputField
-        label="Total enrolled students"
+        label="Total enrolled students for lectures/practical labs/tutorials"
         name="totalEnrolledStudents"
         value={courseData.totalEnrolledStudents}
-        onChange={(e) => onChange(index, "totalEnrolledStudents", e.target.value)}
+        onChange={(e) =>
+          onChange(index, "totalEnrolledStudents", e.target.value)
+        }
         placeholder="Enter total enrolled students"
       />
     </div>
@@ -129,7 +134,7 @@ const AcademicEngagementInput = ({ courseData, onChange, index }) => (
 const FeedbackInput = ({ courseData, onChange, index }) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
     <h4 className="text-lg font-medium text-gray-800 mb-3">
-      Course: {courseData.courseCode}
+      <CourseNameCard name={courseData.courseCode} />
     </h4>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <InputField
@@ -150,6 +155,14 @@ const ScoreCard = ({ label, score, total }) => (
       {score} / {total}
     </span>
   </div>
+);
+
+const CourseNameCard = ({ name }) => (
+  <span className="mt-1 p-2 bg-gradient-to-r from-green-50 to-green-100 rounded-lg items-center justify-between shadow-sm">
+    <span className="font-medium text-gray-700">
+      Course:<strong> {name}</strong>
+    </span>
+  </span>
 );
 
 const SectionCard = ({ title, icon, borderColor, children }) => (
@@ -631,57 +644,47 @@ const calculateCourseScore = (course) => {
 </SectionCard>
 
       {/* Teaching Load Section */}
-      <SectionCard
-        title="Teaching Load"
-        icon="📚"
-        borderColor="border-yellow-500"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField
-            label="Weekly Load Semester I"
-            name="weeklyLoadSem1"
-            value={formData.weeklyLoadSem1}
-            onChange={handleChange}
-            placeholder="Enter weekly load"
-          />
-          <InputField
-            label="Weekly Load Semester II"
-            name="weeklyLoadSem2"
-            value={formData.weeklyLoadSem2}
-            onChange={handleChange}
-            placeholder="Enter weekly load"
-          />
-          <InputField
-            label="Are You Ph.D Supervisor Having Scholers Enrolled at PCCOE Research Center"
+        <SectionCard
+          title="Teaching Load"
+          icon="📚"
+          borderColor="border-yellow-500"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputField
+          label="Weekly Load Semester I"
+          name="weeklyLoadSem1"
+          value={formData.weeklyLoadSem1}
+          onChange={handleChange}
+          placeholder="Enter weekly load"
+            />
+            <InputField
+          label="Weekly Load Semester II"
+          name="weeklyLoadSem2"
+          value={formData.weeklyLoadSem2}
+          onChange={handleChange}
+          placeholder="Enter weekly load"
+            />
+            <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-700">
+            Are You Ph.D Supervisor Having Scholars Enrolled at PCCOE Research Center
+          </label>
+          <input
+            type="checkbox" 
             name="adminResponsibility"
-            type="checkbox"
             checked={formData.adminResponsibility}
             onChange={handleChange}
+            className="h-5 w-5 text-blue-600 rounded"
           />
+            </div>
+          </div>
+          <ScoreCard
+            label="Teaching Load Score"
+            score={scores.teachingLoadScore.toFixed(2)}
+            total="50"
+          />
+        </SectionCard>
 
-          {/* <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Select Cadre</label>
-            <select
-              name="cadre"
-              value={formData.cadre}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            >
-              <option value="">Select Cadre</option>
-              <option value="Professor">Professor</option>
-              <option value="Associate Professor">Associate Professor</option>
-              <option value="Assistant Professor">Assistant Professor</option>
-            </select>
-          </div> */}
-        </div>
-        <ScoreCard
-          label="Teaching Load Score"
-          score={scores.teachingLoadScore.toFixed(2)}
-          total="50"
-        />
-      </SectionCard>
-
-      {/* Projects Guided Section */}
+        {/* Projects Guided Section */}
       <SectionCard
         title="UG Project / PG Dissertations Guided"
         icon="🎓"

@@ -36,7 +36,7 @@ const Header = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div className="bg-white rounded-lg shadow-md p-4 mb-6 border-l-4 border-l-indigo-500">
       {/* Header Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex items-center space-x-2">
@@ -65,15 +65,20 @@ const Header = () => {
               type="text"
               placeholder="Course Code"
               value={course.code}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  addCourse();
+                }
+              }}
               onChange={(e) => updateCourse(course.id, "code", e.target.value)}
-              className="border rounded-lg p-2 w-full sm:w-40"
+              className="border border-gray-400 rounded-lg p-2 w-full sm:w-100"
             />
             <select
               value={course.semester}
               onChange={(e) =>
                 updateCourse(course.id, "semester", e.target.value)
               }
-              className="border rounded-lg p-2 w-full sm:w-auto"
+              className="border border-gray-400 rounded-lg p-2 w-full sm:w-auto"
             >
               <option value="Sem I">Sem I</option>
               <option value="Sem II">Sem II</option>
@@ -92,6 +97,7 @@ const Header = () => {
           className="mt-3 bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 flex items-center justify-center"
         >
           <Plus size={20} />
+          <p>Add Courses</p>
         </button>
       </div>
     </div>
