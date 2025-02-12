@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import Header from "./Header";
-//import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ClipLoader } from "react-spinners"; // Add this import
+//import Loader from "../ui/Loader"; // Remove this import
 
 const SectionCard = ({ title, icon, borderColor, children }) => (
   <div
@@ -89,6 +89,54 @@ const SelfDevelopment = () => {
     phdScholarsGuiding: 0
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchExistingData = async () => {
+      setIsLoading(true);
+      try {
+        const userData = JSON.parse(localStorage.getItem("userData"));
+        const department = userData.dept;
+        const user_id = userData._id;
+
+        const response = await fetch(
+          `http://127.0.0.1:5000/${department}/${user_id}/C`
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data) {
+            // Transform API data to match form structure
+            setFormData({
+              pdfCompleted: data[1]?.qualification?.pdfCompleted || false,
+              pdfOngoing: data[1]?.qualification?.pdfOngoing || false,
+              phdAwarded: data[1]?.qualification?.phdAwarded || false,
+              twoWeekProgram: data[2]?.trainingAttended?.twoWeekProgram || 0,
+              oneWeekProgram: data[2]?.trainingAttended?.oneWeekProgram || 0,
+              twoToFiveDayProgram: data[2]?.trainingAttended?.twoToFiveDayProgram || 0,
+              oneDayProgram: data[2]?.trainingAttended?.oneDayProgram || 0,
+              organizedTwoWeekProgram: data[3]?.trainingOrganized?.twoWeekProgram || 0,
+              organizedOneWeekProgram: data[3]?.trainingOrganized?.oneWeekProgram || 0,
+              organizedTwoToFiveDayProgram: data[3]?.trainingOrganized?.twoToFiveDayProgram || 0,
+              organizedOneDayProgram: data[3]?.trainingOrganized?.oneDayProgram || 0,
+              phdDegreeAwarded: data[4]?.phdGuided?.degreesAwarded || 0,
+              phdThesisSubmitted: data[4]?.phdGuided?.thesisSubmitted || 0,
+              phdScholarsGuiding: data[4]?.phdGuided?.scholarsGuiding || 0,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        alert("Failed to load existing data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchExistingData();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -154,6 +202,7 @@ const SelfDevelopment = () => {
   };
 
   const handleSubmit = async () => {
+    setIsSubmitting(true);
     const userData = JSON.parse(localStorage.getItem("userData"));
     const department = userData.dept;
     const user_id = userData._id;
@@ -223,6 +272,8 @@ const SelfDevelopment = () => {
       navigate("/dashboard");
     } catch (error) {
       alert("Error submitting data: " + error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -233,6 +284,14 @@ const SelfDevelopment = () => {
     phdGuidedScore: calculatePhDGuidedScore(),
     totalScore: calculateTotalScore()
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <ClipLoader color="#4F46E5" size={50} />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
@@ -421,9 +480,21 @@ const SelfDevelopment = () => {
       <div className="flex justify-end mt-8">
         <button
           onClick={handleSubmit}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors duration-300"
+          disabled={isSubmitting}
+          className={`px-6 py-3 text-white rounded-lg focus:ring-4 focus:ring-blue-300 transition-colors duration-300
+            ${isSubmitting 
+              ? 'bg-blue-400 cursor-not-allowed' 
+              : 'bg-blue-600 hover:bg-blue-700'
+            }`}
         >
-          Submit Self Development Details
+          {isSubmitting ? (
+            <span className="flex items-center gap-2">
+              <ClipLoader color="#ffffff" size={20} />
+              Submitting...
+            </span>
+          ) : (
+            'Submit Self Development Details'
+          )}
         </button>
       </div>
     </div>

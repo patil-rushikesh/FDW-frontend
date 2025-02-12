@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { ClipLoader } from "react-spinners";
 
 const SectionCard = ({ title, icon, borderColor, children }) => (
   <div
@@ -148,6 +149,154 @@ const Research = () => {
 
   const [proofLinks, setProofLinks] = useState({});
   const [verifiedScores, setVerifiedScores] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem("userData"));
+        const department = userData.dept;
+        const user_id = userData._id;
+
+        const response = await fetch(
+          `http://127.0.0.1:5000/${department}/${user_id}/B`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+
+        const data = await response.json();
+
+        // Update form data with fetched values
+        setFormData({
+          // Papers and Publications
+          sciPapers: data.papers.sci.count || 0,
+          esciPapers: data.papers.esci.count || 0,
+          scopusPapers: data.papers.scopus.count || 0,
+          ugcPapers: data.papers.ugc.count || 0,
+          otherPapers: data.papers.other.count || 0,
+
+          // Conference Papers
+          scopusConference: data.conferences.scopus.count || 0,
+          otherConference: data.conferences.other.count || 0,
+
+          // Book Chapters
+          scopusChapter: data.bookChapters.scopus.count || 0,
+          otherChapter: data.bookChapters.other.count || 0,
+
+          // Books
+          scopusBooks: data.books.scopus.count || 0,
+          nationalBooks: data.books.national.count || 0,
+          localBooks: data.books.local.count || 0,
+
+          // Citations
+          wosCitations: data.citations.wos.count || 0,
+          scopusCitations: data.citations.scopus.count || 0,
+          googleCitations: data.citations.google.count || 0,
+
+          // Patents
+          patentCommercialized: data.patents.individualCommercialized.count || 0,
+          patentGranted: data.patents.individualGranted.count || 0,
+          patentCollege: data.patents.collegeCommercialized.count || 0,
+          patentCollegeGranted: data.patents.collegeGranted.count || 0,
+
+          // Training and Revenue
+          trainingRevenue: data.training.revenue.amount || 0,
+          nonResearchGrant: data.nonResearchGrants.amount.value || 0,
+
+          // Products
+          productCommercialized: data.products.commercialized.count || 0,
+          productDeveloped: data.products.developed.count || 0,
+          pocDeveloped: data.products.poc.count || 0,
+
+          // Awards
+          internationalAward: data.awards.international.count || 0,
+          governmentAward: data.awards.government.count || 0,
+          nationalAward: data.awards.national.count || 0,
+          internationalFellowship: data.awards.internationalFellowship.count || 0,
+          nationalFellowship: data.awards.nationalFellowship.count || 0,
+
+          // Grants and Revenue
+          researchGrants: data.grantsAndRevenue.researchGrants.amount || 0,
+          consultancyRevenue: data.grantsAndRevenue.consultancyRevenue.amount || 0,
+          patentCommercialRevenue: data.grantsAndRevenue.patentCommercialRevenue.amount || 0,
+          productCommercialRevenue: data.grantsAndRevenue.productCommercialRevenue.amount || 0,
+          startupRevenue: data.grantsAndRevenue.startupRevenue.amount || 0,
+          startupFunding: data.grantsAndRevenue.startupFunding.amount || 0,
+
+          // PCCOE-CIIL Startup
+          startupRevenuePCCOE: data.startupPCCOE.revenue.amount || 0,
+          startupFundingPCCOE: data.startupPCCOE.funding.amount || 0,
+          startupProductsPCCOE: data.startupPCCOE.products.count || 0,
+          startupPOCPCCOE: data.startupPCCOE.poc.count || 0,
+          startupRegisteredPCCOE: data.startupPCCOE.registered.count || 0,
+
+          // Industry Interaction
+          activeMOU: data.industryInteraction.activeMOU.count || 0,
+          labDevelopment: data.industryInteraction.labDevelopment.count || 0,
+
+          // Industry Internship/Placement
+          industryInternshipPlacement: data.industryAssociation.internshipsAndPlacements.count || 0,
+        });
+
+        // Set proof links with fetched values
+        setProofLinks({
+          sciPapers: data.papers.sci.proof || "",
+          esciPapers: data.papers.esci.proof || "",
+          scopusPapers: data.papers.scopus.proof || "",
+          ugcPapers: data.papers.ugc.proof || "",
+          otherPapers: data.papers.other.proof || "",
+          scopusConference: data.conferences.scopus.proof || "",
+          otherConference: data.conferences.other.proof || "",
+          scopusChapter: data.bookChapters.scopus.proof || "",
+          otherChapter: data.bookChapters.other.proof || "",
+          scopusBooks: data.books.scopus.proof || "",
+          nationalBooks: data.books.national.proof || "",
+          localBooks: data.books.local.proof || "",
+          wosCitations: data.citations.wos.proof || "",
+          scopusCitations: data.citations.scopus.proof || "",
+          googleCitations: data.citations.google.proof || "",
+          patentCommercialized: data.patents.individualCommercialized.proof || "",
+          patentGranted: data.patents.individualGranted.proof || "",
+          patentCollege: data.patents.collegeCommercialized.proof || "",
+          patentCollegeGranted: data.patents.collegeGranted.proof || "",
+          trainingRevenue: data.training.revenue.proof || "",
+          nonResearchGrant: data.nonResearchGrants.amount.proof || "",
+          productCommercialized: data.products.commercialized.proof || "",
+          productDeveloped: data.products.developed.proof || "",
+          pocDeveloped: data.products.poc.proof || "",
+          internationalAward: data.awards.international.proof || "",
+          governmentAward: data.awards.government.proof || "",
+          nationalAward: data.awards.national.proof || "",
+          internationalFellowship: data.awards.internationalFellowship.proof || "",
+          nationalFellowship: data.awards.nationalFellowship.proof || "",
+          researchGrants: data.grantsAndRevenue.researchGrants.proof || "",
+          consultancyRevenue: data.grantsAndRevenue.consultancyRevenue.proof || "",
+          patentCommercialRevenue: data.grantsAndRevenue.patentCommercialRevenue.proof || "",
+          productCommercialRevenue: data.grantsAndRevenue.productCommercialRevenue.proof || "",
+          startupRevenue: data.grantsAndRevenue.startupRevenue.proof || "",
+          startupFunding: data.grantsAndRevenue.startupFunding.proof || "",
+          startupRevenuePCCOE: data.startupPCCOE.revenue.proof || "",
+          startupFundingPCCOE: data.startupPCCOE.funding.proof || "",
+          startupProductsPCCOE: data.startupPCCOE.products.proof || "",
+          startupPOCPCCOE: data.startupPCCOE.poc.proof || "",
+          startupRegisteredPCCOE: data.startupPCCOE.registered.proof || "",
+          activeMOU: data.industryInteraction.activeMOU.proof || "",
+          labDevelopment: data.industryInteraction.labDevelopment.proof || "",
+          industryInternshipPlacement: data.industryAssociation.internshipsAndPlacements.proof || "",
+        });
+
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        alert("Failed to load research data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -331,100 +480,109 @@ const Research = () => {
 
     const payload = {
       papers: {
-        sci: { count: Number(formData.sciPapers), proof: proofLinks.sciPapers },
-        esci: {
-          count: Number(formData.esciPapers),
-          proof: proofLinks.esciPapers,
+        sci: { 
+          count: Number(formData.sciPapers), 
+          proof: proofLinks.sciPapers || "NA"
         },
-        scopus: {
-          count: Number(formData.scopusPapers),
-          proof: proofLinks.scopusPapers,
+        esci: { 
+          count: Number(formData.esciPapers), 
+          proof: proofLinks.esciPapers || "NA"
         },
-        ugc: { count: Number(formData.ugcPapers), proof: proofLinks.ugcPapers },
-        other: {
-          count: Number(formData.otherPapers),
-          proof: proofLinks.otherPapers,
+        scopus: { 
+          count: Number(formData.scopusPapers), 
+          proof: proofLinks.scopusPapers || "NA"
+        },
+        ugc: { 
+          count: Number(formData.ugcPapers), 
+          proof: proofLinks.ugcPapers || "NA"
+        },
+        other: { 
+          count: Number(formData.otherPapers), 
+          proof: proofLinks.otherPapers || "NA"
         },
         marks: calculatePapersScore(),
       },
       conferences: {
-        scopus: {
-          count: Number(formData.scopusConference),
-          proof: proofLinks.scopusConference,
+        scopus: { 
+          count: Number(formData.scopusConference), 
+          proof: proofLinks.scopusConference || "NA"
         },
-        other: {
-          count: Number(formData.otherConference),
-          proof: proofLinks.otherConference,
+        other: { 
+          count: Number(formData.otherConference), 
+          proof: proofLinks.otherConference || "NA"
         },
         marks: calculateConferenceScore(),
       },
-      // ... similar structures for other sections
+      bookChapters: {
+        scopus: { count: Number(formData.scopusChapter), proof: proofLinks.scopusChapter || "NA" },
+        other: { count: Number(formData.otherChapter), proof: proofLinks.otherChapter || "NA" },
+        marks: calculateBookChapterScore(),
+      },
+      books: {
+        scopus: { count: Number(formData.scopusBooks), proof: proofLinks.scopusBooks || "NA" },
+        national: { count: Number(formData.nationalBooks), proof: proofLinks.nationalBooks || "NA" },
+        local: { count: Number(formData.localBooks), proof: proofLinks.localBooks || "NA" },
+        marks: calculateBookScore(),
+      },
+      citations: {
+        wos: { count: Number(formData.wosCitations), proof: proofLinks.wosCitations || "NA" },
+        scopus: { count: Number(formData.scopusCitations), proof: proofLinks.scopusCitations || "NA" },
+        google: { count: Number(formData.googleCitations), proof: proofLinks.googleCitations || "NA" },
+        marks: calculateCitationScore(),
+      },
+      patents: {
+        individualCommercialized: { count: Number(formData.patentCommercialized), proof: proofLinks.patentCommercialized || "NA" },
+        individualGranted: { count: Number(formData.patentGranted), proof: proofLinks.patentGranted || "NA" },
+        collegeCommercialized: { count: Number(formData.patentCollege), proof: proofLinks.patentCollege || "NA" },
+        collegeGranted: { count: Number(formData.patentCollegeGranted), proof: proofLinks.patentCollegeGranted || "NA" },
+        marks: calculatePatentScore(),
+      },
+      training: {
+        revenue: { amount: Number(formData.trainingRevenue), proof: proofLinks.trainingRevenue || "NA" },
+        marks: calculateTrainingScore(),
+      },
+      nonResearchGrants: {
+        amount: { value: Number(formData.nonResearchGrant), proof: proofLinks.nonResearchGrant || "NA" },
+        marks: calculateNonResearchScore(),
+      },
+      products: {
+        commercialized: { count: Number(formData.productCommercialized), proof: proofLinks.productCommercialized || "NA" },
+        developed: { count: Number(formData.productDeveloped), proof: proofLinks.productDeveloped || "NA" },
+        poc: { count: Number(formData.pocDeveloped), proof: proofLinks.pocDeveloped || "NA" },
+        marks: calculateProductScore(),
+      },
+      awards: {
+        international: { count: Number(formData.internationalAward), proof: proofLinks.internationalAward || "NA" },
+        government: { count: Number(formData.governmentAward), proof: proofLinks.governmentAward || "NA" },
+        national: { count: Number(formData.nationalAward), proof: proofLinks.nationalAward || "NA" },
+        internationalFellowship: { count: Number(formData.internationalFellowship), proof: proofLinks.internationalFellowship || "NA" },
+        nationalFellowship: { count: Number(formData.nationalFellowship), proof: proofLinks.nationalFellowship || "NA" },
+        marks: calculateAwardScore(),
+      },
       grantsAndRevenue: {
-        researchGrants: {
-          amount: Number(formData.researchGrants),
-          proof: proofLinks.researchGrants,
-        },
-        consultancyRevenue: {
-          amount: Number(formData.consultancyRevenue),
-          proof: proofLinks.consultancyRevenue,
-        },
-        patentCommercialRevenue: {
-          amount: Number(formData.patentCommercialRevenue),
-          proof: proofLinks.patentCommercialRevenue,
-        },
-        productCommercialRevenue: {
-          amount: Number(formData.productCommercialRevenue),
-          proof: proofLinks.productCommercialRevenue,
-        },
-        startupRevenue: {
-          amount: Number(formData.startupRevenue),
-          proof: proofLinks.startupRevenue,
-        },
-        startupFunding: {
-          amount: Number(formData.startupFunding),
-          proof: proofLinks.startupFunding,
-        },
+        researchGrants: { amount: Number(formData.researchGrants), proof: proofLinks.researchGrants || "NA" },
+        consultancyRevenue: { amount: Number(formData.consultancyRevenue), proof: proofLinks.consultancyRevenue || "NA" },
+        patentCommercialRevenue: { amount: Number(formData.patentCommercialRevenue), proof: proofLinks.patentCommercialRevenue || "NA" },
+        productCommercialRevenue: { amount: Number(formData.productCommercialRevenue), proof: proofLinks.productCommercialRevenue || "NA" },
+        startupRevenue: { amount: Number(formData.startupRevenue), proof: proofLinks.startupRevenue || "NA" },
+        startupFunding: { amount: Number(formData.startupFunding), proof: proofLinks.startupFunding || "NA" },
         marks: calculateGrantsAndRevenueScore(),
       },
       startupPCCOE: {
-        revenue: {
-          amount: Number(formData.startupRevenuePCCOE),
-          proof: proofLinks.startupRevenuePCCOE,
-        },
-        funding: {
-          amount: Number(formData.startupFundingPCCOE),
-          proof: proofLinks.startupFundingPCCOE,
-        },
-        products: {
-          count: Number(formData.startupProductsPCCOE),
-          proof: proofLinks.startupProductsPCCOE,
-        },
-        poc: {
-          count: Number(formData.startupPOCPCCOE),
-          proof: proofLinks.startupPOCPCCOE,
-        },
-        registered: {
-          count: Number(formData.startupRegisteredPCCOE),
-          proof: proofLinks.startupRegisteredPCCOE,
-        },
+        revenue: { amount: Number(formData.startupRevenuePCCOE), proof: proofLinks.startupRevenuePCCOE || "NA" },
+        funding: { amount: Number(formData.startupFundingPCCOE), proof: proofLinks.startupFundingPCCOE || "NA" },
+        products: { count: Number(formData.startupProductsPCCOE), proof: proofLinks.startupProductsPCCOE || "NA" },
+        poc: { count: Number(formData.startupPOCPCCOE), proof: proofLinks.startupPOCPCCOE || "NA" },
+        registered: { count: Number(formData.startupRegisteredPCCOE), proof: proofLinks.startupRegisteredPCCOE || "NA" },
         marks: calculateStartupPCCOEScore(),
       },
       industryInteraction: {
-        activeMOU: {
-          count: Number(formData.activeMOU),
-          proof: proofLinks.activeMOU,
-        },
-        labDevelopment: {
-          count: Number(formData.labDevelopment),
-          proof: proofLinks.labDevelopment,
-        },
+        activeMOU: { count: Number(formData.activeMOU), proof: proofLinks.activeMOU || "NA" },
+        labDevelopment: { count: Number(formData.labDevelopment), proof: proofLinks.labDevelopment || "NA" },
         marks: calculateIndustryInteractionScore(),
       },
       industryAssociation: {
-        internshipsAndPlacements: {
-          count: Number(formData.industryInternshipPlacement),
-          proof: proofLinks.industryInternshipPlacement,
-        },
+        internshipsAndPlacements: { count: Number(formData.industryInternshipPlacement), proof: proofLinks.industryInternshipPlacement || "NA" },
         marks: calculateIndustryAssociationScore(),
       },
       total_marks: calculateTotalScore(),
@@ -454,6 +612,14 @@ const Research = () => {
       alert("Error submitting data: " + error.message);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <ClipLoader color="#4F46E5" size={50} />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">

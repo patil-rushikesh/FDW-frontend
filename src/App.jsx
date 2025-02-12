@@ -50,7 +50,7 @@ function AppContent() {
               <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-4 lg:p-6">
                 <Routes>
                   <Route path="/login" element={<Navigate to="/profile" />} />
-                  <Route path="/admin" element={<FacultyAdminPanel />} />
+                  
                   <Route
                     path="/profile"
                     element={
@@ -97,6 +97,7 @@ function AppContent() {
             ) : (
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/admin" element={<FacultyAdminPanel />} />
                 <Route path="/*" element={<Navigate to="/login" />} />
               </Routes>
             )}
