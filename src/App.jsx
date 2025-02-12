@@ -16,6 +16,7 @@ import LoginPage from "./components/LoginPage";
 import SplashScreen from "./components/SplashScreen";
 import TeachingPerformance from "./components/forms/TeachingPerformance";
 import SelfDevelopment from "./components/forms/SelfDevelopment";
+import Research from "./components/forms/Research";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -65,7 +66,7 @@ function AppContent() {
                     path="/research"
                     element={
                       <ProtectedRoute>
-                        <ResearchPublications />
+                        <Research/>
                       </ProtectedRoute>
                     }
                   />
