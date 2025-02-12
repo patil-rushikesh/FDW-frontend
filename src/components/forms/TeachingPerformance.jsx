@@ -234,6 +234,77 @@ const TeachingPerformance = () => {
     ptgMeetings: "",
   });
 
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      if (!userData?.dept || !userData?._id) {
+        setIsLoading(false);
+        return;
+      }
+  
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:5000/${userData.dept}/${userData._id}/A`
+        );
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+  
+        const data = await response.json();
+        
+        // Update courseResults with fetched data
+        if (data['1']?.courses) {
+          const updatedCourseResults = Object.entries(data['1'].courses).map(([courseCode, courseData]) => ({
+            courseCode,
+            studentsAbove60: courseData.studentsAbove60.toString(),
+            students50to59: courseData.students50to59.toString(),
+            students40to49: courseData.students40to49.toString(),
+            totalStudents: courseData.totalStudents.toString(),
+            // Get CO data from section 2
+            coAttainment: data['2']?.courses[courseCode]?.coAttainment?.toString() || '',
+            timelySubmissionCO: data['2']?.courses[courseCode]?.timelySubmissionCO || false,
+            courseSem: data['2']?.courses[courseCode]?.semester || '',
+            // Get Academic Engagement data from section 4
+            studentsPresent: data['4']?.courses[courseCode]?.studentsPresent?.toString() || '',
+            totalEnrolledStudents: data['4']?.courses[courseCode]?.totalEnrolledStudents?.toString() || '',
+            // Get Feedback data from section 7
+            feedbackPercentage: data['7']?.courses[courseCode]?.feedbackPercentage?.toString() || '',
+          }));
+          setCourseResults(updatedCourseResults);
+        }
+  
+        // Update formData with fetched data
+        setFormData(prev => ({
+          ...prev,
+          elearningInstances: data['3']?.elearningInstances?.toString() || '',
+          weeklyLoadSem1: data['5']?.weeklyLoadSem1?.toString() || '',
+          weeklyLoadSem2: data['5']?.weeklyLoadSem2?.toString() || '',
+          adminResponsibility: data['5']?.adminResponsibility === 1,
+          projectsGuided: data['6']?.projectsGuided?.toString() || '',
+          ptgMeetings: data['8']?.ptgMeetings?.toString() || '',
+        }));
+  
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchData();
+  }, []);
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
