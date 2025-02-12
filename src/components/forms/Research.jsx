@@ -332,99 +332,87 @@ const Research = () => {
     const payload = {
       papers: {
         sci: { count: Number(formData.sciPapers), proof: proofLinks.sciPapers },
-        esci: {
-          count: Number(formData.esciPapers),
-          proof: proofLinks.esciPapers,
-        },
-        scopus: {
-          count: Number(formData.scopusPapers),
-          proof: proofLinks.scopusPapers,
-        },
+        esci: { count: Number(formData.esciPapers), proof: proofLinks.esciPapers },
+        scopus: { count: Number(formData.scopusPapers), proof: proofLinks.scopusPapers },
         ugc: { count: Number(formData.ugcPapers), proof: proofLinks.ugcPapers },
-        other: {
-          count: Number(formData.otherPapers),
-          proof: proofLinks.otherPapers,
-        },
+        other: { count: Number(formData.otherPapers), proof: proofLinks.otherPapers },
         marks: calculatePapersScore(),
       },
       conferences: {
-        scopus: {
-          count: Number(formData.scopusConference),
-          proof: proofLinks.scopusConference,
-        },
-        other: {
-          count: Number(formData.otherConference),
-          proof: proofLinks.otherConference,
-        },
+        scopus: { count: Number(formData.scopusConference), proof: proofLinks.scopusConference },
+        other: { count: Number(formData.otherConference), proof: proofLinks.otherConference },
         marks: calculateConferenceScore(),
       },
-      // ... similar structures for other sections
+      bookChapters: {
+        scopus: { count: Number(formData.scopusChapter), proof: proofLinks.scopusChapter },
+        other: { count: Number(formData.otherChapter), proof: proofLinks.otherChapter },
+        marks: calculateBookChapterScore(),
+      },
+      books: {
+        scopus: { count: Number(formData.scopusBooks), proof: proofLinks.scopusBooks },
+        national: { count: Number(formData.nationalBooks), proof: proofLinks.nationalBooks },
+        local: { count: Number(formData.localBooks), proof: proofLinks.localBooks },
+        marks: calculateBookScore(),
+      },
+      citations: {
+        wos: { count: Number(formData.wosCitations), proof: proofLinks.wosCitations },
+        scopus: { count: Number(formData.scopusCitations), proof: proofLinks.scopusCitations },
+        google: { count: Number(formData.googleCitations), proof: proofLinks.googleCitations },
+        marks: calculateCitationScore(),
+      },
+      patents: {
+        individualCommercialized: { count: Number(formData.patentCommercialized), proof: proofLinks.patentCommercialized },
+        individualGranted: { count: Number(formData.patentGranted), proof: proofLinks.patentGranted },
+        collegeCommercialized: { count: Number(formData.patentCollege), proof: proofLinks.patentCollege },
+        collegeGranted: { count: Number(formData.patentCollegeGranted), proof: proofLinks.patentCollegeGranted },
+        marks: calculatePatentScore(),
+      },
+      training: {
+        revenue: { amount: Number(formData.trainingRevenue), proof: proofLinks.trainingRevenue },
+        marks: calculateTrainingScore(),
+      },
+      nonResearchGrants: {
+        amount: { value: Number(formData.nonResearchGrant), proof: proofLinks.nonResearchGrant },
+        marks: calculateNonResearchScore(),
+      },
+      products: {
+        commercialized: { count: Number(formData.productCommercialized), proof: proofLinks.productCommercialized },
+        developed: { count: Number(formData.productDeveloped), proof: proofLinks.productDeveloped },
+        poc: { count: Number(formData.pocDeveloped), proof: proofLinks.pocDeveloped },
+        marks: calculateProductScore(),
+      },
+      awards: {
+        international: { count: Number(formData.internationalAward), proof: proofLinks.internationalAward },
+        government: { count: Number(formData.governmentAward), proof: proofLinks.governmentAward },
+        national: { count: Number(formData.nationalAward), proof: proofLinks.nationalAward },
+        internationalFellowship: { count: Number(formData.internationalFellowship), proof: proofLinks.internationalFellowship },
+        nationalFellowship: { count: Number(formData.nationalFellowship), proof: proofLinks.nationalFellowship },
+        marks: calculateAwardScore(),
+      },
       grantsAndRevenue: {
-        researchGrants: {
-          amount: Number(formData.researchGrants),
-          proof: proofLinks.researchGrants,
-        },
-        consultancyRevenue: {
-          amount: Number(formData.consultancyRevenue),
-          proof: proofLinks.consultancyRevenue,
-        },
-        patentCommercialRevenue: {
-          amount: Number(formData.patentCommercialRevenue),
-          proof: proofLinks.patentCommercialRevenue,
-        },
-        productCommercialRevenue: {
-          amount: Number(formData.productCommercialRevenue),
-          proof: proofLinks.productCommercialRevenue,
-        },
-        startupRevenue: {
-          amount: Number(formData.startupRevenue),
-          proof: proofLinks.startupRevenue,
-        },
-        startupFunding: {
-          amount: Number(formData.startupFunding),
-          proof: proofLinks.startupFunding,
-        },
+        researchGrants: { amount: Number(formData.researchGrants), proof: proofLinks.researchGrants },
+        consultancyRevenue: { amount: Number(formData.consultancyRevenue), proof: proofLinks.consultancyRevenue },
+        patentCommercialRevenue: { amount: Number(formData.patentCommercialRevenue), proof: proofLinks.patentCommercialRevenue },
+        productCommercialRevenue: { amount: Number(formData.productCommercialRevenue), proof: proofLinks.productCommercialRevenue },
+        startupRevenue: { amount: Number(formData.startupRevenue), proof: proofLinks.startupRevenue },
+        startupFunding: { amount: Number(formData.startupFunding), proof: proofLinks.startupFunding },
         marks: calculateGrantsAndRevenueScore(),
       },
       startupPCCOE: {
-        revenue: {
-          amount: Number(formData.startupRevenuePCCOE),
-          proof: proofLinks.startupRevenuePCCOE,
-        },
-        funding: {
-          amount: Number(formData.startupFundingPCCOE),
-          proof: proofLinks.startupFundingPCCOE,
-        },
-        products: {
-          count: Number(formData.startupProductsPCCOE),
-          proof: proofLinks.startupProductsPCCOE,
-        },
-        poc: {
-          count: Number(formData.startupPOCPCCOE),
-          proof: proofLinks.startupPOCPCCOE,
-        },
-        registered: {
-          count: Number(formData.startupRegisteredPCCOE),
-          proof: proofLinks.startupRegisteredPCCOE,
-        },
+        revenue: { amount: Number(formData.startupRevenuePCCOE), proof: proofLinks.startupRevenuePCCOE },
+        funding: { amount: Number(formData.startupFundingPCCOE), proof: proofLinks.startupFundingPCCOE },
+        products: { count: Number(formData.startupProductsPCCOE), proof: proofLinks.startupProductsPCCOE },
+        poc: { count: Number(formData.startupPOCPCCOE), proof: proofLinks.startupPOCPCCOE },
+        registered: { count: Number(formData.startupRegisteredPCCOE), proof: proofLinks.startupRegisteredPCCOE },
         marks: calculateStartupPCCOEScore(),
       },
       industryInteraction: {
-        activeMOU: {
-          count: Number(formData.activeMOU),
-          proof: proofLinks.activeMOU,
-        },
-        labDevelopment: {
-          count: Number(formData.labDevelopment),
-          proof: proofLinks.labDevelopment,
-        },
+        activeMOU: { count: Number(formData.activeMOU), proof: proofLinks.activeMOU },
+        labDevelopment: { count: Number(formData.labDevelopment), proof: proofLinks.labDevelopment },
         marks: calculateIndustryInteractionScore(),
       },
       industryAssociation: {
-        internshipsAndPlacements: {
-          count: Number(formData.industryInternshipPlacement),
-          proof: proofLinks.industryInternshipPlacement,
-        },
+        internshipsAndPlacements: { count: Number(formData.industryInternshipPlacement), proof: proofLinks.industryInternshipPlacement },
         marks: calculateIndustryAssociationScore(),
       },
       total_marks: calculateTotalScore(),
