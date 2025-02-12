@@ -15,6 +15,7 @@ import { Menu } from "lucide-react";
 import LoginPage from "./components/LoginPage";
 import SplashScreen from "./components/SplashScreen";
 import TeachingPerformance from "./components/forms/TeachingPerformance";
+import FacultyAdminPanel from "./components/profile/FacultyAdminPanel";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -44,6 +45,7 @@ function AppContent() {
               <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-4 lg:p-6">
                 <Routes>
                   <Route path="/login" element={<Navigate to="/profile" />} />
+                  <Route path="/admin" element={<FacultyAdminPanel />} />
                   <Route
                     path="/profile"
                     element={
@@ -56,7 +58,7 @@ function AppContent() {
                     path="/teaching"
                     element={
                       <ProtectedRoute>
-                          <TeachingPerformance />
+                        <TeachingPerformance />
                       </ProtectedRoute>
                     }
                   />

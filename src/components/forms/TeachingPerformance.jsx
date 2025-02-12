@@ -97,6 +97,31 @@ const TeachingPerformance = () => {
     }));
   };
 
+  const [currentCourseIndex, setCurrentCourseIndex] = useState(0);
+  const [completedCourses, setCompletedCourses] = useState([]);
+
+  const handleCourseChange = (courseId, field, value) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [courseId]: {
+        ...prevData[courseId],
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleNextCourse = () => {
+    const currentCourse = courses[currentCourseIndex];
+
+    // Save the completed course
+    setCompletedCourses([...completedCourses, currentCourse]);
+
+    // Move to the next course
+    if (currentCourseIndex < courses.length - 1) {
+      setCurrentCourseIndex(currentCourseIndex + 1);
+    }
+  };
+
   const calculateScores = () => {
     // Result Analysis Score
     const studentsAbove60 = Number(formData.studentsAbove60 || 0);
@@ -322,10 +347,8 @@ const TeachingPerformance = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
-        <Header/>
-
-        <TestComponent /> {/* Testing courses outside Header */}
-
+      <Header />
+      <TestComponent /> {/* Testing courses outside Header */}
       {/* Result Analysis Section */}
       <SectionCard
         title="Result Analysis"
@@ -369,6 +392,117 @@ const TeachingPerformance = () => {
         />
       </SectionCard>
 
+      {/* Result Analysis section */}
+      <SectionCard
+        title="Result Analysis"
+        icon="📊"
+        borderColor="border-blue-500"
+      >
+        <div className="space-y-6">
+          {/* Completed Courses Summary */}
+          {completedCourses.map((course) => (
+            <div key={course.id} className="border p-3 rounded bg-gray-100">
+              <h3 className="font-bold text-lg">
+                {course.semester} - {course.code}
+              </h3>
+              <p>Above 6.31: {formData[course.id]?.studentsAbove60 || "N/A"}</p>
+              <p>5.26 - 6.3: {formData[course.id]?.students50to59 || "N/A"}</p>
+              <p>4.21 - 5.25: {formData[course.id]?.students40to49 || "N/A"}</p>
+              <p>
+                Total Students: {formData[course.id]?.totalStudents || "N/A"}
+              </p>
+            </div>
+          ))}
+
+          {/* Show input fields for the current course */}
+          {currentCourseIndex < courses.length ? (
+            <>
+              <h3 className="text-xl font-bold">
+                Enter Data for {courses[currentCourseIndex].semester} -{" "}
+                {courses[currentCourseIndex].code}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField
+                  label="Students with CGPA 6.31 and above"
+                  name="studentsAbove60"
+                  value={
+                    formData[courses[currentCourseIndex].id]?.studentsAbove60 ||
+                    ""
+                  }
+                  onChange={(e) =>
+                    handleCourseChange(
+                      courses[currentCourseIndex].id,
+                      "studentsAbove60",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Enter number of students"
+                />
+                <InputField
+                  label="Students with CGPA 5.26 to 6.3"
+                  name="students50to59"
+                  value={
+                    formData[courses[currentCourseIndex].id]?.students50to59 ||
+                    ""
+                  }
+                  onChange={(e) =>
+                    handleCourseChange(
+                      courses[currentCourseIndex].id,
+                      "students50to59",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Enter number of students"
+                />
+                <InputField
+                  label="Students with CGPA 4.21 to 5.25"
+                  name="students40to49"
+                  value={
+                    formData[courses[currentCourseIndex].id]?.students40to49 ||
+                    ""
+                  }
+                  onChange={(e) =>
+                    handleCourseChange(
+                      courses[currentCourseIndex].id,
+                      "students40to49",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Enter number of students"
+                />
+                <InputField
+                  label="Total Students"
+                  name="totalStudents"
+                  value={
+                    formData[courses[currentCourseIndex].id]?.totalStudents ||
+                    ""
+                  }
+                  onChange={(e) =>
+                    handleCourseChange(
+                      courses[currentCourseIndex].id,
+                      "totalStudents",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Enter total number of students"
+                />
+              </div>
+
+              {/* Next Button */}
+              <button
+                onClick={handleNextCourse}
+                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                OK
+              </button>
+            </>
+          ) : (
+            <p className="text-green-600 font-semibold">
+              All subjects have been entered!
+            </p>
+          )}
+        </div>
+      </SectionCard>
       {/* Course Outcome Section */}
       <SectionCard
         title="Course Outcome Analysis"
@@ -419,7 +553,6 @@ const TeachingPerformance = () => {
           total="50"
         />
       </SectionCard>
-
       {/* E-learning Section */}
       <SectionCard
         title="E-learning Content Development"
@@ -439,7 +572,6 @@ const TeachingPerformance = () => {
           total="50"
         />
       </SectionCard>
-
       {/* Academic Engagement Section */}
       <SectionCard
         title="Academic Engagement"
@@ -468,7 +600,6 @@ const TeachingPerformance = () => {
           total="50"
         />
       </SectionCard>
-
       {/* Teaching Load Section */}
       <SectionCard
         title="Teaching Load"
@@ -519,7 +650,6 @@ const TeachingPerformance = () => {
           total="50"
         />
       </SectionCard>
-
       {/* Projects Guided Section */}
       <SectionCard
         title="UG Project / PG Dissertations Guided"
@@ -539,7 +669,6 @@ const TeachingPerformance = () => {
           total="40"
         />
       </SectionCard>
-
       {/* Feedback Section */}
       <SectionCard
         title="Feedback of Faculty by Student"
@@ -559,7 +688,6 @@ const TeachingPerformance = () => {
           total="100"
         />
       </SectionCard>
-
       {/* PTG Meetings Section */}
       <SectionCard
         title="Conduction of Guardian [PTG] Meetings"
@@ -587,7 +715,6 @@ const TeachingPerformance = () => {
           total="50"
         />
       </SectionCard>
-
       {/* Total Score Section */}
       <SectionCard
         title="Total Academic Performance Score"
@@ -645,7 +772,6 @@ const TeachingPerformance = () => {
           </table>
         </div>
       </SectionCard>
-
       {/* Submit Button */}
       <div className="flex justify-end mt-8">
         <button
@@ -658,7 +784,6 @@ const TeachingPerformance = () => {
     </div>
   );
 };
-
 
 const TeachingPerformanceWithProvider = () => (
   <CourseProvider>
