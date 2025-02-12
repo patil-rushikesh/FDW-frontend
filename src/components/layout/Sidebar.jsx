@@ -26,7 +26,7 @@ const navItems = [
   {
     icon: GraduationCap,
     label: "Part D: Portfolio-Departmental & Central",
-    path: "/development",
+    path: "/portfolio",
   },
   { icon: CheckSquare, label: "Final Review", path: "/review" },
 ];

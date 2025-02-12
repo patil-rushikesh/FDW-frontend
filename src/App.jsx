@@ -17,6 +17,7 @@ import SplashScreen from "./components/SplashScreen";
 import TeachingPerformance from "./components/forms/TeachingPerformance";
 import SelfDevelopment from "./components/forms/SelfDevelopment";
 import Research from "./components/forms/Research";
+import Portfolio from "./components/forms/Portfolio";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -75,6 +76,14 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <SelfDevelopment />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/portfolio"
+                    element={
+                      <ProtectedRoute>
+                        <Portfolio/>
                       </ProtectedRoute>
                     }
                   />
