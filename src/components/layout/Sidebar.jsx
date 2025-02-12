@@ -21,12 +21,12 @@ const navItems = [
   {
     icon: Building2,
     label: "Part C: Self Development",
-    path: "/administrative",
+    path: "/selfdevelopment",
   },
   {
     icon: GraduationCap,
     label: "Part D: Portfolio-Departmental & Central",
-    path: "/development",
+    path: "/portfolio",
   },
   { icon: CheckSquare, label: "Final Review", path: "/review" },
 ];
