@@ -36,6 +36,7 @@ function AppContent() {
 
   return (
     <FormProvider>
+      <Route><SplashScreen/></Route>
       <div className="min-h-screen bg-gray-50">
         {isAuthenticated && (
           <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
