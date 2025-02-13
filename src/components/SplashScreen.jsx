@@ -14,7 +14,7 @@ const SplashScreen = () => {
     // Redirect to profile page after 3.5 seconds
     const timer = setTimeout(() => {
       navigate("/login");
-    }, 3500);
+    }, 1500);
 
     // Cleanup timers on component unmount
     return () => {

@@ -42,7 +42,7 @@ const LoginPage = () => {
         
         // Wait for 1.5 seconds to show the success message before redirecting
         setTimeout(() => {
-          navigate("/profile");
+          navigate("/dashboard");
         }, 1500);
       } else {
         setError(data.error || "Login failed. Please try again.");

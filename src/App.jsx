@@ -19,6 +19,8 @@ import FacultyAdminPanel from "./components/profile/FacultyAdminPanel";
 import SelfDevelopment from "./components/forms/SelfDevelopment";
 import Research from "./components/forms/Research";
 import Portfolio from "./components/forms/Portfolio";
+import Dashboard from "./components/forms/Dashboard";
+import SubmissionStatus from "./components/forms/SubmissionStatus";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -32,17 +34,19 @@ const ProtectedRoute = ({ children }) => {
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isAuthenticated } = useAuth();
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(!isAuthenticated);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 3500); // Show splash screen for 3.5 seconds
+    if (!isAuthenticated) {
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+      }, 3500); // Show splash screen for 3.5 seconds
 
-    return () => clearTimeout(timer);
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated]);
 
-  if (showSplash) {
+  if (showSplash && !isAuthenticated) {
     return <SplashScreen />;
   }
 
@@ -60,7 +64,16 @@ function AppContent() {
             {isAuthenticated ? (
               <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-4 lg:p-6">
                 <Routes>
-                  <Route path="/login" element={<Navigate to="/profile" />} />
+                  <Route path="/login" element={<Navigate to="/dashboard" />} />
+                  <Route path="/submission-status" element={<SubmissionStatus/>} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard/>
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route
                     path="/profile"
                     element={

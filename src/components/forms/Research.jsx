@@ -600,16 +600,25 @@ const Research = () => {
         }
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
+      if (response.ok) {
+        navigate('/submission-status', { 
+          state: { 
+            status: 'success',
+            formName: 'Research Form',
+            message: 'Your Research details have been successfully submitted!'
+          }
+        });
+      } else {
         throw new Error(errorData.error || "Failed to submit data");
       }
-
-      const result = await response.json();
-      alert(result.message);
-      navigate("/dashboard");
     } catch (error) {
-      alert("Error submitting data: " + error.message);
+      navigate('/submission-status', { 
+        state: { 
+          status: 'error',
+          formName: 'Research Form',
+          error: error.message
+        }
+      });
     }
   };
 
