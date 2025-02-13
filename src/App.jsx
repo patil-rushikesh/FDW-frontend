@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -20,7 +20,6 @@ import SelfDevelopment from "./components/forms/SelfDevelopment";
 import Research from "./components/forms/Research";
 import Portfolio from "./components/forms/Portfolio";
 
-
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -33,10 +32,22 @@ const ProtectedRoute = ({ children }) => {
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isAuthenticated } = useAuth();
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 3500); // Show splash screen for 3.5 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showSplash) {
+    return <SplashScreen />;
+  }
 
   return (
     <FormProvider>
-      <Route><SplashScreen/></Route>
       <div className="min-h-screen bg-gray-50">
         {isAuthenticated && (
           <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -50,7 +61,6 @@ function AppContent() {
               <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-4 lg:p-6">
                 <Routes>
                   <Route path="/login" element={<Navigate to="/profile" />} />
-                  
                   <Route
                     path="/profile"
                     element={
@@ -71,7 +81,7 @@ function AppContent() {
                     path="/research"
                     element={
                       <ProtectedRoute>
-                        <Research/>
+                        <Research />
                       </ProtectedRoute>
                     }
                   />
@@ -87,7 +97,7 @@ function AppContent() {
                     path="/portfolio"
                     element={
                       <ProtectedRoute>
-                        <Portfolio/>
+                        <Portfolio />
                       </ProtectedRoute>
                     }
                   />
