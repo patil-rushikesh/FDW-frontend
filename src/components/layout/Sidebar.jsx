@@ -11,7 +11,7 @@ import {
 import { Link, useLocation } from "react-router-dom";
 
 const navItems = [
-  { icon: User, label: "Profile", path: "/profile" },
+  { icon: User, label: "Dashboard", path: "/dashboard" },
   { icon: BookOpen, label: "Part A: Academic Involvment", path: "/teaching" },
   {
     icon: FileText,
