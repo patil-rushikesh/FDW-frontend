@@ -21,6 +21,7 @@ import Research from "./components/forms/Research";
 import Portfolio from "./components/forms/Portfolio";
 import Dashboard from "./components/forms/Dashboard";
 import SubmissionStatus from "./components/forms/SubmissionStatus";
+import Review from "./components/forms/review";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -111,6 +112,14 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <Portfolio />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/review"
+                    element={
+                      <ProtectedRoute>
+                        <Review/>
                       </ProtectedRoute>
                     }
                   />
