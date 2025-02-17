@@ -13,18 +13,18 @@ const TestComponent = ({ onCoursesUpdate }) => {
         courseCode: course.code,
         courseSem: course.semester,
         // Result Analysis fields
-        studentsAbove60: "",
-        students50to59: "",
-        students40to49: "",
-        totalStudents: "",
+        studentsAbove60: course.resultData?.studentsAbove60 || "",
+        students50to59: course.resultData?.students50to59 || "",
+        students40to49: course.resultData?.students40to49 || "",
+        totalStudents: course.resultData?.totalStudents || "",
         // Academic Engagement fields
-        studentsPresent: "",
-        totalEnrolledStudents: "",
+        studentsPresent: course.academicData?.studentsPresent || "",
+        totalEnrolledStudents: course.academicData?.totalEnrolledStudents || "",
         // Feedback field
-        feedbackPercentage: "",
+        feedbackPercentage: course.feedbackData?.feedbackPercentage || "",
         // Course Outcome fields
-        coAttainment: "",
-        timelySubmissionCO: false,
+        coAttainment: course.coData?.coAttainment || "",
+        timelySubmissionCO: course.coData?.timelySubmissionCO || false,
       }));
       onCoursesUpdate(initialCourseResults);
     }

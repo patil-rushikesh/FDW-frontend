@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { useCourses } from "../../context/CourseContext"; // Import context
-import { Trash2, Plus } from "lucide-react"; // Import delete icon
+import { useCourses } from "../../context/CourseContext";
+import { Trash2, Plus } from "lucide-react";
 
 const Header = () => {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const userData = JSON.parse(localStorage.getItem("userData"));
-
-  const { courses, setCourses } = useCourses(); // Use global courses state
+  const { courses, setCourses, isInitialized } = useCourses();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -20,7 +19,7 @@ const Header = () => {
   };
 
   const addCourse = () => {
-    setCourses([...courses, { id: Date.now(), code: "", semester: "Sem I" }]); // Unique ID using Date.now()
+    setCourses([...courses, { id: Date.now(), code: "", semester: "Sem I" }]);
   };
 
   const updateCourse = (id, field, value) => {
@@ -35,9 +34,19 @@ const Header = () => {
     setCourses((prev) => prev.filter((course) => course.id !== id));
   };
 
+  if (!isInitialized) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-4 mb-6 border-l-4 border-l-indigo-500">
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-6 border-l-4 border-l-indigo-500">
-      {/* Header Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex items-center space-x-2">
           <span className="text-gray-600">Current Time:</span>
@@ -53,7 +62,6 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Course Inputs */}
       <div className="mt-4">
         <h2 className="text-lg font-semibold text-gray-700">Courses</h2>
         {courses.map((course) => (
@@ -83,7 +91,6 @@ const Header = () => {
               <option value="Sem I">Sem I</option>
               <option value="Sem II">Sem II</option>
             </select>
-            {/* Delete Button */}
             <button
               onClick={() => deleteCourse(course.id)}
               className="text-red-500 hover:text-red-700 p-2 rounded-md"
@@ -94,10 +101,10 @@ const Header = () => {
         ))}
         <button
           onClick={addCourse}
-          className="mt-3 bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 flex items-center justify-center"
+          className="mt-3 bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 flex items-center justify-center gap-2"
         >
           <Plus size={20} />
-          <p>Add Courses</p>
+          <span>Add Course</span>
         </button>
       </div>
     </div>
