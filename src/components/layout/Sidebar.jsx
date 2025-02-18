@@ -12,15 +12,34 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
-const mainNavItems = [
-  { icon: User, label: "Dashboard", path: "/dashboard" },
-];
+const mainNavItems = [{ icon: User, label: "Dashboard", path: "/dashboard" }];
 
 const partsNavItems = [
   { icon: BookOpen, label: "Part A: Academic Involvment", path: "/teaching" },
-  { icon: FileText, label: "Part B: Research and Development", path: "/research" },
-  { icon: Building2, label: "Part C: Self Development", path: "/selfdevelopment" },
-  { icon: GraduationCap, label: "Part D: Portfolio-Departmental & Central", path: "/portfolio" },
+  {
+    icon: FileText,
+    label: "Part B: Research and Development",
+    path: "/research",
+  },
+  {
+    icon: Building2,
+    label: "Part C: Self Development",
+    path: "/selfdevelopment",
+  },
+  {
+    icon: GraduationCap,
+    label: "Part D: Portfolio-Departmental & Central",
+    path: "/portfolio",
+  },
+];
+
+const verificationNavItems = [
+  { icon: User, label: "Faculty List", path: "/faculty-list" },
+  {
+    icon: User,
+    label: "Allocate people for verification",
+    path: "/allocate-people",
+  },
 ];
 
 const finalNavItems = [
@@ -30,8 +49,10 @@ const finalNavItems = [
 export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
   const [isPartsOpen, setIsPartsOpen] = useState(false);
+  const [isVerificationOpen, setIsVerificationOpen] = useState(false);
 
   const toggleParts = () => setIsPartsOpen(!isPartsOpen);
+  const toggleVerification = () => setIsVerificationOpen(!isVerificationOpen);
 
   const NavLink = ({ item, isActive }) => {
     const Icon = item.icon;
@@ -110,7 +131,7 @@ export default function Sidebar({ isOpen, onClose }) {
                   <ChevronRight size={20} />
                 )}
               </button>
-              
+
               {isPartsOpen && (
                 <div className="ml-4">
                   {partsNavItems.map((item) => (
@@ -132,6 +153,36 @@ export default function Sidebar({ isOpen, onClose }) {
                 isActive={location.pathname === item.path}
               />
             ))}
+
+            {/* Verification Dropdown */}
+            <div className="mb-3">
+              <button
+                onClick={toggleVerification}
+                className="w-full flex items-center justify-between p-4 rounded-lg text-indigo-100 hover:bg-indigo-700/70"
+              >
+                <div className="flex items-center space-x-4">
+                  <CheckSquare size={24} strokeWidth={2} />
+                  <span className="text-base font-medium">HOD Privileges </span>
+                </div>
+                {isVerificationOpen ? (
+                  <ChevronDown size={20} />
+                ) : (
+                  <ChevronRight size={20} />
+                )}
+              </button>
+
+              {isVerificationOpen && (
+                <div className="ml-4">
+                  {verificationNavItems.map((item) => (
+                    <NavLink
+                      key={item.path}
+                      item={item}
+                      isActive={location.pathname === item.path}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </nav>
         </div>
       </div>
