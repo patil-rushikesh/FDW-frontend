@@ -9,6 +9,8 @@ import {
   X,
   ChevronDown,
   ChevronRight,
+  ClipboardCheck,
+  Users,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -33,26 +35,43 @@ const partsNavItems = [
   },
 ];
 
-const verificationNavItems = [
-  { icon: User, label: "Faculty List", path: "/faculty-list" },
-  {
-    icon: User,
-    label: "Allocate people for verification",
-    path: "/allocate-people",
-  },
-];
-
 const finalNavItems = [
   { icon: CheckSquare, label: "Final Review", path: "/review" },
+];
+
+const hodPrivilegeItems = [
+  {
+    icon: ClipboardCheck,
+    label: "Department Faculty Forms",
+    path: "/hod/faculty-forms",
+  },
+  { icon: Users, label: "Verification Panal", path: "/hod/department-review" },
+];
+
+const directorPrivilegeItems = [
+  {
+    icon: ClipboardCheck,
+    label: "All Faculty Forms",
+    path: "/director/faculty-forms",
+  },
+  {
+    icon: CheckSquare,
+    label: "Final Approval",
+    path: "/director/final-approval",
+  },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
   const [isPartsOpen, setIsPartsOpen] = useState(false);
-  const [isVerificationOpen, setIsVerificationOpen] = useState(false);
+  const [isPrivilegeOpen, setIsPrivilegeOpen] = useState(false);
+
+  // Get user role from localStorage
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+  const userRole = userData.role?.toLowerCase() || "faculty";
 
   const toggleParts = () => setIsPartsOpen(!isPartsOpen);
-  const toggleVerification = () => setIsVerificationOpen(!isVerificationOpen);
+  const togglePrivilege = () => setIsPrivilegeOpen(!isPrivilegeOpen);
 
   const NavLink = ({ item, isActive }) => {
     const Icon = item.icon;
@@ -76,6 +95,46 @@ export default function Sidebar({ isOpen, onClose }) {
     );
   };
 
+  const renderPrivilegeSection = () => {
+    if (userRole !== "hod" && userRole !== "director") return null;
+
+    const privilegeItems =
+      userRole === "hod" ? hodPrivilegeItems : directorPrivilegeItems;
+    const sectionTitle =
+      userRole === "hod" ? "HOD Privileges" : "Director Privileges";
+
+    return (
+      <div className="mb-3">
+        <button
+          onClick={togglePrivilege}
+          className="w-full flex items-center justify-between p-4 rounded-lg text-indigo-100 hover:bg-indigo-700/70"
+        >
+          <div className="flex items-center space-x-4">
+            <Users size={24} strokeWidth={2} />
+            <span className="text-base font-medium">{sectionTitle}</span>
+          </div>
+          {isPrivilegeOpen ? (
+            <ChevronDown size={20} />
+          ) : (
+            <ChevronRight size={20} />
+          )}
+        </button>
+
+        {isPrivilegeOpen && (
+          <div className="ml-4">
+            {privilegeItems.map((item) => (
+              <NavLink
+                key={item.path}
+                item={item}
+                isActive={location.pathname === item.path}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <>
       {isOpen && (
@@ -95,9 +154,16 @@ export default function Sidebar({ isOpen, onClose }) {
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-10">
-            <h2 className="text-2xl font-bold tracking-tight">
-              Faculty Appraisal
-            </h2>
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight">
+                Faculty Appraisal
+              </h2>
+              {userRole !== "faculty" && (
+                <p className="text-sm text-indigo-200 mt-1">
+                  {userRole.toUpperCase()} Dashboard
+                </p>
+              )}
+            </div>
             <button
               onClick={onClose}
               className="p-2 hover:bg-indigo-700 rounded-full lg:hidden transition-colors"
@@ -145,6 +211,9 @@ export default function Sidebar({ isOpen, onClose }) {
               )}
             </div>
 
+            {/* Privilege Section for HOD/Director */}
+            {renderPrivilegeSection()}
+
             {/* Final Review */}
             {finalNavItems.map((item) => (
               <NavLink
@@ -153,36 +222,6 @@ export default function Sidebar({ isOpen, onClose }) {
                 isActive={location.pathname === item.path}
               />
             ))}
-
-            {/* Verification Dropdown */}
-            <div className="mb-3">
-              <button
-                onClick={toggleVerification}
-                className="w-full flex items-center justify-between p-4 rounded-lg text-indigo-100 hover:bg-indigo-700/70"
-              >
-                <div className="flex items-center space-x-4">
-                  <CheckSquare size={24} strokeWidth={2} />
-                  <span className="text-base font-medium">HOD Privileges </span>
-                </div>
-                {isVerificationOpen ? (
-                  <ChevronDown size={20} />
-                ) : (
-                  <ChevronRight size={20} />
-                )}
-              </button>
-
-              {isVerificationOpen && (
-                <div className="ml-4">
-                  {verificationNavItems.map((item) => (
-                    <NavLink
-                      key={item.path}
-                      item={item}
-                      isActive={location.pathname === item.path}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
           </nav>
         </div>
       </div>
