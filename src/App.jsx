@@ -15,13 +15,16 @@ import { Menu } from "lucide-react";
 import LoginPage from "./components/LoginPage";
 import SplashScreen from "./components/SplashScreen";
 import TeachingPerformance from "./components/forms/TeachingPerformance";
-import FacultyAdminPanel from "./components/profile/FacultyAdminPanel";
+import FacultyAdminPanel from "./components/adminpage/FacultyAdminPanel";
 import SelfDevelopment from "./components/forms/SelfDevelopment";
 import Research from "./components/forms/Research";
 import Portfolio from "./components/forms/Portfolio";
 import Dashboard from "./components/forms/Dashboard";
 import SubmissionStatus from "./components/forms/SubmissionStatus";
 import Review from "./components/forms/review";
+import VerificationTeam from "./components/adminpage/VerificationTeam";
+import AddFaculty from "./components/adminpage/AddFaculty";
+import FacultyList from "./components/adminpage/FacultyList";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -129,7 +132,10 @@ function AppContent() {
             ) : (
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/admin" element={<FacultyAdminPanel />} />
+                <Route path="/admin/add-faculty" element={<AddFaculty/>} />
+                <Route path="/admin/faculty-list" element={<FacultyList/>} />
+                <Route path="/admin/verification-team" element={<VerificationTeam />} />
+                <Route path="/admin" element={<Navigate to="/admin/add-faculty" />} />
                 <Route path="/*" element={<Navigate to="/login" />} />
               </Routes>
             )}
