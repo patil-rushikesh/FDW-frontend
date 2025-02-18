@@ -45,7 +45,7 @@ const hodPrivilegeItems = [
     label: "Department Faculty Forms",
     path: "/hod/faculty-forms",
   },
-  { icon: Users, label: "Department Review", path: "/hod/department-review" },
+  { icon: Users, label: "Verification Panal", path: "/hod/department-review" },
 ];
 
 const directorPrivilegeItems = [
@@ -53,11 +53,6 @@ const directorPrivilegeItems = [
     icon: ClipboardCheck,
     label: "All Faculty Forms",
     path: "/director/faculty-forms",
-  },
-  {
-    icon: Users,
-    label: "Department Reviews",
-    path: "/director/department-reviews",
   },
   {
     icon: CheckSquare,
