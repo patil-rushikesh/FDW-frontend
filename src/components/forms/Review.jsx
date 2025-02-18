@@ -63,6 +63,28 @@ const Review = () => {
     generatePDF();
   }, [generatePDF]);
 
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5000/${userData.dept}/${userData._id}/submit`,
+        {
+          method: 'POST',
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to submit form');
+      }
+
+      const result = await response.json();
+      alert('Form submitted successfully!');
+      
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Failed to submit form. Please try again.');
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="bg-white rounded-lg shadow-md p-4 mb-6 border-l-4 border-l-indigo-500">
@@ -105,7 +127,7 @@ const Review = () => {
         )}
 
         {pdfUrl && !loading && (
-          <div className="w-full h-[800px] border border-gray-300 rounded-lg">
+          <div className="w-full h-[800px] border border-gray-300 rounded-lg mb-4">
             <iframe
               src={pdfUrl}
               className="w-full h-full rounded-lg"
@@ -114,6 +136,18 @@ const Review = () => {
           </div>
         )}
       </div>
+
+      {/* Submit button moved outside the PDF container */}
+      {pdfUrl && !loading && (
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={handleSubmit}
+            className="flex items-center gap-2 bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors text-lg font-semibold"
+          >
+            Submit Form
+          </button>
+        </div>
+      )}
     </div>
   );
 };
