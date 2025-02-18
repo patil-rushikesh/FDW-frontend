@@ -52,8 +52,19 @@ const InputFieldWithProof = ({
       <input
         type={type}
         name={name}
-        value={value}
-        onChange={onChange}
+        value={value === 0 ? "" : value}  // Change here: show empty string when value is 0
+        onChange={(e) => {
+          const newValue = e.target.value;
+          // Remove leading zeros and convert to number
+          const cleanValue = newValue.replace(/^0+/, '') || "0";
+          onChange({
+            ...e,
+            target: {
+              ...e.target,
+              value: cleanValue === "" ? 0 : parseInt(cleanValue, 10)
+            }
+          });
+        }}
         placeholder={placeholder}
         disabled={disabled}
         min="0"
