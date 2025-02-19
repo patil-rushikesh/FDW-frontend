@@ -43,7 +43,7 @@ const hodPrivilegeItems = [
   {
     icon: ClipboardCheck,
     label: "Department Faculty Forms",
-    path: "/hod/faculty-forms",
+    path: "/hod/faculty-forms-list", // Changed path here
   },
   { icon: Users, label: "Verification Panal", path: "/hod/department-review" },
 ];
