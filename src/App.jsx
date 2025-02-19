@@ -26,8 +26,10 @@ import VerificationTeam from "./components/adminpage/VerificationTeam";
 import AddFaculty from "./components/adminpage/AddFaculty";
 import FacultyList from "./components/adminpage/FacultyList";
 import FacultyFormsList from "./components/HOD/FacultyFormsList"; // Import the component
+
 import HODverify from "./components/HOD/HODverify";
 import HODcnfverify from "./components/HOD/ConfirmVerify";
+import VerificationPanel from "./components/HOD/VerificationPanel";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -153,6 +155,14 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <HODcnfverify />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/hod/department-review"
+                    element={
+                      <ProtectedRoute>
+                        <VerificationPanel />
                       </ProtectedRoute>
                     }
                   />

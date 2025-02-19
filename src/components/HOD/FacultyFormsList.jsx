@@ -4,7 +4,6 @@ import {
   Search,
   Filter,
   CheckCircle2,
-  XCircle,
   SortAsc,
   SortDesc,
 } from "lucide-react";
@@ -14,9 +13,9 @@ const FacultyFormsList = () => {
   const [facultyData, setFacultyData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [department, setDepartment] = useState(""); // Remove default value
   const [filters, setFilters] = useState({
     search: "",
-    department: "",
     role: "",
     minMarks: "",
     maxMarks: "",
@@ -25,36 +24,46 @@ const FacultyFormsList = () => {
     key: null,
     direction: "asc",
   });
-  const [userDept, setUserDept] = useState("");
-  const [isHOD, setIsHOD] = useState(false);
-  const navigate = useNavigate();
 
-  // Add this useEffect to get logged-in user data
+
+  // Add this useEffect to get HOD's department when component mounts
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("userData"));
-    if (userData) {
-      setUserDept(userData.dept);
-      setIsHOD(userData.desg === "HOD");
+
+    if (userData && userData.dept) {
+      setDepartment(userData.dept);
+
     }
   }, []);
 
-  // Fetch faculty data
+  // Add this to where you process the faculty data (in the useEffect where you fetch faculty data)
+  const processVerificationStatus = (facultyList) => {
+    const verifiedFaculty = JSON.parse(
+      localStorage.getItem("verifiedFaculty") || "{}"
+    );
+    return facultyList.map((faculty) => ({
+      ...faculty,
+      status: verifiedFaculty[faculty._id] ? "verified" : faculty.status,
+    }));
+  };
+
+  // Modify the fetch faculty data useEffect
   useEffect(() => {
     const fetchFaculties = async () => {
       try {
-        setLoading(true);
-        const response = await fetch("http://localhost:5000/users");
-        if (!response.ok) throw new Error("Failed to fetch faculty data");
-        const data = await response.json();
+        // Only fetch if department exists
+        if (!department) return;
 
-        // Filter data if user is HOD
-        if (isHOD) {
-          const filteredData = data.filter(
-            (faculty) => faculty.dept === userDept
-          );
-          setFacultyData(filteredData);
+        setLoading(true);
+        const response = await fetch(
+          `http://localhost:5000/faculty/${department}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch faculty data");
+        const responseData = await response.json();
+        if (responseData.status === "success") {
+          setFacultyData(processVerificationStatus(responseData.data));
         } else {
-          setFacultyData(data);
+          throw new Error("API returned an error");
         }
       } catch (err) {
         setError("Error loading faculty data: " + err.message);
@@ -64,18 +73,12 @@ const FacultyFormsList = () => {
     };
 
     fetchFaculties();
-  }, [isHOD, userDept]);
+  }, [department]);
 
-  const departments = [
-    "Computer",
-    "IT",
-    "Mechanical",
-    "Civil",
-    "ENTC",
-    "Computer(Regional)",
-    "AIML",
-    "ASH",
-  ];
+  // Modify the departments array to only show the HOD's department
+  const departments = useMemo(() => {
+    return department ? [department] : [];
+  }, [department]);
 
   const roles = [
     "Professor",
@@ -92,23 +95,22 @@ const FacultyFormsList = () => {
         const searchMatch =
           faculty._id.toLowerCase().includes(filters.search.toLowerCase()) ||
           faculty.name?.toLowerCase().includes(filters.search.toLowerCase());
-        const departmentMatch =
-          !filters.department || faculty.dept === filters.department;
         const roleMatch = !filters.role || faculty.role === filters.role;
         const marksMatch =
           (!filters.minMarks ||
-            faculty.totalMarks >= Number(filters.minMarks)) &&
-          (!filters.maxMarks || faculty.totalMarks <= Number(filters.maxMarks));
+            faculty.grand_marks >= Number(filters.minMarks)) &&
+          (!filters.maxMarks ||
+            faculty.grand_marks <= Number(filters.maxMarks));
 
-        return searchMatch && departmentMatch && roleMatch && marksMatch;
+        return searchMatch && roleMatch && marksMatch;
       })
       .sort((a, b) => {
         if (!sortConfig.key) return 0;
 
         if (sortConfig.key === "marks") {
           return sortConfig.direction === "asc"
-            ? a.totalMarks - b.totalMarks
-            : b.totalMarks - a.totalMarks;
+            ? a.grand_marks - b.grand_marks
+            : b.grand_marks - a.grand_marks;
         }
         return 0;
       });
@@ -122,24 +124,90 @@ const FacultyFormsList = () => {
   };
 
   // Handle verification status change
-  const handleVerify = (faculty) => {
-    navigate("/hodverify", { state: { faculty } });
-  };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  const handleVerify = async (id) => {
+    try {
+      // Update the faculty's status in the local state
+      setFacultyData((prevData) =>
+        prevData.map((faculty) =>
+          faculty._id === id ? { ...faculty, status: "verified" } : faculty
+        )
+      );
 
-  const getAvailableDepartments = () => {
-    if (isHOD) {
-      return [userDept];
+      // Store the verification status in localStorage
+      const allVerifications = JSON.parse(
+        localStorage.getItem("verifiedFaculty") || "{}"
+      );
+      allVerifications[id] = {
+        verifiedAt: new Date().toISOString(),
+        verifiedBy: JSON.parse(localStorage.getItem("userData"))._id,
+      };
+      localStorage.setItem("verifiedFaculty", JSON.stringify(allVerifications));
+    } catch (err) {
+      setError("Failed to verify faculty: " + err.message);
     }
-    return departments;
   };
+
+  // Function to determine what to display in the action column
+  const renderActionButton = (faculty) => {
+    if (faculty.status === "authority_verification_pending") {
+      return (
+<button
+  type="button"
+  className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+>
+  <CheckCircle2 className="h-4 w-4 text-green-600" />
+  <span className="font-semibold text-green-700">Verify</span>
+</button>
+
+
+      );
+    } else {
+      return <span className="text-gray-400">-</span>;
+    }
+  };
+
+  // Update the displayMarks function to handle the object case
+  const displayMarks = (faculty) => {
+    if (faculty.status === "pending") {
+      return "0";
+    } else if (typeof faculty.grand_marks === "object") {
+      // If grand_marks is an object, return the grand_total property or a default value
+      return faculty.grand_marks.grand_total || "N/A";
+    } else {
+      // If grand_marks is a number or undefined
+      return faculty.grand_marks || "N/A";
+    }
+  };
+
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading faculty data...</p>
+        </div>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center text-red-600 p-4 bg-red-50 rounded-lg">
+          <p>{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+          >
+            Dismiss
+          </button>
+        </div>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div>
-        {/* Changed ml-72 to pl-72 */}
         <main className="lg: mt-16">
           <div className="max-w-7xl mx-auto space-y-8">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
@@ -149,7 +217,7 @@ const FacultyFormsList = () => {
                   <div className="flex items-center">
                     <Users className="mr-2 text-blue-600" />
                     <h2 className="text-xl font-semibold text-gray-800">
-                      Faculty Forms
+                      Faculty Forms - {department}
                     </h2>
                   </div>
 
@@ -239,8 +307,7 @@ const FacultyFormsList = () => {
                     <tr>
                       <th className="px-6 py-3 text-gray-600">ID</th>
                       <th className="px-6 py-3 text-gray-600">Name</th>
-                      <th className="px-6 py-3 text-gray-600">Department</th>
-                      <th className="px-6 py-3 text-gray-600">Designation</th>
+
                       <th className="px-6 py-3 text-gray-600">Role</th>
                       <th className="px-6 py-3 text-gray-600">Total Marks</th>
                       <th className="px-6 py-3 text-gray-600">Status</th>
@@ -257,41 +324,34 @@ const FacultyFormsList = () => {
                         <td className="px-6 py-4 font-medium">
                           {faculty.name}
                         </td>
-                        <td className="px-6 py-4">{faculty.dept}</td>
-                        <td className="px-6 py-4">{faculty.desg}</td>
                         <td className="px-6 py-4">{faculty.role}</td>
-                        <td className="px-6 py-4">
-                          {faculty.totalMarks || "N/A"}
-                        </td>
+                        <td className="px-6 py-4">{displayMarks(faculty)}</td>
                         <td className="px-6 py-4">
                           <span
-                            className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                              faculty.verified
+                            className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-xs font-semibold ${
+                              faculty.status === "verified"
                                 ? "bg-green-100 text-green-800"
-                                : "bg-yellow-100 text-yellow-800"
+                                : faculty.status ===
+                                    "authority_verification_pending"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : faculty.status === "verification_pending"
+                                    ? "bg-orange-100 text-orange-800"
+                                    : "bg-gray-100 text-gray-800"
                             }`}
                           >
-                            {faculty.verified ? "Verified" : "Pending"}
+                            {faculty.status === "verified"
+                              ? "Verified"
+                              : faculty.status ===
+                                  "authority_verification_pending"
+                                ? "Authority Verification Pending"
+                                : faculty.status === "verification_pending"
+                                  ? "Verification Pending"
+                                  : "Pending"}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <button
-                            onClick={() => handleVerify(faculty)}
-                            className={`flex items-center gap-1 px-3 py-1 rounded ${
-                              faculty.verified
-                                ? "text-red-600 hover:text-red-800"
-                                : "text-green-600 hover:text-green-800"
-                            }`}
-                          >
-                            {faculty.verified ? (
-                              <XCircle className="h-4 w-4" />
-                            ) : (
-                              <CheckCircle2 className="h-4 w-4" />
-                            )}
-                            <span>
-                              {faculty.verified ? "Unverify" : "Verify"}
-                            </span>
-                          </button>
+
+                          {renderActionButton(faculty)}
                         </td>
                       </tr>
                     ))}
