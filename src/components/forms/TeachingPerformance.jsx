@@ -583,9 +583,7 @@ const calculateCourseScore = (course) => {
         ptgMeetings: Number(formData.ptgMeetings),
         total_marks: scores.ptgScore,
       },
-      9: {
-        total: scores.finalScore,
-      },
+      total_marks: scores.finalScore,
     };
 
     try {

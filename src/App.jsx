@@ -25,7 +25,7 @@ import Review from "./components/forms/review";
 import VerificationTeam from "./components/adminpage/VerificationTeam";
 import AddFaculty from "./components/adminpage/AddFaculty";
 import FacultyList from "./components/adminpage/FacultyList";
-import FacultyFormsList from "./components/adminpage/FacultyFormsList"; // Import the component
+import FacultyFormsList from "./components/HOD/FacultyFormsList"; // Import the component
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {

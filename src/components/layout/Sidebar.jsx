@@ -68,7 +68,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
   // Get user role from localStorage
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-  const userRole = userData.role?.toLowerCase() || "faculty";
+  const userRole = userData.desg?.toLowerCase() || "faculty";
 
   const toggleParts = () => setIsPartsOpen(!isPartsOpen);
   const togglePrivilege = () => setIsPrivilegeOpen(!isPrivilegeOpen);
