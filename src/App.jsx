@@ -145,7 +145,6 @@ function AppContent() {
                     }
                   />
                   <Route
-
                     path="/hodverify"
                     element={
                       <ProtectedRoute>
@@ -158,6 +157,14 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <HODcnfverify />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/verificationVerify"
+                    element={
+                      <ProtectedRoute>
+                        <VerificationForm />
                       </ProtectedRoute>
                     }
                   />

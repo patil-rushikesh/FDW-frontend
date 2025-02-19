@@ -16,7 +16,13 @@ const SectionCard = ({ title, icon, borderColor, children }) => (
 );
 
 // Update ScoreCard component
-const ScoreCard = ({ label, score, total, verifiedScore, onVerifiedScoreChange }) => (
+const ScoreCard = ({
+  label,
+  score,
+  total,
+  verifiedScore,
+  onVerifiedScoreChange,
+}) => (
   <div className="space-y-2">
     <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg flex items-center justify-between shadow-sm">
       <span className="font-medium text-gray-700">{label}:</span>
@@ -26,7 +32,9 @@ const ScoreCard = ({ label, score, total, verifiedScore, onVerifiedScoreChange }
     </div>
     <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border-2 border-green-200">
       <div className="flex items-center justify-between">
-        <span className="font-medium text-gray-700">Score After Verification:</span>
+        <span className="font-medium text-gray-700">
+          Score After Verification:
+        </span>
         <input
           type="number"
           value={verifiedScore || ""}
@@ -40,12 +48,7 @@ const ScoreCard = ({ label, score, total, verifiedScore, onVerifiedScoreChange }
 );
 
 // Update the InputFieldWithProof component
-const InputFieldWithProof = ({
-  label,
-  name,
-  value,
-  proofValue
-}) => (
+const InputFieldWithProof = ({ label, name, value, proofValue }) => (
   <div className="space-y-2 mb-4">
     <label className="block text-sm font-medium text-gray-700">{label}</label>
     <div className="flex gap-2">
@@ -60,14 +63,14 @@ const InputFieldWithProof = ({
         <a
           href={proofValue}
           target="_blank"
-          rel="noopener noreferrer" 
+          rel="noopener noreferrer"
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
         >
           View Document
         </a>
       ) : (
         <span className="px-4 py-2 bg-gray-200 text-gray-600 font-medium rounded-md">
-          No Document
+          View
         </span>
       )}
     </div>
@@ -1020,12 +1023,18 @@ const VerificationForm = () => {
             proofValue={formData.localPublisherBooks.proof}
           />
         </div>
-        <ScoreCard label="Books Score" score={scores.booksScore} total="200" verifiedScore={verifiedScores.books?.marks} onVerifiedScoreChange={(value) =>
+        <ScoreCard
+          label="Books Score"
+          score={scores.booksScore}
+          total="200"
+          verifiedScore={verifiedScores.books?.marks}
+          onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
               books: { ...prev.books, marks: value },
             }))
-          } />
+          }
+        />
       </SectionCard>
 
       {/* Last three Years Citations */}
@@ -1096,7 +1105,10 @@ const VerificationForm = () => {
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              copyrightIndividual: { ...prev.copyrightIndividual, marks: value },
+              copyrightIndividual: {
+                ...prev.copyrightIndividual,
+                marks: value,
+              },
             }))
           }
         />
@@ -1450,7 +1462,10 @@ const VerificationForm = () => {
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              awardsAndFellowships: { ...prev.awardsAndFellowships, marks: value },
+              awardsAndFellowships: {
+                ...prev.awardsAndFellowships,
+                marks: value,
+              },
             }))
           }
         />
@@ -1484,7 +1499,10 @@ const VerificationForm = () => {
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              industryInteraction: { ...prev.industryInteraction, marks: value },
+              industryInteraction: {
+                ...prev.industryInteraction,
+                marks: value,
+              },
             }))
           }
         />
@@ -1512,7 +1530,10 @@ const VerificationForm = () => {
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              internshipPlacement: { ...prev.internshipPlacement, marks: value },
+              internshipPlacement: {
+                ...prev.internshipPlacement,
+                marks: value,
+              },
             }))
           }
         />
@@ -1530,7 +1551,9 @@ const VerificationForm = () => {
             </p>
             <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border-2 border-green-200">
               <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-700">Total Score After Verification:</span>
+                <span className="font-medium text-gray-700">
+                  Total Score After Verification:
+                </span>
                 <span className="text-xl font-bold text-green-600">
                   {Object.values(verifiedScores).reduce((total, section) => {
                     return total + (section?.marks || 0);
