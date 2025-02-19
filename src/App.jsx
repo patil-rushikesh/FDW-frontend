@@ -30,6 +30,7 @@ import FacultyFormsList from "./components/HOD/FacultyFormsList"; // Import the 
 import HODverify from "./components/HOD/HODverify";
 import HODcnfverify from "./components/HOD/ConfirmVerify";
 import VerificationPanel from "./components/HOD/VerificationPanel";
+import Verify from "./components/Verification/Verify";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -163,6 +164,14 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <VerificationPanel />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/paper-verification/verify"
+                    element={
+                      <ProtectedRoute>
+                        <Verify/>
                       </ProtectedRoute>
                     }
                   />

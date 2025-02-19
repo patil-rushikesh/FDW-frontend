@@ -61,17 +61,24 @@ const directorPrivilegeItems = [
   },
 ];
 
+const paperVerificationItems = [
+  { icon: ClipboardCheck, label: "Verify", path: "/paper-verification/verify" },
+];
+
 export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
   const [isPartsOpen, setIsPartsOpen] = useState(false);
   const [isPrivilegeOpen, setIsPrivilegeOpen] = useState(false);
+  const [isPaperVerificationOpen, setIsPaperVerificationOpen] = useState(false);
 
   // Get user role from localStorage
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
   const userRole = userData.desg?.toLowerCase() || "faculty";
+  const isInVerificationPanel = userData.isInVerificationPanel || false;
 
   const toggleParts = () => setIsPartsOpen(!isPartsOpen);
   const togglePrivilege = () => setIsPrivilegeOpen(!isPrivilegeOpen);
+  const togglePaperVerification = () => setIsPaperVerificationOpen(!isPaperVerificationOpen);
 
   const NavLink = ({ item, isActive }) => {
     const Icon = item.icon;
@@ -123,6 +130,41 @@ export default function Sidebar({ isOpen, onClose }) {
         {isPrivilegeOpen && (
           <div className="ml-4">
             {privilegeItems.map((item) => (
+              <NavLink
+                key={item.path}
+                item={item}
+                isActive={location.pathname === item.path}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderPaperVerificationSection = () => {
+    if (!isInVerificationPanel) return null;
+
+    return (
+      <div className="mb-3">
+        <button
+          onClick={togglePaperVerification}
+          className="w-full flex items-center justify-between p-4 rounded-lg text-indigo-100 hover:bg-indigo-700/70"
+        >
+          <div className="flex items-center space-x-4">
+            <ClipboardCheck size={24} strokeWidth={2} />
+            <span className="text-base font-medium">Paper Verification</span>
+          </div>
+          {isPaperVerificationOpen ? (
+            <ChevronDown size={20} />
+          ) : (
+            <ChevronRight size={20} />
+          )}
+        </button>
+
+        {isPaperVerificationOpen && (
+          <div className="ml-4">
+            {paperVerificationItems.map((item) => (
               <NavLink
                 key={item.path}
                 item={item}
@@ -213,6 +255,9 @@ export default function Sidebar({ isOpen, onClose }) {
 
             {/* Privilege Section for HOD/Director */}
             {renderPrivilegeSection()}
+
+            {/* Paper Verification Section */}
+            {renderPaperVerificationSection()}
 
             {/* Final Review */}
             {finalNavItems.map((item) => (
