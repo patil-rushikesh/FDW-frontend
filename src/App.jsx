@@ -28,6 +28,10 @@ import FacultyList from "./components/adminpage/FacultyList";
 import FacultyFormsList from "./components/HOD/FacultyFormsList"; // Import the component
 import VerificationForm from "./components/verfication_team/VerificationForm";
 
+import HODverify from "./components/HOD/HODverify";
+import HODcnfverify from "./components/HOD/ConfirmVerify";
+import VerificationPanel from "./components/HOD/VerificationPanel";
+
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -140,10 +144,27 @@ function AppContent() {
                     }
                   />
                   <Route
-                    path="/verification/verificationform"
+
+                    path="/hodverify"
                     element={
                       <ProtectedRoute>
-                        <VerificationForm/>
+                        <HODverify />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/hodcnfverify"
+                    element={
+                      <ProtectedRoute>
+                        <HODcnfverify />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/hod/department-review"
+                    element={
+                      <ProtectedRoute>
+                        <VerificationPanel />
                       </ProtectedRoute>
                     }
                   />
