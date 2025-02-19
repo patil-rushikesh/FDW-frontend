@@ -26,6 +26,7 @@ import VerificationTeam from "./components/adminpage/VerificationTeam";
 import AddFaculty from "./components/adminpage/AddFaculty";
 import FacultyList from "./components/adminpage/FacultyList";
 import FacultyFormsList from "./components/HOD/FacultyFormsList"; // Import the component
+import VerificationForm from "./components/verfication_team/VerificationForm";
 
 import HODverify from "./components/HOD/HODverify";
 import HODcnfverify from "./components/HOD/ConfirmVerify";
@@ -144,6 +145,7 @@ function AppContent() {
                     }
                   />
                   <Route
+
                     path="/hodverify"
                     element={
                       <ProtectedRoute>
