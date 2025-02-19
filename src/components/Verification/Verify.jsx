@@ -12,17 +12,21 @@ const Verify = () => {
   useEffect(() => {
     const fetchVerificationData = async () => {
       try {
-        const userData = JSON.parse(localStorage.getItem('userData'));
+        const userData = JSON.parse(localStorage.getItem("userData"));
         if (!userData || !userData._id) {
           throw new Error("User data not found");
         }
 
         const verifierId = userData._id;
-        const response = await fetch(`http://127.0.0.1:5000/faculty_to_verify/${verifierId}`);
-        
+        const response = await fetch(
+          `http://127.0.0.1:5000/faculty_to_verify/${verifierId}`
+        );
+
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to fetch verification data");
+          throw new Error(
+            errorData.error || "Failed to fetch verification data"
+          );
         }
 
         const data = await response.json();
@@ -40,13 +44,15 @@ const Verify = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-100">
-        <div className="text-xl text-gray-600">Loading verification data...</div>
+        <div className="text-xl text-gray-600">
+          Loading verification data...
+        </div>
       </div>
     );
   }
@@ -58,7 +64,7 @@ const Verify = () => {
           <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
           <p className="text-gray-700">{error}</p>
           <button
-            onClick={() => navigate('/profile')}
+            onClick={() => navigate("/profile")}
             className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition duration-200"
           >
             Back to Profile
@@ -70,7 +76,7 @@ const Verify = () => {
 
   // Process the verification data
   const { _id, name, assigned_faculties } = verificationData || {};
-  
+
   return (
     <div className="flex bg-gray-100 min-h-screen">
       <main className="flex-1 p-8">
@@ -80,7 +86,7 @@ const Verify = () => {
               Faculty Verification Dashboard
             </h1>
             <button
-              onClick={() => navigate('/profile')}
+              onClick={() => navigate("/profile")}
               className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition duration-200"
             >
               <span>Back to Profile</span>
@@ -88,10 +94,14 @@ const Verify = () => {
           </div>
 
           <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Verifier Information</h2>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">
+              Verifier Information
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
               <div>
-                <span className="text-sm font-medium text-gray-500">Verifier ID:</span>
+                <span className="text-sm font-medium text-gray-500">
+                  Verifier ID:
+                </span>
                 <p className="text-gray-800 font-medium">{_id}</p>
               </div>
               <div>
@@ -102,55 +112,70 @@ const Verify = () => {
           </div>
 
           <div>
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Assigned Faculties for Verification</h2>
-            
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">
+              Assigned Faculties for Verification
+            </h2>
+
             {Object.entries(assigned_faculties || {}).length === 0 ? (
-              <p className="text-gray-600 italic">No faculty members assigned for verification.</p>
+              <p className="text-gray-600 italic">
+                No faculty members assigned for verification.
+              </p>
             ) : (
               <div className="space-y-6">
-                {Object.entries(assigned_faculties || {}).map(([department, facultyList]) => (
-                  <div key={department} className="border rounded-lg overflow-hidden">
-                    <h3 className="bg-gray-200 px-4 py-2 font-medium text-gray-800">
-                      Department: {department}
-                    </h3>
-                    <div className="divide-y">
-                      {facultyList.map((faculty, index) => (
-                        <div key={index} className="p-4 hover:bg-gray-50">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-6">
-                              <div>
-                                <span className="text-sm font-medium text-gray-500">Faculty ID:</span>
-                                <span className="ml-2 text-gray-800">{faculty._id}</span>
+                {Object.entries(assigned_faculties || {}).map(
+                  ([department, facultyList]) => (
+                    <div
+                      key={department}
+                      className="border rounded-lg overflow-hidden"
+                    >
+                      <h3 className="bg-gray-200 px-4 py-2 font-medium text-gray-800">
+                        Department: {department}
+                      </h3>
+                      <div className="divide-y">
+                        {facultyList.map((faculty, index) => (
+                          <div key={index} className="p-4 hover:bg-gray-50">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-6">
+                                <div>
+                                  <span className="text-sm font-medium text-gray-500">
+                                    Faculty ID:
+                                  </span>
+                                  <span className="ml-2 text-gray-800">
+                                    {faculty._id}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-sm font-medium text-gray-500">
+                                    Name:
+                                  </span>
+                                  <span className="ml-2 text-gray-800">
+                                    {faculty.name}
+                                  </span>
+                                </div>
                               </div>
-                              <div>
-                                <span className="text-sm font-medium text-gray-500">Name:</span>
-                                <span className="ml-2 text-gray-800">{faculty.name}</span>
+                              <div className="flex space-x-3">
+                                <button
+                                  className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition duration-200"
+                                  onClick={() =>
+                                    navigate(
+                                      `/paper-verification/givemarks/${department}/${faculty._id}`
+                                    )
+                                  }
+                                >
+                                  Verify and Give Marks
+                                </button>
                               </div>
-                            </div>
-                            <div className="flex space-x-3">
-                              <button 
-                                className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition duration-200"
-                                onClick={() => navigate(`/verify-faculty/${faculty._id}`)}
-                              >
-                                Verify and Give Marks
-                              </button>
-                              <button 
-                                className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition duration-200"
-                              >
-                                Approve
-                              </button>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             )}
           </div>
         </div>
-
       </main>
     </div>
   );

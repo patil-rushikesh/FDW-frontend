@@ -11,7 +11,7 @@ import ResearchPublications from "./components/forms/ResearchPublications";
 import Profile from "./components/profile/Profile";
 import { FormProvider } from "./context/FormContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { Menu } from "lucide-react";
+import { Menu, Verified } from "lucide-react";
 import LoginPage from "./components/LoginPage";
 import SplashScreen from "./components/SplashScreen";
 import TeachingPerformance from "./components/forms/TeachingPerformance";
@@ -26,12 +26,12 @@ import VerificationTeam from "./components/adminpage/VerificationTeam";
 import AddFaculty from "./components/adminpage/AddFaculty";
 import FacultyList from "./components/adminpage/FacultyList";
 import FacultyFormsList from "./components/HOD/FacultyFormsList"; // Import the component
-import VerificationForm from "./components/verfication_team/VerificationForm";
 
 import HODverify from "./components/HOD/HODverify";
 import HODcnfverify from "./components/HOD/ConfirmVerify";
 import VerificationPanel from "./components/HOD/VerificationPanel";
 import Verify from "./components/Verification/Verify";
+import VerificationForm from "./components/Verification/VerificationForm";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -160,14 +160,14 @@ function AppContent() {
                       </ProtectedRoute>
                     }
                   />
-                  <Route
-                    path="/verificationVerify"
-                    element={
-                      <ProtectedRoute>
-                        <VerificationForm />
-                      </ProtectedRoute>
-                    }
-                  />
+<Route
+  path="/paper-verification/givemarks/:department/:facultyId"
+  element={
+    <ProtectedRoute>
+      <VerificationForm />
+    </ProtectedRoute>
+  }
+/>
                   <Route
                     path="/hod/department-review"
                     element={
