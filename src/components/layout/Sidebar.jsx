@@ -43,7 +43,7 @@ const hodPrivilegeItems = [
   {
     icon: ClipboardCheck,
     label: "Department Faculty Forms",
-    path: "/hod/faculty-forms",
+    path: "/hod/faculty-forms-list", // Changed path here
   },
   { icon: Users, label: "Verification Panal", path: "/hod/department-review" },
 ];
@@ -68,7 +68,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
   // Get user role from localStorage
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-  const userRole = userData.role?.toLowerCase() || "faculty";
+  const userRole = userData.desg?.toLowerCase() || "faculty";
 
   const toggleParts = () => setIsPartsOpen(!isPartsOpen);
   const togglePrivilege = () => setIsPrivilegeOpen(!isPrivilegeOpen);

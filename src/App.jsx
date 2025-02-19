@@ -25,6 +25,7 @@ import Review from "./components/forms/review";
 import VerificationTeam from "./components/adminpage/VerificationTeam";
 import AddFaculty from "./components/adminpage/AddFaculty";
 import FacultyList from "./components/adminpage/FacultyList";
+import FacultyFormsList from "./components/HOD/FacultyFormsList"; // Import the component
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -69,12 +70,15 @@ function AppContent() {
               <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-4 lg:p-6">
                 <Routes>
                   <Route path="/login" element={<Navigate to="/dashboard" />} />
-                  <Route path="/submission-status" element={<SubmissionStatus/>} />
+                  <Route
+                    path="/submission-status"
+                    element={<SubmissionStatus />}
+                  />
                   <Route
                     path="/dashboard"
                     element={
                       <ProtectedRoute>
-                        <Dashboard/>
+                        <Dashboard />
                       </ProtectedRoute>
                     }
                   />
@@ -122,7 +126,15 @@ function AppContent() {
                     path="/review"
                     element={
                       <ProtectedRoute>
-                        <Review/>
+                        <Review />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/hod/faculty-forms-list"
+                    element={
+                      <ProtectedRoute>
+                        <FacultyFormsList />
                       </ProtectedRoute>
                     }
                   />
@@ -132,10 +144,17 @@ function AppContent() {
             ) : (
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/admin/add-faculty" element={<AddFaculty/>} />
-                <Route path="/admin/faculty-list" element={<FacultyList/>} />
-                <Route path="/admin/verification-team" element={<VerificationTeam />} />
-                <Route path="/admin" element={<Navigate to="/admin/add-faculty" />} />
+                <Route path="/admin/add-faculty" element={<AddFaculty />} />
+                <Route path="/admin/faculty-list" element={<FacultyList />} />
+                <Route
+                  path="/admin/verification-team"
+                  element={<VerificationTeam />}
+                />
+                <Route
+                  path="/admin"
+                  element={<Navigate to="/admin/add-faculty" />}
+                />
+                <Route path="" element={<FacultyFormsList />} />
                 <Route path="/*" element={<Navigate to="/login" />} />
               </Routes>
             )}

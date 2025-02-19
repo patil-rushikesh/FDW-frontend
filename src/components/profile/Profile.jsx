@@ -17,7 +17,8 @@ const Profile = () => {
         department: userData.dept,
         position: userData.role,
         email: userData.mail,
-        phone: userData.mob
+        phone: userData.mob,
+        designation: userData.desg  // Add this line
       });
     }
   }, []);
@@ -97,6 +98,22 @@ const Profile = () => {
                   Position
                 </label>
                 <p className="text-gray-800">{facultyData.position}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Designation
+                </label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="designation"
+                    value={facultyData.designation}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border rounded focus:ring focus:ring-indigo-200"
+                  />
+                ) : (
+                  <p className="text-gray-800">{facultyData.designation}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
