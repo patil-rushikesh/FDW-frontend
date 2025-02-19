@@ -8,6 +8,7 @@ import {
   SortAsc,
   SortDesc,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const FacultyFormsList = () => {
   const [facultyData, setFacultyData] = useState([]);
@@ -24,15 +25,16 @@ const FacultyFormsList = () => {
     key: null,
     direction: "asc",
   });
-  const [userDept, setUserDept] = useState('');
+  const [userDept, setUserDept] = useState("");
   const [isHOD, setIsHOD] = useState(false);
+  const navigate = useNavigate();
 
   // Add this useEffect to get logged-in user data
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('userData'));
+    const userData = JSON.parse(localStorage.getItem("userData"));
     if (userData) {
       setUserDept(userData.dept);
-      setIsHOD(userData.desg === 'HOD');
+      setIsHOD(userData.desg === "HOD");
     }
   }, []);
 
@@ -44,10 +46,12 @@ const FacultyFormsList = () => {
         const response = await fetch("http://localhost:5000/users");
         if (!response.ok) throw new Error("Failed to fetch faculty data");
         const data = await response.json();
-        
+
         // Filter data if user is HOD
         if (isHOD) {
-          const filteredData = data.filter(faculty => faculty.dept === userDept);
+          const filteredData = data.filter(
+            (faculty) => faculty.dept === userDept
+          );
           setFacultyData(filteredData);
         } else {
           setFacultyData(data);
@@ -118,28 +122,8 @@ const FacultyFormsList = () => {
   };
 
   // Handle verification status change
-  const handleVerify = async (id, currentStatus) => {
-    try {
-      const response = await fetch(`http://localhost:5000/users/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ verified: !currentStatus }),
-      });
-
-      if (!response.ok) throw new Error("Failed to update verification status");
-
-      setFacultyData((prev) =>
-        prev.map((faculty) =>
-          faculty._id === id
-            ? { ...faculty, verified: !faculty.verified }
-            : faculty
-        )
-      );
-    } catch (err) {
-      setError(err.message);
-    }
+  const handleVerify = (faculty) => {
+    navigate("/hodverify", { state: { faculty } });
   };
 
   if (loading) return <div>Loading...</div>;
@@ -184,7 +168,6 @@ const FacultyFormsList = () => {
                       className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-full sm:w-auto"
                     />
                     <div className="flex gap-2">
-
                       <select
                         value={filters.role}
                         onChange={(e) =>
@@ -257,6 +240,7 @@ const FacultyFormsList = () => {
                       <th className="px-6 py-3 text-gray-600">ID</th>
                       <th className="px-6 py-3 text-gray-600">Name</th>
                       <th className="px-6 py-3 text-gray-600">Department</th>
+                      <th className="px-6 py-3 text-gray-600">Designation</th>
                       <th className="px-6 py-3 text-gray-600">Role</th>
                       <th className="px-6 py-3 text-gray-600">Total Marks</th>
                       <th className="px-6 py-3 text-gray-600">Status</th>
@@ -274,6 +258,7 @@ const FacultyFormsList = () => {
                           {faculty.name}
                         </td>
                         <td className="px-6 py-4">{faculty.dept}</td>
+                        <td className="px-6 py-4">{faculty.desg}</td>
                         <td className="px-6 py-4">{faculty.role}</td>
                         <td className="px-6 py-4">
                           {faculty.totalMarks || "N/A"}
@@ -291,9 +276,7 @@ const FacultyFormsList = () => {
                         </td>
                         <td className="px-6 py-4">
                           <button
-                            onClick={() =>
-                              handleVerify(faculty._id, faculty.verified)
-                            }
+                            onClick={() => handleVerify(faculty)}
                             className={`flex items-center gap-1 px-3 py-1 rounded ${
                               faculty.verified
                                 ? "text-red-600 hover:text-red-800"
@@ -305,7 +288,7 @@ const FacultyFormsList = () => {
                             ) : (
                               <CheckCircle2 className="h-4 w-4" />
                             )}
-                            <span >
+                            <span>
                               {faculty.verified ? "Unverify" : "Verify"}
                             </span>
                           </button>

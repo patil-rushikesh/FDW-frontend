@@ -18,16 +18,19 @@ const AddFaculty = () => {
     "ENTC",
     "Computer(Regional)",
     "AIML",
-    "ASH"
+    "ASH",
   ];
 
-  const designations = [
-    "Professor",
-    "Associate Professor",
-    "Assistant Professor",
+  const desg = [
+    "Associate Dean",
+    "Director",
     "HOD",
-    "Dean"
+    "Dean",
+    "Admin",
+    "Faculty",
   ];
+
+  const roles = ["Professor", "Assistant Prof.", "Associate Prof."];
 
   const [formData, setFormData] = useState({
     _id: "",
@@ -35,14 +38,15 @@ const AddFaculty = () => {
     dept: "",
     role: "",
     mail: "",
-    mob: ""
+    mob: "",
+    desg: "",
   });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -50,14 +54,14 @@ const AddFaculty = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+      const response = await fetch("http://localhost:5000/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error('Failed to add faculty member');
-      setSuccessMessage('Faculty member added successfully');
+      if (!response.ok) throw new Error("Failed to add faculty member");
+      setSuccessMessage("Faculty member added successfully");
       resetForm();
       setShowSuccessDialog(true);
     } catch (err) {
@@ -74,13 +78,17 @@ const AddFaculty = () => {
       dept: "",
       role: "",
       mail: "",
-      mob: ""
+      mob: "",
+      desg: "",
     });
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <AdminSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
       <div className="lg:ml-72">
         <main className="p-4 lg:p-6 mt-16">
           <div className="max-w-7xl mx-auto space-y-8">
@@ -147,7 +155,7 @@ const AddFaculty = () => {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">
-                      Role
+                      Designation
                     </label>
                     <select
                       name="role"
@@ -156,10 +164,30 @@ const AddFaculty = () => {
                       required
                       className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                      <option value="">Select Role</option>
-                      {designations.map((desig) => (
+                      <option value="">Select Designation</option>
+                      {desg.map((desig) => (
                         <option key={desig} value={desig}>
                           {desig}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Role
+                    </label>
+                    <select
+                      name="desg"
+                      value={formData.desg}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">Select Role</option>
+                      {roles.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
                         </option>
                       ))}
                     </select>
@@ -222,7 +250,10 @@ const AddFaculty = () => {
                 <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
                   <div className="p-6">
                     <div className="flex items-center justify-center w-12 h-12 rounded-full mx-auto mb-4">
-                      <Check className="text-green-600 mx-auto mb-4" size={36} />
+                      <Check
+                        className="text-green-600 mx-auto mb-4"
+                        size={36}
+                      />
                     </div>
                     <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">
                       Success
