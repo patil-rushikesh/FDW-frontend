@@ -24,6 +24,17 @@ const FacultyFormsList = () => {
     key: null,
     direction: "asc",
   });
+  const [userDept, setUserDept] = useState('');
+  const [isHOD, setIsHOD] = useState(false);
+
+  // Add this useEffect to get logged-in user data
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    if (userData) {
+      setUserDept(userData.dept);
+      setIsHOD(userData.desg === 'HOD');
+    }
+  }, []);
 
   // Fetch faculty data
   useEffect(() => {
@@ -33,7 +44,14 @@ const FacultyFormsList = () => {
         const response = await fetch("http://localhost:5000/users");
         if (!response.ok) throw new Error("Failed to fetch faculty data");
         const data = await response.json();
-        setFacultyData(data);
+        
+        // Filter data if user is HOD
+        if (isHOD) {
+          const filteredData = data.filter(faculty => faculty.dept === userDept);
+          setFacultyData(filteredData);
+        } else {
+          setFacultyData(data);
+        }
       } catch (err) {
         setError("Error loading faculty data: " + err.message);
       } finally {
@@ -42,7 +60,7 @@ const FacultyFormsList = () => {
     };
 
     fetchFaculties();
-  }, []);
+  }, [isHOD, userDept]);
 
   const departments = [
     "Computer",
@@ -127,6 +145,13 @@ const FacultyFormsList = () => {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
+  const getAvailableDepartments = () => {
+    if (isHOD) {
+      return [userDept];
+    }
+    return departments;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div>
@@ -159,23 +184,7 @@ const FacultyFormsList = () => {
                       className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-full sm:w-auto"
                     />
                     <div className="flex gap-2">
-                      <select
-                        value={filters.department}
-                        onChange={(e) =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            department: e.target.value,
-                          }))
-                        }
-                        className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-full sm:w-auto"
-                      >
-                        <option value="">All Departments</option>
-                        {departments.map((dept) => (
-                          <option key={dept} value={dept}>
-                            {dept}
-                          </option>
-                        ))}
-                      </select>
+
                       <select
                         value={filters.role}
                         onChange={(e) =>
