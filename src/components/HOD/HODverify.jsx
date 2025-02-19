@@ -91,34 +91,27 @@ const FacultyEvaluationForm = () => {
         </div>
 
         {/* Faculty Information Section */}
-        <div className="space-y-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Faculty Name
-              </label>
-              <div className="w-full p-2 bg-gray-100 border border-gray-300 rounded text-gray-700">
-                {faculty?.name || "N/A"}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Faculty ID
-              </label>
-              <div className="w-full p-2 bg-gray-100 border border-gray-300 rounded text-gray-700">
-                {faculty?.id || "N/A"}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Faculty Role
-              </label>
-              <div className="w-full p-2 bg-gray-100 border border-gray-300 rounded text-gray-700">
-                {faculty?.role || "N/A"}
-              </div>
-            </div>
-          </div>
+{/* Faculty Information Section */}
+<div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-6 border border-blue-200">
+  <h2 className="text-xl font-semibold text-blue-800 mb-4">Faculty Information</h2>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    {[
+      { label: "Faculty Name", value: faculty?.name },
+      { label: "Faculty ID", value: faculty?.id },
+      { label: "Faculty Role", value: faculty?.role },
+      { label: "Department", value: faculty?.department }
+    ].map((item, index) => (
+      <div key={index} className="bg-white p-4 rounded-lg border border-blue-200 shadow-sm min-h-[120px] flex flex-col">
+        <label className="block text-sm font-medium text-blue-700 mb-2">
+          {item.label}
+        </label>
+        <div className="flex-1 w-full p-2 bg-blue-50 border border-blue-200 rounded-md text-gray-700 font-medium flex items-center">
+          {item.value || "N/A"}
         </div>
+      </div>
+    ))}
+  </div>
+</div>
 
         {/* PDF Preview Section */}
         <div className="mb-6">

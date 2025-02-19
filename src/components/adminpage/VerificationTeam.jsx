@@ -57,9 +57,7 @@ const VerificationTeam = () => {
     if (value.trim()) {
       const filtered = allFaculty
         .filter(faculty => 
-          // Filter by department if selected
-          (!selectedDepartment || faculty.dept === selectedDepartment) &&
-          // Filter by ID or name containing input value
+          // Only filter by ID or name containing input value
           (faculty._id.toLowerCase().includes(value.toLowerCase()) ||
            faculty.name.toLowerCase().includes(value.toLowerCase())) &&
           // Exclude already selected IDs
