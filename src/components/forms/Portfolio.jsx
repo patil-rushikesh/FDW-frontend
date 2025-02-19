@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const SectionCard = ({ title, icon, borderColor, children }) => (
@@ -44,7 +44,8 @@ const RadioGroup = ({ options, selectedValue, onChange }) => (
 const Portfolio = () => {
   const navigate = useNavigate();
   const userData = JSON.parse(localStorage.getItem("userData"));
-  const userRole = userData.role;
+  console.log(userData);
+  const designation = userData.desg;
 
   const [formData, setFormData] = useState({
     portfolioType: "both", // 'both', 'institute', 'department'
@@ -57,6 +58,20 @@ const Portfolio = () => {
     directorMarks: 0,
     adminDeanMarks: 0,
   });
+
+  useEffect(() => {
+    const isAdminRole =
+      designation === "deputy_director" ||
+      designation === "dean" ||
+      designation === "hod" ||
+      designation === "associate_dean";
+
+    setFormData((prev) => ({
+      ...prev,
+      isAdministrativeRole: isAdminRole,
+      administrativeRole: designation,
+    }));
+  }, [designation]);
 
   const handlePortfolioTypeChange = (value) => {
     setFormData((prev) => ({
@@ -163,57 +178,8 @@ const Portfolio = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
-      {/* Administrative Role Selection */}
-      <SectionCard
-        title="Role Selection"
-        icon="👔"
-        borderColor="border-purple-500"
-      >
-        <div className="mb-6">
-          <label className="flex items-center space-x-3">
-            <input
-              type="checkbox"
-              checked={formData.isAdministrativeRole}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  isAdministrativeRole: e.target.checked,
-                }))
-              }
-              className="h-4 w-4 text-blue-600"
-            />
-            <span className="text-sm font-medium text-gray-700">
-              I hold an administrative position
-            </span>
-          </label>
-        </div>
-
-        {formData.isAdministrativeRole && (
-          <div className="mt-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">
-              Select your administrative role:
-            </h4>
-            <RadioGroup
-              options={[
-                { value: "deputy_director", label: "Deputy Director" },
-                { value: "dean", label: "Dean" },
-                { value: "hod", label: "HOD" },
-                { value: "associate_dean", label: "Associate Dean" },
-              ]}
-              selectedValue={formData.administrativeRole}
-              onChange={(value) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  administrativeRole: value,
-                }))
-              }
-            />
-          </div>
-        )}
-      </SectionCard>
-
       {/* Portfolio Type Selection - Only show if not administrative role */}
-      {!formData.isAdministrativeRole && (
+      {designation === "Faculty" && (
         <SectionCard
           title="Portfolio Selection"
           icon="📋"
@@ -383,7 +349,9 @@ const Portfolio = () => {
           <table className="w-full">
             <tbody>
               <tr className="divide-x divide-gray-200">
-                {formData.isAdministrativeRole && (
+                {(formData.portfolioType === "both" ||
+                  formData.portfolioType === "institute" ||
+                  formData.isAdministrativeRole) && (
                   <td className="w-1/2 p-4 align-top">
                     <div className="space-y-4">
                       <label className="block text-sm font-medium text-gray-700">
@@ -396,19 +364,28 @@ const Portfolio = () => {
                     </div>
                   </td>
                 )}
-                <td
-                  className={`${formData.isAdministrativeRole ? "w-1/2" : "w-full"} p-4 align-top`}
-                >
-                  <div className="space-y-4">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Department Level
-                    </label>
-                    <textarea
-                      className="w-full h-40 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter department level portfolios..."
-                    />
-                  </div>
-                </td>
+                {(formData.portfolioType === "both" ||
+                  formData.portfolioType === "department" ||
+                  formData.isAdministrativeRole) && (
+                  <td
+                    className={`${
+                      formData.portfolioType === "both" ||
+                      formData.isAdministrativeRole
+                        ? "w-1/2"
+                        : "w-full"
+                    } p-4 align-top`}
+                  >
+                    <div className="space-y-4">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Department Level
+                      </label>
+                      <textarea
+                        className="w-full h-40 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter department level portfolios..."
+                      />
+                    </div>
+                  </td>
+                )}
               </tr>
             </tbody>
           </table>
