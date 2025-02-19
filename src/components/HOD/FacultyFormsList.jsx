@@ -10,6 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 const FacultyFormsList = () => {
+  const navigate = useNavigate();
   const [facultyData, setFacultyData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -25,14 +26,12 @@ const FacultyFormsList = () => {
     direction: "asc",
   });
 
-
   // Add this useEffect to get HOD's department when component mounts
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("userData"));
 
     if (userData && userData.dept) {
       setDepartment(userData.dept);
-
     }
   }, []);
 
@@ -152,15 +151,14 @@ const FacultyFormsList = () => {
   const renderActionButton = (faculty) => {
     if (faculty.status === "authority_verification_pending") {
       return (
-<button
-  type="button"
-  className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
->
-  <CheckCircle2 className="h-4 w-4 text-green-600" />
-  <span className="font-semibold text-green-700">Verify</span>
-</button>
-
-
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+          onClick={() => navigate("/hodverify", { state: { faculty } })}
+        >
+          <CheckCircle2 className="h-4 w-4 text-green-600" />
+          <span className="font-semibold text-green-700">Verify</span>
+        </button>
       );
     } else {
       return <span className="text-gray-400">-</span>;
@@ -350,7 +348,6 @@ const FacultyFormsList = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-
                           {renderActionButton(faculty)}
                         </td>
                       </tr>
