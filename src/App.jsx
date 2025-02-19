@@ -26,6 +26,7 @@ import VerificationTeam from "./components/adminpage/VerificationTeam";
 import AddFaculty from "./components/adminpage/AddFaculty";
 import FacultyList from "./components/adminpage/FacultyList";
 import FacultyFormsList from "./components/HOD/FacultyFormsList"; // Import the component
+import VerificationPanel from "./components/HOD/VerificationPanel";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -135,6 +136,14 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <FacultyFormsList />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/hod/department-review"
+                    element={
+                      <ProtectedRoute>
+                        <VerificationPanel/>
                       </ProtectedRoute>
                     }
                   />
