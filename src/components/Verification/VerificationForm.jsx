@@ -198,7 +198,25 @@ const VerificationForm = () => {
   useEffect(() => {
     const transformApiResponse = (data) => {
       const newFormData = { ...initialState };
-      const newVerifiedScores = {};
+      const newVerifiedScores = {
+        journalPapers: { marks: 0 },
+        conferencePapers: { marks: 0 },
+        bookChapters: { marks: 0 },
+        books: { marks: 0 },
+        citations: { marks: 0 },
+        copyrightIndividual: { marks: 0 },
+        copyrightInstitute: { marks: 0 },
+        patentIndividual: { marks: 0 },
+        patentInstitute: { marks: 0 },
+        researchGrants: { marks: 0 },
+        trainingPrograms: { marks: 0 },
+        nonResearchGrants: { marks: 0 },
+        productDevelopment: { marks: 0 },
+        startup: { marks: 0 },
+        awardsAndFellowships: { marks: 0 },
+        industryInteraction: { marks: 0 },
+        internshipPlacement: { marks: 0 }
+      };
     
       if (data[1]) {
         // Journal Papers
@@ -222,9 +240,7 @@ const VerificationForm = () => {
           count: data[1].journalPapers?.otherCount || 0,
           proof: data[1].journalPapers?.otherProof || "",
         };
-        newVerifiedScores.journalPapers = {
-          marks: data[1].journalPapers?.verified_marks || 0
-        };
+        newVerifiedScores.journalPapers.marks = data[1].journalPapers?.verified_marks || 0;
       }
     
       if (data[2]) {
@@ -237,9 +253,7 @@ const VerificationForm = () => {
           count: data[2].conferencePapers?.otherCount || 0,
           proof: data[2].conferencePapers?.otherProof || "",
         };
-        newVerifiedScores.conferencePapers = {
-          marks: data[2].conferencePapers?.verified_marks || 0
-        };
+        newVerifiedScores.conferencePapers.marks = data[2].conferencePapers?.verified_marks || 0;
       }
     
       if (data[3]) {
@@ -252,9 +266,7 @@ const VerificationForm = () => {
           count: data[3].bookChapters?.otherCount || 0,
           proof: data[3].bookChapters?.otherProof || "",
         };
-        newVerifiedScores.bookChapters = {
-          marks: data[3].bookChapters?.verified_marks || 0
-        };
+        newVerifiedScores.bookChapters.marks = data[3].bookChapters?.verified_marks || 0;
       }
     
       if (data[4]) {
@@ -271,9 +283,7 @@ const VerificationForm = () => {
           count: data[4].books?.localCount || 0,
           proof: data[4].books?.localProof || "",
         };
-        newVerifiedScores.books = {
-          marks: data[4].books?.verified_marks || 0
-        };
+        newVerifiedScores.books.marks = data[4].books?.verified_marks || 0;
       }
     
       if (data[5]) {
@@ -290,9 +300,7 @@ const VerificationForm = () => {
           count: data[5].citations?.googleScholarCount || 0,
           proof: data[5].citations?.googleScholarProof || "",
         };
-        newVerifiedScores.citations = {
-          marks: data[5].citations?.verified_marks || 0
-        };
+        newVerifiedScores.citations.marks = data[5].citations?.verified_marks || 0;
       }
     
       if (data[6]) {
@@ -305,9 +313,7 @@ const VerificationForm = () => {
           count: data[6].copyrightIndividual?.grantedCount || 0,
           proof: data[6].copyrightIndividual?.grantedProof || "",
         };
-        newVerifiedScores.copyrightIndividual = {
-          marks: data[6].copyrightIndividual?.verified_marks || 0
-        };
+        newVerifiedScores.copyrightIndividual.marks = data[6].copyrightIndividual?.verified_marks || 0;
       }
     
       if (data[7]) {
@@ -320,9 +326,7 @@ const VerificationForm = () => {
           count: data[7].copyrightInstitute?.grantedCount || 0,
           proof: data[7].copyrightInstitute?.grantedProof || "",
         };
-        newVerifiedScores.copyrightInstitute = {
-          marks: data[7].copyrightInstitute?.verified_marks || 0
-        };
+        newVerifiedScores.copyrightInstitute.marks = data[7].copyrightInstitute?.verified_marks || 0;
       }
     
       if (data[8]) {
@@ -343,9 +347,7 @@ const VerificationForm = () => {
           count: data[8].patentIndividual?.commercializedCount || 0,
           proof: data[8].patentIndividual?.commercializedProof || "",
         };
-        newVerifiedScores.patentIndividual = {
-          marks: data[8].patentIndividual?.verified_marks || 0
-        };
+        newVerifiedScores.patentIndividual.marks = data[8].patentIndividual?.verified_marks || 0;
       }
     
       if (data[9]) {
@@ -366,9 +368,7 @@ const VerificationForm = () => {
           count: data[9].patentInstitute?.commercializedCount || 0,
           proof: data[9].patentInstitute?.commercializedProof || "",
         };
-        newVerifiedScores.patentInstitute = {
-          marks: data[9].patentInstitute?.verified_marks || 0
-        };
+        newVerifiedScores.patentInstitute.marks = data[9].patentInstitute?.verified_marks || 0;
       }
     
       if (data[10]) {
@@ -377,9 +377,7 @@ const VerificationForm = () => {
           amount: data[10].researchGrants?.amount || 0,
           proof: data[10].researchGrants?.proof || "",
         };
-        newVerifiedScores.researchGrants = {
-          marks: data[10].researchGrants?.verified_marks || 0
-        };
+        newVerifiedScores.researchGrants.marks = data[10].researchGrants?.verified_marks || 0;
       }
     
       if (data[11]) {
@@ -388,9 +386,7 @@ const VerificationForm = () => {
           amount: data[11].trainingPrograms?.amount || 0,
           proof: data[11].trainingPrograms?.proof || "",
         };
-        newVerifiedScores.trainingPrograms = {
-          marks: data[11].trainingPrograms?.verified_marks || 0
-        };
+        newVerifiedScores.trainingPrograms.marks = data[11].trainingPrograms?.verified_marks || 0;
       }
     
       if (data[12]) {
@@ -399,9 +395,7 @@ const VerificationForm = () => {
           amount: data[12].nonResearchGrants?.amount || 0,
           proof: data[12].nonResearchGrants?.proof || "",
         };
-        newVerifiedScores.nonResearchGrants = {
-          marks: data[12].nonResearchGrants?.verified_marks || 0
-        };
+        newVerifiedScores.nonResearchGrants.marks = data[12].nonResearchGrants?.verified_marks || 0;
       }
     
       if (data[13]) {
@@ -418,9 +412,7 @@ const VerificationForm = () => {
           count: data[13].productDevelopment?.pocCount || 0,
           proof: data[13].productDevelopment?.pocProof || "",
         };
-        newVerifiedScores.productDevelopment = {
-          marks: data[13].productDevelopment?.verified_marks || 0
-        };
+        newVerifiedScores.productDevelopment.marks = data[13].productDevelopment?.verified_marks || 0;
       }
     
       if (data[14]) {
@@ -445,9 +437,7 @@ const VerificationForm = () => {
           count: data[14].startup?.registeredCount || 0,
           proof: data[14].startup?.registeredProof || "",
         };
-        newVerifiedScores.startup = {
-          marks: data[14].startup?.verified_marks || 0
-        };
+        newVerifiedScores.startup.marks = data[14].startup?.verified_marks || 0;
       }
     
       if (data[15]) {
@@ -465,18 +455,14 @@ const VerificationForm = () => {
           proof: data[15].awardsAndFellowships?.nationalAwardsProof || "",
         };
         newFormData.internationalFellowships = {
-          count:
-            data[15].awardsAndFellowships?.internationalFellowshipsCount || 0,
-          proof:
-            data[15].awardsAndFellowships?.internationalFellowshipsProof || "",
+          count: data[15].awardsAndFellowships?.internationalFellowshipsCount || 0,
+          proof: data[15].awardsAndFellowships?.internationalFellowshipsProof || "",
         };
         newFormData.nationalFellowships = {
           count: data[15].awardsAndFellowships?.nationalFellowshipsCount || 0,
           proof: data[15].awardsAndFellowships?.nationalFellowshipsProof || "",
         };
-        newVerifiedScores.awardsAndFellowships = {
-          marks: data[15].awardsAndFellowships?.verified_marks || 0
-        };
+        newVerifiedScores.awardsAndFellowships.marks = data[15].awardsAndFellowships?.verified_marks || 0;
       }
     
       if (data[16]) {
@@ -489,9 +475,7 @@ const VerificationForm = () => {
           count: data[16].industryInteraction?.collaborationCount || 0,
           proof: data[16].industryInteraction?.collaborationProof || "",
         };
-        newVerifiedScores.industryInteraction = {
-          marks: data[16].industryInteraction?.verified_marks || 0
-        };
+        newVerifiedScores.industryInteraction.marks = data[16].industryInteraction?.verified_marks || 0;
       }
     
       if (data[17]) {
@@ -500,29 +484,29 @@ const VerificationForm = () => {
           count: data[17].internshipPlacement?.offersCount || 0,
           proof: data[17].internshipPlacement?.offersProof || "",
         };
-        newVerifiedScores.internshipPlacement = {
-          marks: data[17].internshipPlacement?.verified_marks || 0
-        };
+        newVerifiedScores.internshipPlacement.marks = data[17].internshipPlacement?.verified_marks || 0;
       }
     
-      setVerifiedScores(newVerifiedScores);
-      return newFormData;
+      return {
+        formData: newFormData,
+        verifiedScores: newVerifiedScores
+      };
     };
-
+    
+    // Update the fetchExistingData function to use the transformed verified scores
     const fetchExistingData = async () => {
       setIsLoading(true);
       try {
-        // Use the department and facultyId from URL parameters
         const response = await fetch(
           `http://127.0.0.1:5000/${department}/${facultyId}/B`
         );
-
+    
         if (response.ok) {
           const data = await response.json();
           if (data) {
             const transformedData = transformApiResponse(data);
-            setFormData(transformedData);
-            setVerifiedScores(data);
+            setFormData(transformedData.formData);
+            setVerifiedScores(transformedData.verifiedScores);
           }
         }
       } catch (error) {
@@ -944,18 +928,50 @@ const VerificationForm = () => {
       }, 0)
     };
 
-    console.log("Payload:", payload);
+    async function verifyResearch(department, userId, verifierId) {
+      try {
+        const verifyResponse = await fetch(
+          `http://127.0.0.1:5000/${department}/${userId}/${verifierId}/verify-research`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              verified: true,
+              timestamp: new Date().toISOString()
+            })
+          }
+        );
+    
+        if (verifyResponse.ok) {
+          console.log("Research verification successful");
+          return await verifyResponse.json();
+        } else {
+          console.error("Research verification failed:", verifyResponse.status);
+          throw new Error(`Verification failed with status: ${verifyResponse.status}`);
+        }
+      } catch (error) {
+        console.error("Error during research verification:", error);
+        throw error;
+      }
+    }
+
     try {
       const response = await fetch(
         `http://127.0.0.1:5000/${department}/${facultyId}/B`,
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+        "Content-Type": "application/json",
           },
           body: JSON.stringify(payload),
         }
       );
+
+      if (response.ok) {
+        await verifyResearch(department, userData._id, facultyId);
+      }
 
       if (response.ok) {
         navigate("/submission-status", {
@@ -1696,7 +1712,7 @@ const VerificationForm = () => {
               Submitting...
             </>
           ) : (
-            "Submit Research Details"
+            "Submit After Varification"
           )}
         </button>
       </div>

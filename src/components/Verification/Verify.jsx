@@ -154,16 +154,36 @@ const Verify = () => {
                                 </div>
                               </div>
                               <div className="flex space-x-3">
-                                <button
-                                  className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition duration-200"
-                                  onClick={() =>
-                                    navigate(
-                                      `/paper-verification/givemarks/${department}/${faculty._id}`
-                                    )
-                                  }
-                                >
-                                  Verify and Give Marks
-                                </button>
+                                {faculty.isApproved ? (
+                                  <div className="flex items-center space-x-2 text-green-600">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-5 w-5"
+                                      viewBox="0 0 20 20"
+                                      fill="currentColor"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                    <span className="font-medium">
+                                      Verified
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <button
+                                    className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition duration-200"
+                                    onClick={() =>
+                                      navigate(
+                                        `/paper-verification/givemarks/${department}/${faculty._id}`
+                                      )
+                                    }
+                                  >
+                                    Verify and Give Marks
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>
