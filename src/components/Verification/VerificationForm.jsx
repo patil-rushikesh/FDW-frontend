@@ -25,6 +25,7 @@ const ScoreCard = ({
   total,
   verifiedScore,
   onVerifiedScoreChange,
+  sectionVerifiedScores = {} // Add this prop
 }) => (
   <div className="space-y-2">
     <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg flex items-center justify-between shadow-sm">
@@ -38,29 +39,26 @@ const ScoreCard = ({
         <span className="font-medium text-gray-700">
           Score After Verification:
         </span>
-        <input
-          type="number"
-          value={verifiedScore || ""}
-          onChange={(e) => onVerifiedScoreChange(parseInt(e.target.value) || 0)}
-          min="0"
-          className="w-24 px-3 py-1 text-lg font-bold text-green-600 bg-white border border-green-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-        />
+        <span className="text-lg font-bold text-green-600">
+          {/* Calculate section total */}
+          {Object.values(sectionVerifiedScores).reduce((sum, score) => sum + (score?.marks || 0), 0)}
+        </span>
       </div>
     </div>
   </div>
 );
 
-// Update the InputFieldWithProof component
-const InputFieldWithProof = ({ label, name, value, proofValue }) => (
+// Modified InputFieldWithProof component
+const InputFieldWithProof = ({ label, name, value, proofValue, onVerifiedScoreChange, verifiedScore }) => (
   <div className="space-y-2 mb-4">
     <label className="block text-sm font-medium text-gray-700">{label}</label>
-    <div className="flex gap-2">
+    <div className="flex gap-2 items-center">
       <input
         type="number"
         name={name}
         value={value || 0}
         disabled={true}
-        className="block w-1/3 px-4 py-2 rounded-md border border-gray-300 bg-gray-100 text-gray-700 cursor-not-allowed"
+        className="block w-1/4 px-4 py-2 rounded-md border border-gray-300 bg-gray-100 text-gray-700 cursor-not-allowed"
       />
       {proofValue ? (
         <a
@@ -76,6 +74,14 @@ const InputFieldWithProof = ({ label, name, value, proofValue }) => (
           View
         </span>
       )}
+      <input
+        type="number"
+        value={verifiedScore || ""}
+        onChange={(e) => onVerifiedScoreChange(parseInt(e.target.value) || 0)}
+        min="0"
+        placeholder="Verified Score"
+        className="w-1/4 px-3 py-2 text-gray-700 bg-white border border-green-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+      />
     </div>
   </div>
 );
@@ -1019,30 +1025,65 @@ const VerificationForm = () => {
             name="sciJournalPapers"
             value={formData.sciJournalPapers.count}
             proofValue={formData.sciJournalPapers.proof}
+            verifiedScore={verifiedScores.sciJournalPapers?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                sciJournalPapers: { marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="ESCI Journal (WoS) Papers (50 marks per paper)"
             name="esciJournalPapers"
             value={formData.esciJournalPapers.count}
             proofValue={formData.esciJournalPapers.proof}
+            verifiedScore={verifiedScores.esciJournalPapers?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                esciJournalPapers: { marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Scopus Journal Papers (50 marks per paper)"
             name="scopusJournalPapers"
             value={formData.scopusJournalPapers.count}
             proofValue={formData.scopusJournalPapers.proof}
+            verifiedScore={verifiedScores.scopusJournalPapers?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                scopusJournalPapers: { marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="UGC CARE Listed Journal Papers (10 marks per paper)"
             name="ugcCareJournalPapers"
             value={formData.ugcCareJournalPapers.count}
             proofValue={formData.ugcCareJournalPapers.proof}
+            verifiedScore={verifiedScores.ugcCareJournalPapers?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                ugcCareJournalPapers: { marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Other Journal Papers (5 marks per paper)"
             name="otherJournalPapers"
             value={formData.otherJournalPapers.count}
             proofValue={formData.otherJournalPapers.proof}
+            verifiedScore={verifiedScores.otherJournalPapers?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                otherJournalPapers: { marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1050,10 +1091,17 @@ const VerificationForm = () => {
           score={scores.journalPapersScore}
           total="No limit"
           verifiedScore={verifiedScores.journalPapers?.marks}
+          sectionVerifiedScores={{
+            sciJournalPapers: verifiedScores.sciJournalPapers,
+            esciJournalPapers: verifiedScores.esciJournalPapers,
+            scopusJournalPapers: verifiedScores.scopusJournalPapers,
+            ugcCareJournalPapers: verifiedScores.ugcCareJournalPapers,
+            otherJournalPapers: verifiedScores.otherJournalPapers
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              journalPapers: { ...prev.journalPapers, marks: value },
+              journalPapers: { marks: value },
             }))
           }
         />
@@ -1071,12 +1119,26 @@ const VerificationForm = () => {
             name="scopusWosConferencePapers"
             value={formData.scopusWosConferencePapers.count}
             proofValue={formData.scopusWosConferencePapers.proof}
+            verifiedScore={verifiedScores.scopusWosConferencePapers?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                scopusWosConferencePapers: { ...prev.scopusWosConferencePapers, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Other Conference Papers (5 marks per paper)"
             name="otherConferencePapers"
             value={formData.otherConferencePapers.count}
             proofValue={formData.otherConferencePapers.proof}
+            verifiedScore={verifiedScores.otherConferencePapers?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                otherConferencePapers: { ...prev.otherConferencePapers, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1084,10 +1146,14 @@ const VerificationForm = () => {
           score={scores.conferencePapersScore}
           total="180"
           verifiedScore={verifiedScores.conferencePapers?.marks}
+          sectionVerifiedScores={{
+            scopusWosConferencePapers: verifiedScores.scopusWosConferencePapers,
+            otherConferencePapers: verifiedScores.otherConferencePapers
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              conferencePapers: { ...prev.conferencePapers, marks: value },
+              conferencePapers: { marks: value },
             }))
           }
         />
@@ -1105,12 +1171,26 @@ const VerificationForm = () => {
             name="scopusWosBooksChapters"
             value={formData.scopusWosBooksChapters.count}
             proofValue={formData.scopusWosBooksChapters.proof}
+            verifiedScore={verifiedScores.scopusWosBooksChapters?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                scopusWosBooksChapters: { ...prev.scopusWosBooksChapters, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Other Book Chapters (5 marks per chapter)"
             name="otherBooksChapters"
             value={formData.otherBooksChapters.count}
             proofValue={formData.otherBooksChapters.proof}
+            verifiedScore={verifiedScores.otherBooksChapters?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                otherBooksChapters: { ...prev.otherBooksChapters, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1118,10 +1198,14 @@ const VerificationForm = () => {
           score={scores.bookChaptersScore}
           total="150"
           verifiedScore={verifiedScores.bookChapters?.marks}
+          sectionVerifiedScores={{
+            scopusWosBooksChapters: verifiedScores.scopusWosBooksChapters,
+            otherBooksChapters: verifiedScores.otherBooksChapters
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              bookChapters: { ...prev.bookChapters, marks: value },
+              bookChapters: { marks: value },
             }))
           }
         />
@@ -1139,18 +1223,39 @@ const VerificationForm = () => {
             name="scopusWosBooks"
             value={formData.scopusWosBooks.count}
             proofValue={formData.scopusWosBooks.proof}
+            verifiedScore={verifiedScores.scopusWosBooks?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                scopusWosBooks: { ...prev.scopusWosBooks, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Books Published with International/National Publisher (non-indexed) (30 marks per book)"
             name="nonIndexedIntlNationalBooks"
             value={formData.nonIndexedIntlNationalBooks.count}
             proofValue={formData.nonIndexedIntlNationalBooks.proof}
+            verifiedScore={verifiedScores.nonIndexedIntlNationalBooks?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                nonIndexedIntlNationalBooks: { ...prev.nonIndexedIntlNationalBooks, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Books Published with Local Publisher (10 marks per book)"
             name="localPublisherBooks"
             value={formData.localPublisherBooks.count}
             proofValue={formData.localPublisherBooks.proof}
+            verifiedScore={verifiedScores.localPublisherBooks?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                localPublisherBooks: { ...prev.localPublisherBooks, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1158,10 +1263,15 @@ const VerificationForm = () => {
           score={scores.booksScore}
           total="200"
           verifiedScore={verifiedScores.books?.marks}
+          sectionVerifiedScores={{
+            scopusWosBooks: verifiedScores.scopusWosBooks,
+            nonIndexedIntlNationalBooks: verifiedScores.nonIndexedIntlNationalBooks,
+            localPublisherBooks: verifiedScores.localPublisherBooks
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              books: { ...prev.books, marks: value },
+              books: { marks: value },
             }))
           }
         />
@@ -1179,18 +1289,39 @@ const VerificationForm = () => {
             name="webOfScienceCitations"
             value={formData.webOfScienceCitations.count}
             proofValue={formData.webOfScienceCitations.proof}
+            verifiedScore={verifiedScores.webOfScienceCitations?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                webOfScienceCitations: { ...prev.webOfScienceCitations, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Scopus Citations (3 marks per 3 citations)"
             name="scopusCitations"
             value={formData.scopusCitations.count}
             proofValue={formData.scopusCitations.proof}
+            verifiedScore={verifiedScores.scopusCitations?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                scopusCitations: { ...prev.scopusCitations, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Google Scholar Citations (1 mark per 3 citations)"
             name="googleScholarCitations"
             value={formData.googleScholarCitations.count}
             proofValue={formData.googleScholarCitations.proof}
+            verifiedScore={verifiedScores.googleScholarCitations?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                googleScholarCitations: { ...prev.googleScholarCitations, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1198,10 +1329,15 @@ const VerificationForm = () => {
           score={scores.citationsScore}
           total="50"
           verifiedScore={verifiedScores.citations?.marks}
+          sectionVerifiedScores={{
+            webOfScienceCitations: verifiedScores.webOfScienceCitations,
+            scopusCitations: verifiedScores.scopusCitations,
+            googleScholarCitations: verifiedScores.googleScholarCitations
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              citations: { ...prev.citations, marks: value },
+              citations: { marks: value },
             }))
           }
         />
@@ -1219,12 +1355,26 @@ const VerificationForm = () => {
             name="indianCopyrightRegistered"
             value={formData.indianCopyrightRegistered.count}
             proofValue={formData.indianCopyrightRegistered.proof}
+            verifiedScore={verifiedScores.indianCopyrightRegistered?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianCopyrightRegistered: { ...prev.indianCopyrightRegistered, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Indian Copyright Granted (15 marks per copyright)"
             name="indianCopyrightGranted"
             value={formData.indianCopyrightGranted.count}
             proofValue={formData.indianCopyrightGranted.proof}
+            verifiedScore={verifiedScores.indianCopyrightGranted?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianCopyrightGranted: { ...prev.indianCopyrightGranted, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1232,6 +1382,10 @@ const VerificationForm = () => {
           score={scores.copyrightIndividualScore}
           total="30"
           verifiedScore={verifiedScores.copyrightIndividual?.marks}
+          sectionVerifiedScores={{
+            indianCopyrightRegistered: verifiedScores.indianCopyrightRegistered,
+            indianCopyrightGranted: verifiedScores.indianCopyrightGranted
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
@@ -1256,12 +1410,26 @@ const VerificationForm = () => {
             name="indianCopyrightRegisteredInstitute"
             value={formData.indianCopyrightRegisteredInstitute.count}
             proofValue={formData.indianCopyrightRegisteredInstitute.proof}
+            verifiedScore={verifiedScores.indianCopyrightRegisteredInstitute?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianCopyrightRegisteredInstitute: { ...prev.indianCopyrightRegisteredInstitute, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Indian Copyright Granted (30 marks per copyright)"
             name="indianCopyrightGrantedInstitute"
             value={formData.indianCopyrightGrantedInstitute.count}
             proofValue={formData.indianCopyrightGrantedInstitute.proof}
+            verifiedScore={verifiedScores.indianCopyrightGrantedInstitute?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianCopyrightGrantedInstitute: { ...prev.indianCopyrightGrantedInstitute, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1269,10 +1437,14 @@ const VerificationForm = () => {
           score={scores.copyrightInstituteScore}
           total="No limit"
           verifiedScore={verifiedScores.copyrightInstitute?.marks}
+          sectionVerifiedScores={{
+            indianCopyrightRegisteredInstitute: verifiedScores.indianCopyrightRegisteredInstitute,
+            indianCopyrightGrantedInstitute: verifiedScores.indianCopyrightGrantedInstitute
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              copyrightInstitute: { ...prev.copyrightInstitute, marks: value },
+              copyrightInstitute: { marks: value },
             }))
           }
         />
@@ -1290,24 +1462,52 @@ const VerificationForm = () => {
             name="indianPatentRegistered"
             value={formData.indianPatentRegistered.count}
             proofValue={formData.indianPatentRegistered.proof}
+            verifiedScore={verifiedScores.indianPatentRegistered?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentRegistered: { ...prev.indianPatentRegistered, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Indian Patent Published (30 marks per patent)"
             name="indianPatentPublished"
             value={formData.indianPatentPublished.count}
             proofValue={formData.indianPatentPublished.proof}
+            verifiedScore={verifiedScores.indianPatentPublished?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentPublished: { ...prev.indianPatentPublished, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Indian Patent Granted (50 marks per patent)"
             name="indianPatentGranted"
             value={formData.indianPatentGranted.count}
             proofValue={formData.indianPatentGranted.proof}
+            verifiedScore={verifiedScores.indianPatentGranted?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentGranted: { ...prev.indianPatentGranted, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Indian Patent Commercialized (100 marks per patent)"
             name="indianPatentCommercialized"
             value={formData.indianPatentCommercialized.count}
             proofValue={formData.indianPatentCommercialized.proof}
+            verifiedScore={verifiedScores.indianPatentCommercialized?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentCommercialized: { ...prev.indianPatentCommercialized, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1315,10 +1515,16 @@ const VerificationForm = () => {
           score={scores.patentIndividualScore}
           total="100"
           verifiedScore={verifiedScores.patentIndividual?.marks}
+          sectionVerifiedScores={{
+            indianPatentRegistered: verifiedScores.indianPatentRegistered,
+            indianPatentPublished: verifiedScores.indianPatentPublished,
+            indianPatentGranted: verifiedScores.indianPatentGranted,
+            indianPatentCommercialized: verifiedScores.indianPatentCommercialized
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              patentIndividual: { ...prev.patentIndividual, marks: value },
+              patentIndividual: { marks: value },
             }))
           }
         />
@@ -1336,24 +1542,52 @@ const VerificationForm = () => {
             name="indianPatentRegisteredInstitute"
             value={formData.indianPatentRegisteredInstitute.count}
             proofValue={formData.indianPatentRegisteredInstitute.proof}
+            verifiedScore={verifiedScores.indianPatentRegisteredInstitute?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentRegisteredInstitute: { ...prev.indianPatentRegisteredInstitute, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Indian Patent Published (60 marks per patent)"
             name="indianPatentPublishedInstitute"
             value={formData.indianPatentPublishedInstitute.count}
             proofValue={formData.indianPatentPublishedInstitute.proof}
+            verifiedScore={verifiedScores.indianPatentPublishedInstitute?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentPublishedInstitute: { ...prev.indianPatentPublishedInstitute, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Indian Patent Granted (100 marks per patent)"
             name="indianPatentGrantedInstitute"
             value={formData.indianPatentGrantedInstitute.count}
             proofValue={formData.indianPatentGrantedInstitute.proof}
+            verifiedScore={verifiedScores.indianPatentGrantedInstitute?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentGrantedInstitute: { ...prev.indianPatentGrantedInstitute, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Indian Patent Commercialized (200 marks per patent)"
             name="indianPatentCommercializedInstitute"
             value={formData.indianPatentCommercializedInstitute.count}
             proofValue={formData.indianPatentCommercializedInstitute.proof}
+            verifiedScore={verifiedScores.indianPatentCommercializedInstitute?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentCommercializedInstitute: { ...prev.indianPatentCommercializedInstitute, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1361,10 +1595,16 @@ const VerificationForm = () => {
           score={scores.patentInstituteScore}
           total="No limit"
           verifiedScore={verifiedScores.patentInstitute?.marks}
+          sectionVerifiedScores={{
+            indianPatentRegisteredInstitute: verifiedScores.indianPatentRegisteredInstitute,
+            indianPatentPublishedInstitute: verifiedScores.indianPatentPublishedInstitute,
+            indianPatentGrantedInstitute: verifiedScores.indianPatentGrantedInstitute,
+            indianPatentCommercializedInstitute: verifiedScores.indianPatentCommercializedInstitute
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              patentInstitute: { ...prev.patentInstitute, marks: value },
+              patentInstitute: { marks: value },
             }))
           }
         />
@@ -1382,6 +1622,13 @@ const VerificationForm = () => {
             name="researchGrants"
             value={formData.researchGrants.amount}
             proofValue={formData.researchGrants.proof}
+            verifiedScore={verifiedScores.researchGrants?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                researchGrants: { ...prev.researchGrants, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1389,10 +1636,13 @@ const VerificationForm = () => {
           score={scores.researchGrantsScore}
           total="No limit"
           verifiedScore={verifiedScores.researchGrants?.marks}
+          sectionVerifiedScores={{
+            researchGrants: verifiedScores.researchGrants
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              researchGrants: { ...prev.researchGrants, marks: value },
+              researchGrants: { marks: value },
             }))
           }
         />
@@ -1410,6 +1660,13 @@ const VerificationForm = () => {
             name="trainingProgramsRevenue"
             value={formData.trainingProgramsRevenue.amount}
             proofValue={formData.trainingProgramsRevenue.proof}
+            verifiedScore={verifiedScores.trainingProgramsRevenue?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                trainingProgramsRevenue: { ...prev.trainingProgramsRevenue, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1417,10 +1674,13 @@ const VerificationForm = () => {
           score={scores.trainingRevenueScore}
           total="40"
           verifiedScore={verifiedScores.trainingPrograms?.marks}
+          sectionVerifiedScores={{
+            trainingProgramsRevenue: verifiedScores.trainingProgramsRevenue
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              trainingPrograms: { ...prev.trainingPrograms, marks: value },
+              trainingPrograms: { marks: value },
             }))
           }
         />
@@ -1438,6 +1698,13 @@ const VerificationForm = () => {
             name="nonResearchGrants"
             value={formData.nonResearchGrants.amount}
             proofValue={formData.nonResearchGrants.proof}
+            verifiedScore={verifiedScores.nonResearchGrants?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                nonResearchGrants: { ...prev.nonResearchGrants, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1445,10 +1712,13 @@ const VerificationForm = () => {
           score={scores.nonResearchGrantsScore}
           total="40"
           verifiedScore={verifiedScores.nonResearchGrants?.marks}
+          sectionVerifiedScores={{
+            nonResearchGrants: verifiedScores.nonResearchGrants
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              nonResearchGrants: { ...prev.nonResearchGrants, marks: value },
+              nonResearchGrants: { marks: value },
             }))
           }
         />
@@ -1466,18 +1736,39 @@ const VerificationForm = () => {
             name="commercializedProducts"
             value={formData.commercializedProducts.count}
             proofValue={formData.commercializedProducts.proof}
+            verifiedScore={verifiedScores.commercializedProducts?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                commercializedProducts: { ...prev.commercializedProducts, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Developed Products (40 marks per product)"
             name="developedProducts"
             value={formData.developedProducts.count}
             proofValue={formData.developedProducts.proof}
+            verifiedScore={verifiedScores.developedProducts?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                developedProducts: { ...prev.developedProducts, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Proof of Concepts (10 marks per POC)"
             name="proofOfConcepts"
             value={formData.proofOfConcepts.count}
             proofValue={formData.proofOfConcepts.proof}
+            verifiedScore={verifiedScores.proofOfConcepts?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                proofOfConcepts: { ...prev.proofOfConcepts, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1485,10 +1776,15 @@ const VerificationForm = () => {
           score={scores.productDevelopedScore}
           total="100"
           verifiedScore={verifiedScores.productDevelopment?.marks}
+          sectionVerifiedScores={{
+            commercializedProducts: verifiedScores.commercializedProducts,
+            developedProducts: verifiedScores.developedProducts,
+            proofOfConcepts: verifiedScores.proofOfConcepts
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              productDevelopment: { ...prev.productDevelopment, marks: value },
+              productDevelopment: { marks: value },
             }))
           }
         />
@@ -1506,30 +1802,65 @@ const VerificationForm = () => {
             name="startupRevenueFiftyK"
             value={formData.startupRevenueFiftyK.count}
             proofValue={formData.startupRevenueFiftyK.proof}
+            verifiedScore={verifiedScores.startupRevenueFiftyK?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                startupRevenueFiftyK: { ...prev.startupRevenueFiftyK, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Startup with Funds > 5 Lakhs (100 marks per startup)"
             name="startupFundsFiveLakhs"
             value={formData.startupFundsFiveLakhs.count}
             proofValue={formData.startupFundsFiveLakhs.proof}
+            verifiedScore={verifiedScores.startupFundsFiveLakhs?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                startupFundsFiveLakhs: { ...prev.startupFundsFiveLakhs, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Startup Products (40 marks per product)"
             name="startupProducts"
             value={formData.startupProducts.count}
             proofValue={formData.startupProducts.proof}
+            verifiedScore={verifiedScores.startupProducts?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                startupProducts: { ...prev.startupProducts, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Startup POCs (10 marks per POC)"
             name="startupPOCs"
             value={formData.startupPOCs.count}
             proofValue={formData.startupPOCs.proof}
+            verifiedScore={verifiedScores.startupPOCs?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                startupPOCs: { ...prev.startupPOCs, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Registered Startups (5 marks per startup)"
             name="startupRegistered"
             value={formData.startupRegistered.count}
             proofValue={formData.startupRegistered.proof}
+            verifiedScore={verifiedScores.startupRegistered?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                startupRegistered: { ...prev.startupRegistered, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1537,10 +1868,17 @@ const VerificationForm = () => {
           score={scores.startupScore}
           total="No limit"
           verifiedScore={verifiedScores.startup?.marks}
+          sectionVerifiedScores={{
+            startupRevenueFiftyK: verifiedScores.startupRevenueFiftyK,
+            startupFundsFiveLakhs: verifiedScores.startupFundsFiveLakhs,
+            startupProducts: verifiedScores.startupProducts,
+            startupPOCs: verifiedScores.startupPOCs,
+            startupRegistered: verifiedScores.startupRegistered
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
-              startup: { ...prev.startup, marks: value },
+              startup: { marks: value },
             }))
           }
         />
@@ -1558,30 +1896,65 @@ const VerificationForm = () => {
             name="internationalAwards"
             value={formData.internationalAwards.count}
             proofValue={formData.internationalAwards.proof}
+            verifiedScore={verifiedScores.internationalAwards?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                internationalAwards: { ...prev.internationalAwards, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Government Awards (20 marks per award)"
             name="governmentAwards"
             value={formData.governmentAwards.count}
             proofValue={formData.governmentAwards.proof}
+            verifiedScore={verifiedScores.governmentAwards?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                governmentAwards: { ...prev.governmentAwards, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="National Awards (5 marks per award)"
             name="nationalAwards"
             value={formData.nationalAwards.count}
             proofValue={formData.nationalAwards.proof}
+            verifiedScore={verifiedScores.nationalAwards?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                nationalAwards: { ...prev.nationalAwards, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="International Fellowships (50 marks per fellowship)"
             name="internationalFellowships"
             value={formData.internationalFellowships.count}
             proofValue={formData.internationalFellowships.proof}
+            verifiedScore={verifiedScores.internationalFellowships?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                internationalFellowships: { ...prev.internationalFellowships, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="National Fellowships (30 marks per fellowship)"
             name="nationalFellowships"
             value={formData.nationalFellowships.count}
             proofValue={formData.nationalFellowships.proof}
+            verifiedScore={verifiedScores.nationalFellowships?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                nationalFellowships: { ...prev.nationalFellowships, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1589,6 +1962,13 @@ const VerificationForm = () => {
           score={scores.awardFellowshipScore}
           total="50"
           verifiedScore={verifiedScores.awardsAndFellowships?.marks}
+          sectionVerifiedScores={{
+            internationalAwards: verifiedScores.internationalAwards,
+            governmentAwards: verifiedScores.governmentAwards,
+            nationalAwards: verifiedScores.nationalAwards,
+            internationalFellowships: verifiedScores.internationalFellowships,
+            nationalFellowships: verifiedScores.nationalFellowships
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
@@ -1613,12 +1993,26 @@ const VerificationForm = () => {
             name="activeMoUs"
             value={formData.activeMoUs.count}
             proofValue={formData.activeMoUs.proof}
+            verifiedScore={verifiedScores.activeMoUs?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                activeMoUs: { ...prev.activeMoUs, marks: value },
+              }))
+            }
           />
           <InputFieldWithProof
             label="Industry Collaboration (20 marks per collaboration)"
             name="industryCollaboration"
             value={formData.industryCollaboration.count}
             proofValue={formData.industryCollaboration.proof}
+            verifiedScore={verifiedScores.industryCollaboration?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                industryCollaboration: { ...prev.industryCollaboration, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1626,6 +2020,10 @@ const VerificationForm = () => {
           score={scores.interactionScore}
           total="No limit"
           verifiedScore={verifiedScores.industryInteraction?.marks}
+          sectionVerifiedScores={{
+            activeMoUs: verifiedScores.activeMoUs,
+            industryCollaboration: verifiedScores.industryCollaboration
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
@@ -1650,6 +2048,13 @@ const VerificationForm = () => {
             name="internshipPlacementOffers"
             value={formData.internshipPlacementOffers.count}
             proofValue={formData.internshipPlacementOffers.proof}
+            verifiedScore={verifiedScores.internshipPlacementOffers?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                internshipPlacementOffers: { ...prev.internshipPlacementOffers, marks: value },
+              }))
+            }
           />
         </div>
         <ScoreCard
@@ -1657,6 +2062,9 @@ const VerificationForm = () => {
           score={scores.internshipPlacementScore}
           total="No limit"
           verifiedScore={verifiedScores.internshipPlacement?.marks}
+          sectionVerifiedScores={{
+            internshipPlacementOffers: verifiedScores.internshipPlacementOffers
+          }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
               ...prev,
@@ -1717,6 +2125,16 @@ const VerificationForm = () => {
         </button>
       </div>
     </div>
+  );
+};
+
+const getJournalPapersVerifiedTotal = () => {
+  return (
+    (verifiedScores.sciJournalPapers?.marks || 0) +
+    (verifiedScores.esciJournalPapers?.marks || 0) +
+    (verifiedScores.scopusJournalPapers?.marks || 0) +
+    (verifiedScores.ugcCareJournalPapers?.marks || 0) +
+    (verifiedScores.otherJournalPapers?.marks || 0)
   );
 };
 
