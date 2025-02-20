@@ -184,7 +184,6 @@ const Research = () => {
   useEffect(() => {
     const transformApiResponse = (data) => {
       const newFormData = { ...initialState };
-      const newVerifiedScores = {};
 
       if (data[1]) {
         newFormData.sciJournalPapers = {
@@ -207,10 +206,6 @@ const Research = () => {
           count: data[1].journalPapers?.otherCount || 0,
           proof: data[1].journalPapers?.otherProof || "",
         };
-        newVerifiedScores.journalPapers = {
-          marks: data[1].journalPapers?.marks || 0,
-          verified_marks: data[1].journalPapers?.verified_marks || 0,
-        };
       }
 
       if (data[2]) {
@@ -222,10 +217,6 @@ const Research = () => {
           count: data[2].conferencePapers?.otherCount || 0,
           proof: data[2].conferencePapers?.otherProof || "",
         };
-        newVerifiedScores.conferencePapers = {
-          marks: data[2].conferencePapers?.marks || 0,
-          verified_marks: data[2].conferencePapers?.verified_marks || 0,
-        };
       }
 
       if (data[3]) {
@@ -236,10 +227,6 @@ const Research = () => {
         newFormData.otherBooksChapters = {
           count: data[3].bookChapters?.otherCount || 0,
           proof: data[3].bookChapters?.otherProof || "",
-        };
-        newVerifiedScores.bookChapters = {
-          marks: data[3].bookChapters?.marks || 0,
-          verified_marks: data[3].bookChapters?.verified_marks || 0,
         };
       }
 
@@ -256,10 +243,6 @@ const Research = () => {
           count: data[4].books?.localCount || 0,
           proof: data[4].books?.localProof || "",
         };
-        newVerifiedScores.books = {
-          marks: data[4].books?.marks || 0,
-          verified_marks: data[4].books?.verified_marks || 0,
-        };
       }
 
       if (data[5]) {
@@ -275,10 +258,6 @@ const Research = () => {
           count: data[5].citations?.googleScholarCount || 0,
           proof: data[5].citations?.googleScholarProof || "",
         };
-        newVerifiedScores.citations = {
-          marks: data[5].citations?.marks || 0,
-          verified_marks: data[5].citations?.verified_marks || 0,
-        };
       }
 
       if (data[6]) {
@@ -290,10 +269,6 @@ const Research = () => {
           count: data[6].copyrightIndividual?.grantedCount || 0,
           proof: data[6].copyrightIndividual?.grantedProof || "",
         };
-        newVerifiedScores.copyrightIndividual = {
-          marks: data[6].copyrightIndividual?.marks || 0,
-          verified_marks: data[6].copyrightIndividual?.verified_marks || 0,
-        };
       }
 
       if (data[7]) {
@@ -304,10 +279,6 @@ const Research = () => {
         newFormData.indianCopyrightGrantedInstitute = {
           count: data[7].copyrightInstitute?.grantedCount || 0,
           proof: data[7].copyrightInstitute?.grantedProof || "",
-        };
-        newVerifiedScores.copyrightInstitute = {
-          marks: data[7].copyrightInstitute?.marks || 0,
-          verified_marks: data[7].copyrightInstitute?.verified_marks || 0,
         };
       }
 
@@ -328,10 +299,6 @@ const Research = () => {
           count: data[8].patentIndividual?.commercializedCount || 0,
           proof: data[8].patentIndividual?.commercializedProof || "",
         };
-        newVerifiedScores.patentIndividual = {
-          marks: data[8].patentIndividual?.marks || 0,
-          verified_marks: data[8].patentIndividual?.verified_marks || 0,
-        };
       }
 
       if (data[9]) {
@@ -351,20 +318,12 @@ const Research = () => {
           count: data[9].patentInstitute?.commercializedCount || 0,
           proof: data[9].patentInstitute?.commercializedProof || "",
         };
-        newVerifiedScores.patentInstitute = {
-          marks: data[9].patentInstitute?.marks || 0,
-          verified_marks: data[9].patentInstitute?.verified_marks || 0,
-        };
       }
 
       if (data[10]) {
         newFormData.researchGrants = {
           amount: data[10].researchGrants?.amount || 0,
           proof: data[10].researchGrants?.proof || "",
-        };
-        newVerifiedScores.researchGrants = {
-          marks: data[10].researchGrants?.marks || 0,
-          verified_marks: data[10].researchGrants?.verified_marks || 0,
         };
       }
 
@@ -373,20 +332,12 @@ const Research = () => {
           amount: data[11].trainingPrograms?.amount || 0,
           proof: data[11].trainingPrograms?.proof || "",
         };
-        newVerifiedScores.trainingPrograms = {
-          marks: data[11].trainingPrograms?.marks || 0,
-          verified_marks: data[11].trainingPrograms?.verified_marks || 0,
-        };
       }
 
       if (data[12]) {
         newFormData.nonResearchGrants = {
           amount: data[12].nonResearchGrants?.amount || 0,
           proof: data[12].nonResearchGrants?.proof || "",
-        };
-        newVerifiedScores.nonResearchGrants = {
-          marks: data[12].nonResearchGrants?.marks || 0,
-          verified_marks: data[12].nonResearchGrants?.verified_marks || 0,
         };
       }
 
@@ -402,10 +353,6 @@ const Research = () => {
         newFormData.proofOfConcepts = {
           count: data[13].productDevelopment?.pocCount || 0,
           proof: data[13].productDevelopment?.pocProof || "",
-        };
-        newVerifiedScores.productDevelopment = {
-          marks: data[13].productDevelopment?.marks || 0,
-          verified_marks: data[13].productDevelopment?.verified_marks || 0,
         };
       }
 
@@ -429,10 +376,6 @@ const Research = () => {
         newFormData.startupRegistered = {
           count: data[14].startup?.registeredCount || 0,
           proof: data[14].startup?.registeredProof || "",
-        };
-        newVerifiedScores.startup = {
-          marks: data[14].startup?.marks || 0,
-          verified_marks: data[14].startup?.verified_marks || 0,
         };
       }
 
@@ -459,10 +402,6 @@ const Research = () => {
           count: data[15].awardsAndFellowships?.nationalFellowshipsCount || 0,
           proof: data[15].awardsAndFellowships?.nationalFellowshipsProof || "",
         };
-        newVerifiedScores.awardsAndFellowships = {
-          marks: data[15].awardsAndFellowships?.marks || 0,
-          verified_marks: data[15].awardsAndFellowships?.verified_marks || 0,
-        };
       }
 
       if (data[16]) {
@@ -474,10 +413,6 @@ const Research = () => {
           count: data[16].industryInteraction?.collaborationCount || 0,
           proof: data[16].industryInteraction?.collaborationProof || "",
         };
-        newVerifiedScores.industryInteraction = {
-          marks: data[16].industryInteraction?.marks || 0,
-          verified_marks: data[16].industryInteraction?.verified_marks || 0,
-        };
       }
 
       if (data[17]) {
@@ -485,13 +420,9 @@ const Research = () => {
           count: data[17].internshipPlacement?.offersCount || 0,
           proof: data[17].internshipPlacement?.offersProof || "",
         };
-        newVerifiedScores.internshipPlacement = {
-          marks: data[17].internshipPlacement?.marks || 0,
-          verified_marks: data[17].internshipPlacement?.verified_marks || 0,
-        };
       }
 
-      return { newFormData, newVerifiedScores };
+      return newFormData;
     };
 
     const fetchExistingData = async () => {
@@ -507,12 +438,10 @@ const Research = () => {
 
         if (response.ok) {
           const data = await response.json();
-          console.log(data);
           if (data) {
-            const { newFormData, newVerifiedScores } =
-              transformApiResponse(data);
-            setFormData(newFormData);
-            setVerifiedScores(newVerifiedScores);
+            const transformedData = transformApiResponse(data);
+            setFormData(transformedData);
+            setVerifiedScores(data);
           }
         }
       } catch (error) {

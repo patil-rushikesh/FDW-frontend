@@ -10,23 +10,23 @@ const calculateVerifiedTotal = (sectionScores) => {
   sectionScores.forEach(({ section, marks }) => {
     // Skip journalPapers and conferencePapers sections
     if (
-      section !== 'journalPapers' && 
-      section !== 'conferencePapers' && 
-      section !== 'bookChapters' && 
-      section !== 'books' && 
-      section !== 'citations' && 
-      section !== 'copyrightIndividual' && 
-      section !== 'copyrightInstitute' && 
-      section !== 'patentIndividual' && 
-      section !== 'patentInstitute' && 
-      section !== 'researchGrants' && 
-      section !== 'trainingPrograms' && 
-      section !== 'nonResearchGrants' && 
-      section !== 'productDevelopment' && 
-      section !== 'startup' && 
-      section !== 'awardsAndFellowships' && 
-      section !== 'industryInteraction' && 
-      section !== 'internshipPlacement'
+      section !== "journalPapers" &&
+      section !== "conferencePapers" &&
+      section !== "bookChapters" &&
+      section !== "books" &&
+      section !== "citations" &&
+      section !== "copyrightIndividual" &&
+      section !== "copyrightInstitute" &&
+      section !== "patentIndividual" &&
+      section !== "patentInstitute" &&
+      section !== "researchGrants" &&
+      section !== "trainingPrograms" &&
+      section !== "nonResearchGrants" &&
+      section !== "productDevelopment" &&
+      section !== "startup" &&
+      section !== "awardsAndFellowships" &&
+      section !== "industryInteraction" &&
+      section !== "internshipPlacement"
     ) {
       if (!totals[section]) {
         totals[section] = 0;
@@ -529,7 +529,8 @@ const VerificationForm = () => {
         newVerifiedScores.googleScholarCitations.marks =
           data[5].citations?.ver_googleScholarMarks || 0;
 
-        newVerifiedScores.citations.marks = data[5].citations?.verified_marks || 0;
+        newVerifiedScores.citations.marks =
+          data[5].citations?.verified_marks || 0;
       }
 
       if (data[6]) {
@@ -769,7 +770,8 @@ const VerificationForm = () => {
         newFormData.internationalFellowships = {
           count:
             data[15].awardsAndFellowships?.internationalFellowshipsCount || 0,
-          proof: data[15].awardsAndFellowships?.internationalFellowshipsProof || "",
+          proof:
+            data[15].awardsAndFellowships?.internationalFellowshipsProof || "",
         };
         newVerifiedScores.internationalFellowships.marks =
           data[15].awardsAndFellowships?.ver_internationalFellowshipsMarks || 0;
@@ -1265,8 +1267,7 @@ const VerificationForm = () => {
             ver_pocMarks: verifiedScores.startupPOCs?.marks || 0,
             registeredCount: formData.startupRegistered.count,
             registeredProof: formData.startupRegistered.proof,
-            ver_registeredMarks:
-              verifiedScores.startupRegistered?.marks || 0,
+            ver_registeredMarks: verifiedScores.startupRegistered?.marks || 0,
             marks: scores.startupScore,
             verified_marks: verifiedScores.startup?.marks || 0,
           },
@@ -1315,7 +1316,8 @@ const VerificationForm = () => {
           internshipPlacement: {
             offersCount: formData.internshipPlacementOffers.count,
             offersProof: formData.internshipPlacementOffers.proof,
-            ver_offersMarks: verifiedScores.internshipPlacementOffers?.marks || 0,
+            ver_offersMarks:
+              verifiedScores.internshipPlacementOffers?.marks || 0,
             marks: scores.internshipPlacementScore,
             verified_marks: verifiedScores.internshipPlacement?.marks || 0,
           },
@@ -2010,9 +2012,7 @@ const VerificationForm = () => {
             name="indianPatentPublishedInstitute"
             value={formData.indianPatentPublishedInstitute.count}
             proofValue={formData.indianPatentPublishedInstitute.proof}
-            verifiedScore={
-              verifiedScores.indianPatentPublishedInstitute?.marks
-            }
+            verifiedScore={verifiedScores.indianPatentPublishedInstitute?.marks}
             onVerifiedScoreChange={(value) =>
               setVerifiedScores((prev) => ({
                 ...prev,
@@ -2568,8 +2568,7 @@ const VerificationForm = () => {
           total="No limit"
           verifiedScore={verifiedScores.internshipPlacement?.marks}
           sectionVerifiedScores={{
-            internshipPlacementOffers:
-              verifiedScores.internshipPlacementOffers,
+            internshipPlacementOffers: verifiedScores.internshipPlacementOffers,
           }}
           onVerifiedScoreChange={(value) =>
             setVerifiedScores((prev) => ({
@@ -2599,7 +2598,10 @@ const VerificationForm = () => {
                   Total Score After Verification:
                 </span>
                 <span className="text-xl font-bold text-green-600">
-                  {calculateTotalVerifiedMarks(verifiedScores, userData).finalTotal}
+                  {
+                    calculateTotalVerifiedMarks(verifiedScores, userData)
+                      .finalTotal
+                  }
                 </span>
               </div>
             </div>
