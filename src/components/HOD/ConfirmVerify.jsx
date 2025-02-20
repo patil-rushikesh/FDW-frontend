@@ -1,11 +1,16 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 
 const ConfirmVerify = () => {
-  // Dummy faculty data
+  const location = useLocation();
+  const { faculty, portfolioData, verifiedMarks } = location.state || {};
+
+  // Replace the dummy faculty info with actual data
   const facultyInfo = {
-    name: "Dr. John Doe",
-    id: "FAC2024001",
-    role: "Associate Professor",
+    name: faculty?.name || "Not Available",
+    id: faculty?.id || "Not Available",
+    role: faculty?.role || "Not Available",
+    department: faculty?.department || "Not Available",
   };
 
   const [marksData, setMarksData] = useState({
@@ -56,31 +61,62 @@ const ConfirmVerify = () => {
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       <div className="bg-white rounded-lg shadow-lg p-6">
-        {/* Faculty Information */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Faculty Name
-            </label>
-            <div className="w-full p-2 bg-gray-100 border border-gray-300 rounded text-gray-700">
-              {facultyInfo.name}
-            </div>
+        {/* Faculty Information Section with new styling */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-6 border border-blue-200">
+          <h2 className="text-xl font-semibold text-blue-800 mb-4">
+            Faculty Information
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: "Faculty Name", value: facultyInfo.name },
+              { label: "Faculty ID", value: facultyInfo.id },
+              { label: "Faculty Role", value: facultyInfo.role },
+              { label: "Department", value: facultyInfo.department },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="bg-white p-4 rounded-lg border border-blue-200 shadow-sm min-h-[120px] flex flex-col"
+              >
+                <label className="block text-sm font-medium text-blue-700 mb-2">
+                  {item.label}
+                </label>
+                <div className="flex-1 w-full p-2 bg-blue-50 border border-blue-200 rounded-md text-gray-700 font-medium flex items-center">
+                  {item.value}
+                </div>
+              </div>
+            ))}
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Faculty ID
-            </label>
-            <div className="w-full p-2 bg-gray-100 border border-gray-300 rounded text-gray-700">
-              {facultyInfo.id}
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Faculty Role
-            </label>
-            <div className="w-full p-2 bg-gray-100 border border-gray-300 rounded text-gray-700">
-              {facultyInfo.role}
-            </div>
+        </div>
+
+        {/* Verification Summary Section with matching styling */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-6 border border-blue-200">
+          <h2 className="text-xl font-semibold text-blue-800 mb-4">
+            Verification Summary
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              {
+                label: "Self Awarded Marks",
+                value: verifiedMarks?.selfAwardedMarks || 0,
+              },
+              {
+                label: "HOD Awarded Marks",
+                value: verifiedMarks?.hodMarks || 0,
+              },
+              { label: "Total Marks", value: verifiedMarks?.totalMarks || 0 },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="bg-white p-4 rounded-lg border border-blue-200 shadow-sm min-h-[100px] flex flex-col"
+              >
+                <label className="block text-sm font-medium text-blue-700 mb-2">
+                  {item.label}
+                </label>
+                <div className="flex-1 w-full p-2 bg-blue-50 border border-blue-200 rounded-md text-gray-700 font-medium flex items-center justify-center">
+                  <span className="text-xl">{item.value}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -277,51 +313,7 @@ const ConfirmVerify = () => {
                   />
                 </td>
               </tr>
-              <tr>
-                <td className="border border-gray-300 p-2">AW*</td>
-                <td className="border border-gray-300 p-2">
-                  Administration Weightage (Deputy Director/ Dean/HoD/ Associate
-                  Dean)
-                </td>
-                <td
-                  colSpan="3"
-                  className="border border-gray-300 p-2 text-center"
-                >
-                  100 (for Deputy Director/ Dean/ HoD)
-                  <br />
-                  and
-                  <br />
-                  50 (for Associate Dean)
-                </td>
-                <td className="border border-gray-300 p-2">
-                  <input
-                    type="number"
-                    className="w-full p-1 border border-gray-300 rounded"
-                    value={marksData.claimed.adminWeight}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "claimed",
-                        "adminWeight",
-                        e.target.value
-                      )
-                    }
-                  />
-                </td>
-                <td className="border border-gray-300 p-2">
-                  <input
-                    type="number"
-                    className="w-full p-1 border border-gray-300 rounded"
-                    value={marksData.obtained.adminWeight}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "obtained",
-                        "adminWeight",
-                        e.target.value
-                      )
-                    }
-                  />
-                </td>
-              </tr>
+
               <tr className="font-bold bg-gray-50">
                 <td colSpan="5" className="border border-gray-300 p-2">
                   Total* *Minimum of [1000, Claimed/Obtained Marks]

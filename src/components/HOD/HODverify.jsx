@@ -32,11 +32,11 @@ const FacultyEvaluationForm = () => {
         adminDeanMarks: 0,
         deanMarks: 0,
         directorMarks: 0,
-        hodMarks: 0
+        hodMarks: 0,
       },
-      type: ""
+      type: "",
     },
-    total_marks: 0
+    total_marks: 0,
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -47,26 +47,28 @@ const FacultyEvaluationForm = () => {
       // Get values from faculty information
       const department = faculty?.department;
       const userId = faculty?.id;
-      
+
       if (!department || !userId) {
-        console.error('Department or User ID is missing');
+        console.error("Department or User ID is missing");
         return;
       }
-  
-      const response = await axios.get(`http://localhost:5000/${department}/${userId}/D`);
+
+      const response = await axios.get(
+        `http://localhost:5000/${department}/${userId}/D`
+      );
       const data = response.data || {};
-      
+
       setPortfolioData(data);
 
       console.log("Portfolio Data:", data);
-      
-      setTableData(prev => ({
+
+      setTableData((prev) => ({
         ...prev,
         selfAwarded: data?.portfolioDetails?.selfAwardedMarks ?? 0,
         hodMarks: {
           ...prev.hodMarks,
-          department: data?.portfolioDetails?.superiorMarks?.hodMarks ?? 0
-        }
+          department: data?.portfolioDetails?.superiorMarks?.hodMarks ?? 0,
+        },
       }));
     } catch (error) {
       console.error("Error fetching portfolio data:", error);
@@ -83,11 +85,11 @@ const FacultyEvaluationForm = () => {
             adminDeanMarks: 0,
             deanMarks: 0,
             directorMarks: 0,
-            hodMarks: 0
+            hodMarks: 0,
           },
-          type: ""
+          type: "",
         },
-        total_marks: 0
+        total_marks: 0,
       });
     }
   };
@@ -97,7 +99,7 @@ const FacultyEvaluationForm = () => {
     if (faculty?.id && faculty?.department) {
       fetchPortfolioData();
     } else {
-      console.warn('Faculty information is incomplete');
+      console.warn("Faculty information is incomplete");
     }
   }, [faculty?.id, faculty?.department]); // Add specific dependencies
 
@@ -144,12 +146,12 @@ const FacultyEvaluationForm = () => {
     try {
       const department = faculty?.department;
       const userId = faculty?.id;
-  
+
       if (!department || !userId) {
-        console.error('Department or User ID is missing');
+        console.error("Department or User ID is missing");
         return;
       }
-  
+
       // Prepare the data to be sent
       const updatedPortfolioData = {
         ...portfolioData,
@@ -157,18 +159,33 @@ const FacultyEvaluationForm = () => {
           ...portfolioData.portfolioDetails,
           superiorMarks: {
             ...portfolioData.portfolioDetails.superiorMarks,
-            hodMarks: parseFloat(tableData.hodMarks.department) || 0
-          }
+            hodMarks: parseFloat(tableData.hodMarks.department) || 0,
+          },
         },
-        total_marks: parseFloat(totalMarks()) // Moved outside portfolioDetails
+        total_marks: parseFloat(totalMarks()), // Moved outside portfolioDetails
       };
-  
+
       // Make the POST request
-      await axios.post(`http://localhost:5000/${department}/${userId}/D`, updatedPortfolioData);
-  
+      await axios.post(
+        `http://localhost:5000/${department}/${userId}/D`,
+        updatedPortfolioData
+      );
+
       setIsModalOpen(false);
       alert("Marks saved successfully!");
-      navigate("/hodcnfverify");
+      // Update navigation to include state
+      navigate("/hodcnfverify", {
+        state: {
+          faculty,
+          portfolioData: updatedPortfolioData,
+          verifiedMarks: {
+            selfAwardedMarks:
+              portfolioData?.portfolioDetails?.selfAwardedMarks || 0,
+            hodMarks: parseFloat(tableData.hodMarks.department) || 0,
+            totalMarks: parseFloat(totalMarks()),
+          },
+        },
+      });
     } catch (error) {
       console.error("Error saving marks:", error);
       alert("Error saving marks. Please try again.");
@@ -189,36 +206,43 @@ const FacultyEvaluationForm = () => {
   };
 
   const totalMarks = () => {
-    const selfAwardedMarks = parseFloat(portfolioData?.portfolioDetails?.selfAwardedMarks) || 0;
+    const selfAwardedMarks =
+      parseFloat(portfolioData?.portfolioDetails?.selfAwardedMarks) || 0;
     const hodMarks = parseFloat(tableData.hodMarks.department) || 0;
     return (selfAwardedMarks + hodMarks).toFixed(2);
   };
 
   const PortfolioDocuments = () => {
     const type = portfolioData?.portfolioDetails?.type;
-    
+
     return (
       <div className="mb-6 space-y-4">
         <h3 className="text-lg font-medium text-gray-800 mb-2">
           Portfolio Documents
         </h3>
-        
+
         {/* Institute Level Portfolio */}
-        {(type === 'both' || type === 'institute') && (
+        {(type === "both" || type === "institute") && (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
-            <h4 className="font-medium text-gray-700 mb-2">Institute Level Portfolio</h4>
+            <h4 className="font-medium text-gray-700 mb-2">
+              Institute Level Portfolio
+            </h4>
             <div className="bg-white p-4 rounded border border-gray-200">
-              {portfolioData?.portfolioDetails?.instituteLevelPortfolio || 'No document available'}
+              {portfolioData?.portfolioDetails?.instituteLevelPortfolio ||
+                "No document available"}
             </div>
           </div>
         )}
-        
+
         {/* Department Level Portfolio */}
-        {(type === 'both' || type === 'department') && (
+        {(type === "both" || type === "department") && (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
-            <h4 className="font-medium text-gray-700 mb-2">Department Level Portfolio</h4>
+            <h4 className="font-medium text-gray-700 mb-2">
+              Department Level Portfolio
+            </h4>
             <div className="bg-white p-4 rounded border border-gray-200">
-              {portfolioData?.portfolioDetails?.departmentLevelPortfolio || 'No document available'}
+              {portfolioData?.portfolioDetails?.departmentLevelPortfolio ||
+                "No document available"}
             </div>
           </div>
         )}
@@ -237,32 +261,39 @@ const FacultyEvaluationForm = () => {
         </div>
 
         {/* Faculty Information Section */}
-{/* Faculty Information Section */}
-<div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-6 border border-blue-200">
-  <h2 className="text-xl font-semibold text-blue-800 mb-4">Faculty Information</h2>
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-    {[
-      { label: "Faculty Name", value: faculty?.name },
-      { label: "Faculty ID", value: faculty?.id },
-      { label: "Faculty Role", value: faculty?.role },
-      { label: "Department", value: faculty?.department }
-    ].map((item, index) => (
-      <div key={index} className="bg-white p-4 rounded-lg border border-blue-200 shadow-sm min-h-[120px] flex flex-col">
-        <label className="block text-sm font-medium text-blue-700 mb-2">
-          {item.label}
-        </label>
-        <div className="flex-1 w-full p-2 bg-blue-50 border border-blue-200 rounded-md text-gray-700 font-medium flex items-center">
-          {item.value || "N/A"}
+        {/* Faculty Information Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-6 border border-blue-200">
+          <h2 className="text-xl font-semibold text-blue-800 mb-4">
+            Faculty Information
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: "Faculty Name", value: faculty?.name },
+              { label: "Faculty ID", value: faculty?.id },
+              { label: "Faculty Role", value: faculty?.role },
+              { label: "Department", value: faculty?.department },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="bg-white p-4 rounded-lg border border-blue-200 shadow-sm min-h-[120px] flex flex-col"
+              >
+                <label className="block text-sm font-medium text-blue-700 mb-2">
+                  {item.label}
+                </label>
+                <div className="flex-1 w-full p-2 bg-blue-50 border border-blue-200 rounded-md text-gray-700 font-medium flex items-center">
+                  {item.value || "N/A"}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    ))}
-  </div>
-</div>
 
         {/* Portfolio Type and Documents Section */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Portfolio Type: {portfolioData?.portfolioDetails?.type?.toUpperCase() || 'Not Specified'}
+            Portfolio Type:{" "}
+            {portfolioData?.portfolioDetails?.type?.toUpperCase() ||
+              "Not Specified"}
           </h3>
           <PortfolioDocuments />
         </div>
@@ -279,7 +310,9 @@ const FacultyEvaluationForm = () => {
               max="60"
               min="0"
               value={tableData.hodMarks.department}
-              onChange={(e) => handleInputChange("hodMarks", "department", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("hodMarks", "department", e.target.value)
+              }
             />
           </div>
         </div>
@@ -290,8 +323,12 @@ const FacultyEvaluationForm = () => {
             <thead>
               <tr className="bg-gray-50">
                 <th className="border border-gray-300 p-2 text-left">Cadre</th>
-                <th className="border border-gray-300 p-2 text-center">Maximum Marks</th>
-                <th className="border border-gray-300 p-2 text-center">Marks Awarded</th>
+                <th className="border border-gray-300 p-2 text-center">
+                  Maximum Marks
+                </th>
+                <th className="border border-gray-300 p-2 text-center">
+                  Marks Awarded
+                </th>
               </tr>
             </thead>
             <tbody>
