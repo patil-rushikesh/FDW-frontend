@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Download, RefreshCw } from 'lucide-react';
+import Cookies from 'js-cookie';
 
 const ConfirmVerify = () => {
   const location = useLocation();
@@ -8,6 +10,10 @@ const ConfirmVerify = () => {
   const [apiData, setApiData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const navigate = useNavigate();
 
   // Get department and faculty_id from state or params
   const params = useParams();
@@ -21,7 +27,7 @@ const ConfirmVerify = () => {
         const response = await axios.get(
           `http://127.0.0.1:5000/total_marks/${department}/${facultyId}`
         );
-        
+
         console.log(response);
         if (response.data.status === "success") {
           setApiData(response.data.data);
@@ -130,15 +136,95 @@ const ConfirmVerify = () => {
     return apiData?.grand_total || 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const userConfirmed = window.confirm(
       "Details can't be changed after the final submission. Confirm Submit?"
     );
+    
     if (userConfirmed) {
-      alert("Submission Confirmed!");
-      // Add your submit logic here
+      try {
+        const response = await axios.post(
+          `http://127.0.0.1:5000/${department}/${facultyId}/verify-authority`,
+          {
+            verifiedMarks: {
+              academic: marksData.obtained.academic,
+              research: marksData.obtained.research,
+              selfDev: marksData.obtained.selfDev,
+              portfolio: marksData.obtained.portfolio,
+              extraOrd: marksData.obtained.extraOrd,
+              adminWeight: marksData.obtained.adminWeight,
+            },
+            totalMarks: calculateTotal("obtained")
+          }
+        );
+  
+        if (response.status === 200) {
+          alert("Verification submitted successfully!");
+          // Redirect to the faculty forms list page
+          navigate('/hod/faculty-forms-list');
+        } else {
+          alert("Failed to submit verification. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error submitting verification:", error);
+        alert("Error submitting verification. Please try again.");
+      }
     }
   };
+
+  const generatePDF = useCallback(async (forceUpdate = false) => {
+    if (!forceUpdate) {
+      const cachedPdf = Cookies.get(`pdfData_${facultyId}`);
+      if (cachedPdf) {
+        setPdfUrl(cachedPdf);
+        return;
+      }
+    }
+
+    setPdfLoading(true);
+    setLoadingProgress(0);
+
+    try {
+      const progressInterval = setInterval(() => {
+        setLoadingProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 5000);
+
+      const response = await fetch(
+        `http://127.0.0.1:5000/${department}/${facultyId}/generate-doc`,
+        {
+          method: 'GET',
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to generate PDF');
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      clearInterval(progressInterval);
+      setLoadingProgress(100);
+
+      Cookies.set(`pdfData_${facultyId}`, url, { expires: 1 });
+      setPdfUrl(url);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    } finally {
+      setPdfLoading(false);
+      setLoadingProgress(0);
+    }
+  }, [department, facultyId]);
+
+  useEffect(() => {
+    if (department && facultyId) {
+      generatePDF();
+    }
+  }, [generatePDF, department, facultyId]);
 
   if (loading) {
     return (
@@ -229,15 +315,62 @@ const ConfirmVerify = () => {
         </div>
 
         {/* PDF Preview */}
-        <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-2">
-            Portfolio Documents
-          </h3>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
-            <p className="text-gray-500">PDF Preview will appear here</p>
+        {/* PDF Preview Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-6 border border-blue-200">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-semibold text-blue-800">
+              Portfolio Documents
+            </h3>
+            <div className="flex gap-2">
+              {pdfUrl && (
+                <a
+                  href={pdfUrl}
+                  download={`${facultyId}.pdf`}
+                  className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  <Download size={20} />
+                  Download PDF
+                </a>
+              )}
+              <button
+                onClick={() => generatePDF(true)}
+                className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                disabled={pdfLoading}
+              >
+                <RefreshCw size={20} className={pdfLoading ? 'animate-spin' : ''} />
+                Regenerate PDF
+              </button>
+            </div>
           </div>
-        </div>
 
+          {pdfLoading && (
+            <div className="mb-4">
+              <div className="w-full bg-gray-200 rounded-full h-4">
+                <div
+                  className="bg-blue-500 h-4 rounded-full transition-all duration-500"
+                  style={{ width: `${loadingProgress}%` }}
+                ></div>
+              </div>
+              <p className="text-center mt-2 text-gray-600">
+                Generating PDF... {loadingProgress}%
+              </p>
+            </div>
+          )}
+
+          {pdfUrl && !pdfLoading ? (
+            <div className="w-full h-[800px] border border-gray-300 rounded-lg">
+              <iframe
+                src={pdfUrl}
+                className="w-full h-full rounded-lg"
+                title="Faculty Data PDF"
+              />
+            </div>
+          ) : !pdfLoading && (
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
+              <p className="text-gray-500">PDF will appear here once generated</p>
+            </div>
+          )}
+        </div>
         {/* Complete Summary Table */}
         <div className="overflow-x-auto">
           <h2 className="text-xl font-bold mb-4 text-center">
