@@ -33,7 +33,7 @@ const Review = () => {
       }, 5000);
 
       const response = await fetch(
-        `http://127.0.0.1:5000/${userData.dept}/${userData._id}/generate-doc/pdf`,
+        `http://127.0.0.1:5000/${userData.dept}/${userData._id}/generate-doc`,
         {
           method: 'GET',
         }

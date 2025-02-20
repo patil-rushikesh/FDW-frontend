@@ -1322,6 +1322,7 @@ const VerificationForm = () => {
         },
         total_marks: scores.totalScore,
         final_verified_marks: verificationResults.finalTotal,
+        verifier_id: userData._id,
       };
 
       async function verifyResearch(department, userId, verifierId) {
