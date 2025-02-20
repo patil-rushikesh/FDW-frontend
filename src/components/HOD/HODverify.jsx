@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 
 const FacultyEvaluationForm = () => {
   const location = useLocation();
@@ -19,8 +20,86 @@ const FacultyEvaluationForm = () => {
     selfAwarded: "",
   });
 
+  const [portfolioData, setPortfolioData] = useState({
+    portfolioDetails: {
+      adminSelfAwardedMarks: 0,
+      administrativeRole: "",
+      departmentLevelPortfolio: "",
+      instituteLevelPortfolio: "",
+      isAdministrative: false,
+      selfAwardedMarks: 0,
+      superiorMarks: {
+        adminDeanMarks: 0,
+        deanMarks: 0,
+        directorMarks: 0,
+        hodMarks: 0
+      },
+      type: ""
+    },
+    total_marks: 0
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Update the fetchPortfolioData function with proper error handling and null checking
+  const fetchPortfolioData = async () => {
+    try {
+      // Get values from faculty information
+      const department = faculty?.department;
+      const userId = faculty?.id;
+      
+      if (!department || !userId) {
+        console.error('Department or User ID is missing');
+        return;
+      }
+  
+      const response = await axios.get(`http://localhost:5000/${department}/${userId}/D`);
+      const data = response.data || {};
+      
+      setPortfolioData(data);
+
+      console.log("Portfolio Data:", data);
+      
+      setTableData(prev => ({
+        ...prev,
+        selfAwarded: data?.portfolioDetails?.selfAwardedMarks ?? 0,
+        hodMarks: {
+          ...prev.hodMarks,
+          department: data?.portfolioDetails?.superiorMarks?.hodMarks ?? 0
+        }
+      }));
+    } catch (error) {
+      console.error("Error fetching portfolio data:", error);
+      // Set default values in case of error
+      setPortfolioData({
+        portfolioDetails: {
+          adminSelfAwardedMarks: 0,
+          administrativeRole: "",
+          departmentLevelPortfolio: "",
+          instituteLevelPortfolio: "",
+          isAdministrative: false,
+          selfAwardedMarks: 0,
+          superiorMarks: {
+            adminDeanMarks: 0,
+            deanMarks: 0,
+            directorMarks: 0,
+            hodMarks: 0
+          },
+          type: ""
+        },
+        total_marks: 0
+      });
+    }
+  };
+
+  // Update the useEffect to include proper dependency array and error handling
+  useEffect(() => {
+    if (faculty?.id && faculty?.department) {
+      fetchPortfolioData();
+    } else {
+      console.warn('Faculty information is incomplete');
+    }
+  }, [faculty?.id, faculty?.department]); // Add specific dependencies
 
   const calculateMaxMarks = () => {
     const avg = calculateColumnAverage();
@@ -61,11 +140,40 @@ const FacultyEvaluationForm = () => {
     setIsModalOpen(true);
   };
 
-  const handleConfirmSubmit = () => {
-    setIsModalOpen(false);
-    alert("Submission Confirmed!");
-    // Add your submit logic here
-    navigate("/hodcnfverify");
+  const handleConfirmSubmit = async () => {
+    try {
+      const department = faculty?.department;
+      const userId = faculty?.id;
+  
+      if (!department || !userId) {
+        console.error('Department or User ID is missing');
+        return;
+      }
+  
+      // Prepare the data to be sent
+      const updatedPortfolioData = {
+        ...portfolioData,
+        portfolioDetails: {
+          ...portfolioData.portfolioDetails,
+          superiorMarks: {
+            ...portfolioData.portfolioDetails.superiorMarks,
+            hodMarks: parseFloat(tableData.hodMarks.department) || 0
+          }
+        },
+        total_marks: parseFloat(totalMarks()) // Moved outside portfolioDetails
+      };
+  
+      // Make the POST request
+      await axios.post(`http://localhost:5000/${department}/${userId}/D`, updatedPortfolioData);
+  
+      setIsModalOpen(false);
+      alert("Marks saved successfully!");
+      navigate("/hodcnfverify");
+    } catch (error) {
+      console.error("Error saving marks:", error);
+      alert("Error saving marks. Please try again.");
+      setIsModalOpen(false);
+    }
   };
 
   const calculateAverage = () => {
@@ -78,6 +186,44 @@ const FacultyEvaluationForm = () => {
     const deanInstitute = parseFloat(tableData.deanMarks.both) || 0;
     const hodInstitute = parseFloat(tableData.hodMarks.both) || 0;
     return ((deanInstitute + hodInstitute) / 2).toFixed(2);
+  };
+
+  const totalMarks = () => {
+    const selfAwardedMarks = parseFloat(portfolioData?.portfolioDetails?.selfAwardedMarks) || 0;
+    const hodMarks = parseFloat(tableData.hodMarks.department) || 0;
+    return (selfAwardedMarks + hodMarks).toFixed(2);
+  };
+
+  const PortfolioDocuments = () => {
+    const type = portfolioData?.portfolioDetails?.type;
+    
+    return (
+      <div className="mb-6 space-y-4">
+        <h3 className="text-lg font-medium text-gray-800 mb-2">
+          Portfolio Documents
+        </h3>
+        
+        {/* Institute Level Portfolio */}
+        {(type === 'both' || type === 'institute') && (
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
+            <h4 className="font-medium text-gray-700 mb-2">Institute Level Portfolio</h4>
+            <div className="bg-white p-4 rounded border border-gray-200">
+              {portfolioData?.portfolioDetails?.instituteLevelPortfolio || 'No document available'}
+            </div>
+          </div>
+        )}
+        
+        {/* Department Level Portfolio */}
+        {(type === 'both' || type === 'department') && (
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
+            <h4 className="font-medium text-gray-700 mb-2">Department Level Portfolio</h4>
+            <div className="bg-white p-4 rounded border border-gray-200">
+              {portfolioData?.portfolioDetails?.departmentLevelPortfolio || 'No document available'}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -113,185 +259,67 @@ const FacultyEvaluationForm = () => {
   </div>
 </div>
 
-        {/* PDF Preview Section */}
+        {/* Portfolio Type and Documents Section */}
         <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-2">
-            Portfolio Documents
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Portfolio Type: {portfolioData?.portfolioDetails?.type?.toUpperCase() || 'Not Specified'}
           </h3>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
-            <p className="text-gray-500">PDF Preview will appear here</p>
+          <PortfolioDocuments />
+        </div>
+
+        {/* HOD Marks Input Section */}
+        <div className="mb-6 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="flex flex-col space-y-4">
+            <label className="text-gray-700 font-medium">
+              Enter HOD Marks (Maximum 60)
+            </label>
+            <input
+              type="number"
+              className="w-full md:w-1/3 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              max="60"
+              min="0"
+              value={tableData.hodMarks.department}
+              onChange={(e) => handleInputChange("hodMarks", "department", e.target.value)}
+            />
           </div>
         </div>
 
-        {/* Marks Table Section */}
-        <div className="overflow-x-auto mb-6">
-          <table className="w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="border border-gray-300 p-2 text-left">
-                  Professor / Associate Professor / Assistant Professor
-                </th>
-                <th className="border border-gray-300 p-2 text-center">
-                  If Involved in Both Institute level portfolio and department
-                  level portfolio
-                </th>
-                <th className="border border-gray-300 p-2 text-center">
-                  If Involved in Institute level portfolio only
-                </th>
-                <th className="border border-gray-300 p-2 text-center">
-                  If Involved in and department level portfolio only
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="border border-gray-300 p-2">
-                  <div className="space-y-1">
-                    <p>Marks to be awarded by Dean(s)</p>
-                    <p>[Maximum Marks=60]</p>
-                    <p className="font-medium">Name and sign of Dean</p>
-                  </div>
-                </td>
-                <td className="border border-gray-300 p-2">
-                  <input
-                    type="number"
-                    className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    max="60"
-                    value={tableData.deanMarks.both}
-                    onChange={(e) =>
-                      handleInputChange("deanMarks", "both", e.target.value)
-                    }
-                  />
-                </td>
-                <td className="border border-gray-300 p-2">
-                  <input
-                    type="number"
-                    className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    max="60"
-                    value={tableData.deanMarks.institute}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "deanMarks",
-                        "institute",
-                        e.target.value
-                      )
-                    }
-                  />
-                </td>
-                <td className="border border-gray-300 p-2 text-center">
-                  -------
-                </td>
-              </tr>
-              <tr>
-                <td className="border border-gray-300 p-2">
-                  <div className="space-y-1">
-                    <p>Marks to be awarded by HoD</p>
-                    <p>Maximum Marks=60</p>
-                    <p className="font-medium">Name and sign of HoD</p>
-                  </div>
-                </td>
-                <td className="border border-gray-300 p-2">
-                  <input
-                    type="number"
-                    className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    max="60"
-                    value={tableData.hodMarks.both}
-                    onChange={(e) =>
-                      handleInputChange("hodMarks", "both", e.target.value)
-                    }
-                  />
-                </td>
-                <td className="border border-gray-300 p-2 text-center">
-                  -------
-                </td>
-                <td className="border border-gray-300 p-2">
-                  <input
-                    type="number"
-                    className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    max="60"
-                    value={tableData.hodMarks.department}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "hodMarks",
-                        "department",
-                        e.target.value
-                      )
-                    }
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td className="border border-gray-300 p-2">
-                  Total marks Considered as to be awarded by Dean /HoD
-                </td>
-                <td className="border border-gray-300 p-2 text-center">
-                  Average of 'Sr. No I' and 'Sr. No. II' of this Table ={" "}
-                  {calculateColumnAverage()}
-                </td>
-                <td className="border border-gray-300 p-2 text-center">
-                  Sr. No I of this Table = {tableData.deanMarks.institute}
-                </td>
-                <td className="border border-gray-300 p-2 text-center">
-                  Sr. No. II of this Table = {tableData.hodMarks.department}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {/* New Summary Table */}
+        {/* Update the Summary Table to use only HOD marks */}
         <div className="overflow-x-auto mb-6">
           <table className="w-full border-collapse border border-gray-300 mt-8">
             <thead>
               <tr className="bg-gray-50">
                 <th className="border border-gray-300 p-2 text-left">Cadre</th>
-                <th className="border border-gray-300 p-2 text-center">
-                  Professor /Associate Professor/ Assistant Professor
-                </th>
-                <th className="border border-gray-300 p-2 text-center">
-                  Marks Awarded
-                </th>
+                <th className="border border-gray-300 p-2 text-center">Maximum Marks</th>
+                <th className="border border-gray-300 p-2 text-center">Marks Awarded</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td className="border border-gray-300 p-2">
-                  Self Awarded Marks (50 % of Max) for Handling the Institute
-                  Level or Department Level Portfolios
+                  Self Awarded Marks (50 % of Max)
                 </td>
                 <td className="border border-gray-300 p-2 text-center">60</td>
-                <td className="border border-gray-300 p-2">
-                  <input
-                    type="number"
-                    className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    max="60"
-                    value={tableData.selfAwarded}
-                    onChange={(e) =>
-                      handleInputChange2("selfAwarded", null, e.target.value)
-                    }
-                  />
+                <td className="border border-gray-300 p-2 text-center bg-gray-50">
+                  {portfolioData?.portfolioDetails?.selfAwardedMarks || 0}
                 </td>
               </tr>
               <tr>
                 <td className="border border-gray-300 p-2">
-                  *Marks to be awarded by
-                  <br />
-                  Dean (for central portfolio work) and /or
-                  <br />
-                  HoD (for department portfolio work)
+                  HOD Evaluation Marks
                 </td>
-                <td className="border border-gray-300 p-2 text-center">60*</td>
+                <td className="border border-gray-300 p-2 text-center">60</td>
                 <td className="border border-gray-300 p-2 text-center bg-gray-50">
-                  {calculateMaxMarks().toFixed(1)}
+                  {tableData.hodMarks.department}
                 </td>
               </tr>
+              {/* Update the problematic table row with the new calculation */}
               <tr className="font-medium">
                 <td colSpan="2" className="border border-gray-300 p-2">
-                  Total of Marks Obtained: Portfolio – Departmental & Central:
-                  Part I:
+                  Total Marks Obtained:
                 </td>
                 <td className="border border-gray-300 p-2 text-center bg-gray-50">
-                  {calculateTotal().toFixed(1)}
+                  {totalMarks()}
                 </td>
               </tr>
             </tbody>

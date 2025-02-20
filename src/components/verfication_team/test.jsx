@@ -8,34 +8,14 @@ const calculateVerifiedTotal = (sectionScores) => {
 
   // Calculate section totals
   sectionScores.forEach(({ section, marks }) => {
-    // Skip journalPapers and conferencePapers sections
-    if (
-      section !== 'journalPapers' && 
-      section !== 'conferencePapers' && 
-      section !== 'bookChapters' && 
-      section !== 'books' && 
-      section !== 'citations' && 
-      section !== 'copyrightIndividual' && 
-      section !== 'copyrightInstitute' && 
-      section !== 'patentIndividual' && 
-      section !== 'patentInstitute' && 
-      section !== 'researchGrants' && 
-      section !== 'trainingPrograms' && 
-      section !== 'nonResearchGrants' && 
-      section !== 'productDevelopment' && 
-      section !== 'startup' && 
-      section !== 'awardsAndFellowships' && 
-      section !== 'industryInteraction' && 
-      section !== 'internshipPlacement'
-    ) {
-      if (!totals[section]) {
-        totals[section] = 0;
-      }
-      totals[section] += marks;
+    if (!totals[section]) {
+      totals[section] = 0;
     }
+    totals[section] += marks;
   });
 
   // Apply section-specific limits
+  if (totals.conferencePapers > 180) totals.conferencePapers = 180;
   if (totals.bookChapters > 150) totals.bookChapters = 150;
   if (totals.books > 200) totals.books = 200;
   if (totals.citations > 50) totals.citations = 50;
@@ -61,7 +41,6 @@ const calculateTotalVerifiedMarks = (verifiedScores, userData) => {
       });
     }
   });
-  console.log(verifiedScores);
 
   // Calculate section totals with limits
   const sectionTotals = calculateVerifiedTotal(sectionScores);
