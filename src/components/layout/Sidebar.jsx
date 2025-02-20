@@ -80,15 +80,30 @@ export default function Sidebar({ isOpen, onClose }) {
   const togglePrivilege = () => setIsPrivilegeOpen(!isPrivilegeOpen);
   const togglePaperVerification = () => setIsPaperVerificationOpen(!isPaperVerificationOpen);
 
-  const NavLink = ({ item, isActive }) => {
+  // 1. Update the NavLink component with improved line styling
+  const NavLink = ({ item, isActive, isDropdownItem }) => {
     const Icon = item.icon;
     return (
       <Link
         to={item.path}
         onClick={() => onClose()}
         className={`
-          flex items-center space-x-4 p-4 rounded-lg mb-3 transition-all
-          hover:scale-[1.02] transform
+          flex items-center space-x-4 p-4 rounded-lg transition-all
+          hover:scale-[1.02] transform relative
+          ${
+            isDropdownItem 
+              ? `
+                ml-4 border-l-2 border-indigo-500 pl-6
+                before:content-[""]
+                before:absolute
+                before:left-[-1.5rem]
+                before:top-1/2
+                before:w-4
+                before:h-[2px]
+                before:bg-indigo-500
+              ` 
+              : ''
+          }
           ${
             isActive
               ? "bg-indigo-700 text-white shadow-lg"
@@ -128,12 +143,25 @@ export default function Sidebar({ isOpen, onClose }) {
         </button>
 
         {isPrivilegeOpen && (
-          <div className="ml-4">
+          <div className={`
+            relative pl-4 mt-2
+            before:content-[""]
+            before:absolute
+            before:left-0
+            before:top-0
+            before:bottom-4
+            before:w-[2px]
+            before:bg-indigo-500
+            space-y-2
+            transition-all
+            duration-200
+          `}>
             {privilegeItems.map((item) => (
               <NavLink
                 key={item.path}
                 item={item}
                 isActive={location.pathname === item.path}
+                isDropdownItem={true}
               />
             ))}
           </div>
@@ -163,12 +191,25 @@ export default function Sidebar({ isOpen, onClose }) {
         </button>
 
         {isPaperVerificationOpen && (
-          <div className="ml-4">
+          <div className={`
+            relative pl-4 mt-2
+            before:content-[""]
+            before:absolute
+            before:left-0
+            before:top-0
+            before:bottom-4
+            before:w-[2px]
+            before:bg-indigo-500
+            space-y-2
+            transition-all
+            duration-200
+          `}>
             {paperVerificationItems.map((item) => (
               <NavLink
                 key={item.path}
                 item={item}
                 isActive={location.pathname === item.path}
+                isDropdownItem={true}
               />
             ))}
           </div>
@@ -241,12 +282,25 @@ export default function Sidebar({ isOpen, onClose }) {
               </button>
 
               {isPartsOpen && (
-                <div className="ml-4">
+                <div className={`
+                  relative pl-4 mt-2
+                  before:content-[""]
+                  before:absolute
+                  before:left-0
+                  before:top-0
+                  before:bottom-4
+                  before:w-[2px]
+                  before:bg-indigo-500
+                  space-y-2
+                  transition-all
+                  duration-200
+                `}>
                   {partsNavItems.map((item) => (
                     <NavLink
                       key={item.path}
                       item={item}
                       isActive={location.pathname === item.path}
+                      isDropdownItem={true}
                     />
                   ))}
                 </div>
