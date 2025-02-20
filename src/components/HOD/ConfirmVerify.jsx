@@ -1,16 +1,50 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation, useParams } from "react-router-dom";
+import axios from "axios";
 
 const ConfirmVerify = () => {
   const location = useLocation();
   const { faculty, portfolioData, verifiedMarks } = location.state || {};
+  const [apiData, setApiData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Replace the dummy faculty info with actual data
+  // Get department and faculty_id from state or params
+  const params = useParams();
+  const department = faculty?.department || params?.department;
+  const facultyId = faculty?.id || params?.faculty_id;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(
+          `http://127.0.0.1:5000/total_marks/${department}/${facultyId}`
+        );
+        
+        if (response.data.status === "success") {
+          setApiData(response.data.data);
+        } else {
+          setError("Failed to fetch data");
+        }
+      } catch (err) {
+        setError("Error connecting to API: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (department && facultyId) {
+      fetchData();
+    }
+  }, [department, facultyId]);
+
+  // Replace the dummy faculty info with actual data from API
   const facultyInfo = {
-    name: faculty?.name || "Not Available",
-    id: faculty?.id || "Not Available",
+    name: apiData?.name || faculty?.name || "Not Available",
+    id: apiData?._id || faculty?.id || "Not Available",
     role: faculty?.role || "Not Available",
-    department: faculty?.department || "Not Available",
+    department: apiData?.department || faculty?.department || "Not Available",
   };
 
   const [marksData, setMarksData] = useState({
@@ -32,6 +66,30 @@ const ConfirmVerify = () => {
     },
   });
 
+  // Update marks data when API data is loaded
+  useEffect(() => {
+    if (apiData) {
+      setMarksData({
+        claimed: {
+          academic: apiData.section_totals.A_total || "",
+          research: apiData.section_totals.B_total || "",
+          selfDev: apiData.section_totals.C_total || "",
+          portfolio: apiData.section_totals.D_total || "",
+          extraOrd: "",
+          adminWeight: "",
+        },
+        obtained: {
+          academic: apiData.section_totals.A_total || "",
+          research: apiData.section_totals.B_verified_total || apiData.section_totals.B_total || "",
+          selfDev: apiData.section_totals.C_total || "",
+          portfolio: apiData.section_totals.D_total || "",
+          extraOrd: "",
+          adminWeight: "",
+        },
+      });
+    }
+  }, [apiData]);
+
   const handleInputChange = (type, field, value) => {
     setMarksData((prev) => ({
       ...prev,
@@ -48,6 +106,10 @@ const ConfirmVerify = () => {
     return Math.min(1000, sum);
   };
 
+  const getTotalFromApi = () => {
+    return apiData?.grand_total || 0;
+  };
+
   const handleSubmit = () => {
     const userConfirmed = window.confirm(
       "Details can't be changed after the final submission. Confirm Submit?"
@@ -57,6 +119,27 @@ const ConfirmVerify = () => {
       // Add your submit logic here
     }
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 flex justify-center items-center h-screen">
+        <div className="text-center">
+          <p className="text-lg">Loading faculty data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6 flex justify-center items-center h-screen">
+        <div className="text-center text-red-600">
+          <p className="text-lg">{error}</p>
+          <p className="mt-2">Please check the API connection and try again.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
@@ -97,13 +180,16 @@ const ConfirmVerify = () => {
             {[
               {
                 label: "Self Awarded Marks",
-                value: verifiedMarks?.selfAwardedMarks || 0,
+                value: calculateTotal("claimed") || apiData?.grand_total || 0,
               },
               {
-                label: "HOD Awarded Marks",
-                value: verifiedMarks?.hodMarks || 0,
+                label: "Verified Marks",
+                value: calculateTotal("obtained") || apiData?.grand_total || 0,
               },
-              { label: "Total Marks", value: verifiedMarks?.totalMarks || 0 },
+              { 
+                label: "Approval Status", 
+                value: apiData?.status ? apiData.status.replace(/_/g, " ").toUpperCase() : "PENDING" 
+              },
             ].map((item, index) => (
               <div
                 key={index}
@@ -319,10 +405,10 @@ const ConfirmVerify = () => {
                   Total* *Minimum of [1000, Claimed/Obtained Marks]
                 </td>
                 <td className="border border-gray-300 p-2 text-center">
-                  {calculateTotal("claimed")}
+                  {apiData?.grand_total || calculateTotal("claimed")}
                 </td>
                 <td className="border border-gray-300 p-2 text-center">
-                  {calculateTotal("obtained")}
+                  {apiData?.grand_total || calculateTotal("obtained")}
                 </td>
               </tr>
             </tbody>
