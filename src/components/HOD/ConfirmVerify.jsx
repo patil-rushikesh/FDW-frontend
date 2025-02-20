@@ -22,6 +22,7 @@ const ConfirmVerify = () => {
           `http://127.0.0.1:5000/total_marks/${department}/${facultyId}`
         );
         
+        console.log(response);
         if (response.data.status === "success") {
           setApiData(response.data.data);
         } else {
@@ -80,7 +81,10 @@ const ConfirmVerify = () => {
         },
         obtained: {
           academic: apiData.section_totals.A_total || "",
-          research: apiData.section_totals.B_verified_total || apiData.section_totals.B_total || "",
+          research:
+            apiData.section_totals.B_verified_total ||
+            apiData.section_totals.B_total ||
+            "",
           selfDev: apiData.section_totals.C_total || "",
           portfolio: apiData.section_totals.D_total || "",
           extraOrd: "",
@@ -101,9 +105,25 @@ const ConfirmVerify = () => {
   };
 
   const calculateTotal = (type) => {
-    const values = Object.values(marksData[type]);
-    const sum = values.reduce((acc, curr) => acc + (parseFloat(curr) || 0), 0);
-    return Math.min(1000, sum);
+    if (type === "obtained") {
+      const values = {
+        academic: parseFloat(marksData.obtained.academic) || 0,
+        research: parseFloat(marksData.obtained.research) || 0,
+        selfDev: parseFloat(marksData.obtained.selfDev) || 0,
+        portfolio: parseFloat(marksData.obtained.portfolio) || 0,
+        extraOrd: parseFloat(marksData.obtained.extraOrd) || 0,
+        adminWeight: parseFloat(marksData.obtained.adminWeight) || 0,
+      };
+      const sum = Object.values(values).reduce((acc, curr) => acc + curr, 0);
+      return Math.min(1000, sum);
+    } else {
+      const values = Object.values(marksData[type]);
+      const sum = values.reduce(
+        (acc, curr) => acc + (parseFloat(curr) || 0),
+        0
+      );
+      return Math.min(1000, sum);
+    }
   };
 
   const getTotalFromApi = () => {
@@ -186,9 +206,11 @@ const ConfirmVerify = () => {
                 label: "Verified Marks",
                 value: calculateTotal("obtained") || apiData?.grand_total || 0,
               },
-              { 
-                label: "Approval Status", 
-                value: apiData?.status ? apiData.status.replace(/_/g, " ").toUpperCase() : "PENDING" 
+              {
+                label: "Approval Status",
+                value: apiData?.status
+                  ? apiData.status.replace(/_/g, " ").toUpperCase()
+                  : "PENDING",
               },
             ].map((item, index) => (
               <div
@@ -267,17 +289,15 @@ const ConfirmVerify = () => {
                 <td className="border border-gray-300 p-2">
                   <input
                     type="number"
-                    className="w-full p-1 border border-gray-300 rounded"
+                    className="w-full p-1 border border-gray-300 rounded bg-gray-100"
                     value={marksData.claimed.academic}
-                    onChange={(e) =>
-                      handleInputChange("claimed", "academic", e.target.value)
-                    }
+                    readOnly
                   />
                 </td>
                 <td className="border border-gray-300 p-2">
                   <input
                     type="number"
-                    className="w-full p-1 border border-gray-300 rounded"
+                    className="w-full p-1 border-2 border-green-500 rounded focus:outline-none focus:border-green-600"
                     value={marksData.obtained.academic}
                     onChange={(e) =>
                       handleInputChange("obtained", "academic", e.target.value)
@@ -296,21 +316,17 @@ const ConfirmVerify = () => {
                 <td className="border border-gray-300 p-2">
                   <input
                     type="number"
-                    className="w-full p-1 border border-gray-300 rounded"
+                    className="w-full p-1 border border-gray-300 rounded bg-gray-100"
                     value={marksData.claimed.research}
-                    onChange={(e) =>
-                      handleInputChange("claimed", "research", e.target.value)
-                    }
+                    readOnly
                   />
                 </td>
                 <td className="border border-gray-300 p-2">
                   <input
                     type="number"
-                    className="w-full p-1 border border-gray-300 rounded"
+                    className="w-full p-1 border border-gray-300 rounded bg-gray-100"
                     value={marksData.obtained.research}
-                    onChange={(e) =>
-                      handleInputChange("obtained", "research", e.target.value)
-                    }
+                    readOnly
                   />
                 </td>
               </tr>
@@ -323,17 +339,15 @@ const ConfirmVerify = () => {
                 <td className="border border-gray-300 p-2">
                   <input
                     type="number"
-                    className="w-full p-1 border border-gray-300 rounded"
+                    className="w-full p-1 border border-gray-300 rounded bg-gray-100"
                     value={marksData.claimed.selfDev}
-                    onChange={(e) =>
-                      handleInputChange("claimed", "selfDev", e.target.value)
-                    }
+                    readOnly
                   />
                 </td>
                 <td className="border border-gray-300 p-2">
                   <input
                     type="number"
-                    className="w-full p-1 border border-gray-300 rounded"
+                    className="w-full p-1 border-2 border-green-500 rounded focus:outline-none focus:border-green-600"
                     value={marksData.obtained.selfDev}
                     onChange={(e) =>
                       handleInputChange("obtained", "selfDev", e.target.value)
@@ -352,17 +366,15 @@ const ConfirmVerify = () => {
                 <td className="border border-gray-300 p-2">
                   <input
                     type="number"
-                    className="w-full p-1 border border-gray-300 rounded"
+                    className="w-full p-1 border border-gray-300 rounded bg-gray-100"
                     value={marksData.claimed.portfolio}
-                    onChange={(e) =>
-                      handleInputChange("claimed", "portfolio", e.target.value)
-                    }
+                    readOnly
                   />
                 </td>
                 <td className="border border-gray-300 p-2">
                   <input
                     type="number"
-                    className="w-full p-1 border border-gray-300 rounded"
+                    className="w-full p-1 border-2 border-green-500 rounded focus:outline-none focus:border-green-600"
                     value={marksData.obtained.portfolio}
                     onChange={(e) =>
                       handleInputChange("obtained", "portfolio", e.target.value)
@@ -381,17 +393,15 @@ const ConfirmVerify = () => {
                 <td className="border border-gray-300 p-2">
                   <input
                     type="number"
-                    className="w-full p-1 border border-gray-300 rounded"
+                    className="w-full p-1 border border-gray-300 rounded bg-gray-100"
                     value={marksData.claimed.extraOrd}
-                    onChange={(e) =>
-                      handleInputChange("claimed", "extraOrd", e.target.value)
-                    }
+                    readOnly
                   />
                 </td>
                 <td className="border border-gray-300 p-2">
                   <input
                     type="number"
-                    className="w-full p-1 border border-gray-300 rounded"
+                    className="w-full p-1 border-2 border-green-500 rounded focus:outline-none focus:border-green-600"
                     value={marksData.obtained.extraOrd}
                     onChange={(e) =>
                       handleInputChange("obtained", "extraOrd", e.target.value)
@@ -405,10 +415,10 @@ const ConfirmVerify = () => {
                   Total* *Minimum of [1000, Claimed/Obtained Marks]
                 </td>
                 <td className="border border-gray-300 p-2 text-center">
-                  {apiData?.grand_total || calculateTotal("claimed")}
+                  {calculateTotal("claimed")}
                 </td>
                 <td className="border border-gray-300 p-2 text-center">
-                  {apiData?.grand_total || calculateTotal("obtained")}
+                  {calculateTotal("obtained")}
                 </td>
               </tr>
             </tbody>
