@@ -26,7 +26,9 @@ const ScoreCard = ({ label, score, total, verifiedScore }) => (
     </div>
     <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border-2 border-green-200">
       <div className="flex items-center justify-between">
-        <span className="font-medium text-gray-700">Score After Verification:</span>
+        <span className="font-medium text-gray-700">
+          Score After Verification:
+        </span>
         <span className="text-lg font-bold text-green-600">
           {verifiedScore || "Pending"}
         </span>
@@ -52,17 +54,17 @@ const InputFieldWithProof = ({
       <input
         type={type}
         name={name}
-        value={value === 0 ? "" : value}  // Change here: show empty string when value is 0
+        value={value === 0 ? "" : value} // Change here: show empty string when value is 0
         onChange={(e) => {
           const newValue = e.target.value;
           // Remove leading zeros and convert to number
-          const cleanValue = newValue.replace(/^0+/, '') || "0";
+          const cleanValue = newValue.replace(/^0+/, "") || "0";
           onChange({
             ...e,
             target: {
               ...e.target,
-              value: cleanValue === "" ? 0 : parseInt(cleanValue, 10)
-            }
+              value: cleanValue === "" ? 0 : parseInt(cleanValue, 10),
+            },
           });
         }}
         placeholder={placeholder}
@@ -1163,7 +1165,12 @@ const Research = () => {
             }
           />
         </div>
-        <ScoreCard label="Books Score" score={scores.booksScore} total="200" verifiedScore={verifiedScores.books?.marks} />
+        <ScoreCard
+          label="Books Score"
+          score={scores.booksScore}
+          total="200"
+          verifiedScore={verifiedScores.books?.marks}
+        />
       </SectionCard>
 
       {/* Last three Years Citations */}
