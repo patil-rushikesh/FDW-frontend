@@ -30,7 +30,7 @@ const AddFaculty = () => {
     "Faculty",
   ];
 
-  const roles = ["Professor", "Assistant Prof.", "Associate Prof."];
+  const roles = ["Professor", "Assistant Professor", "Associate Professor"];
 
   const [formData, setFormData] = useState({
     _id: "",
@@ -158,8 +158,8 @@ const AddFaculty = () => {
                       Designation
                     </label>
                     <select
-                      name="role"
-                      value={formData.role}
+                      name="desg"
+                      value={formData.desg}
                       onChange={handleInputChange}
                       required
                       className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -178,8 +178,8 @@ const AddFaculty = () => {
                       Role
                     </label>
                     <select
-                      name="desg"
-                      value={formData.desg}
+                      name="role"
+                      value={formData.role}
                       onChange={handleInputChange}
                       required
                       className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
