@@ -657,190 +657,362 @@ const Research = () => {
     }
 
     const scores = calculateScores();
+    const verificationResults = {
+      sciJournalPapers: { marks: 0 },
+      esciJournalPapers: { marks: 0 },
+      scopusJournalPapers: { marks: 0 },
+      ugcCareJournalPapers: { marks: 0 },
+      otherJournalPapers: { marks: 0 },
+      journalPapers: { marks: 0 },
+
+      scopusWosConferencePapers: { marks: 0 },
+      otherConferencePapers: { marks: 0 },
+      conferencePapers: { marks: 0 },
+
+      scopusWosBooksChapters: { marks: 0 },
+      otherBooksChapters: { marks: 0 },
+      bookChapters: { marks: 0 },
+
+      scopusWosBooks: { marks: 0 },
+      nonIndexedIntlNationalBooks: { marks: 0 },
+      localPublisherBooks: { marks: 0 },
+      books: { marks: 0 },
+
+      webOfScienceCitations: { marks: 0 },
+      scopusCitations: { marks: 0 },
+      googleScholarCitations: { marks: 0 },
+      citations: { marks: 0 },
+
+      indianCopyrightRegistered: { marks: 0 },
+      indianCopyrightGranted: { marks: 0 },
+      copyrightIndividual: { marks: 0 },
+
+      indianCopyrightRegisteredInstitute: { marks: 0 },
+      indianCopyrightGrantedInstitute: { marks: 0 },
+      copyrightInstitute: { marks: 0 },
+
+      indianPatentRegistered: { marks: 0 },
+      indianPatentPublished: { marks: 0 },
+      indianPatentGranted: { marks: 0 },
+      indianPatentCommercialized: { marks: 0 },
+      patentIndividual: { marks: 0 },
+
+      indianPatentRegisteredInstitute: { marks: 0 },
+      indianPatentPublishedInstitute: { marks: 0 },
+      indianPatentGrantedInstitute: { marks: 0 },
+      indianPatentCommercializedInstitute: { marks: 0 },
+      patentInstitute: { marks: 0 },
+
+      researchGrantsAmount: { marks: 0 },
+      researchGrants: { marks: 0 },
+
+      trainingProgramsRevenueAmount: { marks: 0 },
+      trainingPrograms: { marks: 0 },
+
+      nonResearchGrantsAmount: { marks: 0 },
+      nonResearchGrants: { marks: 0 },
+
+      commercializedProducts: { marks: 0 },
+      developedProducts: { marks: 0 },
+      proofOfConcepts: { marks: 0 },
+      productDevelopment: { marks: 0 },
+
+      startupRevenueFiftyK: { marks: 0 },
+      startupFundsFiveLakhs: { marks: 0 },
+      startupProducts: { marks: 0 },
+      startupPOCs: { marks: 0 },
+      startupRegistered: { marks: 0 },
+      startup: { marks: 0 },
+
+      internationalAwards: { marks: 0 },
+      governmentAwards: { marks: 0 },
+      nationalAwards: { marks: 0 },
+      internationalFellowships: { marks: 0 },
+      nationalFellowships: { marks: 0 },
+      awardsAndFellowships: { marks: 0 },
+
+      activeMoUs: { marks: 0 },
+      industryCollaboration: { marks: 0 },
+      industryInteraction: { marks: 0 },
+
+      internshipPlacementOffers: { marks: 0 },
+      internshipPlacement: { marks: 0 },
+
+      total: 0,
+      finalTotal: 0,
+    };
 
     const payload = {
       1: {
         journalPapers: {
           sciCount: formData.sciJournalPapers.count,
           sciProof: formData.sciJournalPapers.proof,
+          ver_sciMarks: verifiedScores.sciJournalPapers?.marks || 0,
           esciCount: formData.esciJournalPapers.count,
           esciProof: formData.esciJournalPapers.proof,
+          ver_esciMarks: verifiedScores.esciJournalPapers?.marks || 0,
           scopusCount: formData.scopusJournalPapers.count,
           scopusProof: formData.scopusJournalPapers.proof,
+          ver_scopusMarks: verifiedScores.scopusJournalPapers?.marks || 0,
           ugcCareCount: formData.ugcCareJournalPapers.count,
           ugcCareProof: formData.ugcCareJournalPapers.proof,
+          ver_ugcCareMarks: verifiedScores.ugcCareJournalPapers?.marks || 0,
           otherCount: formData.otherJournalPapers.count,
           otherProof: formData.otherJournalPapers.proof,
+          ver_otherMarks: verifiedScores.otherJournalPapers?.marks || 0,
           marks: scores.journalPapersScore,
+          verified_marks: verifiedScores.journalPapers?.marks || 0,
         },
       },
       2: {
         conferencePapers: {
           scopusWosCount: formData.scopusWosConferencePapers.count,
           scopusWosProof: formData.scopusWosConferencePapers.proof,
+          ver_scopusWosMarks:
+            verifiedScores.scopusWosConferencePapers?.marks || 0,
           otherCount: formData.otherConferencePapers.count,
           otherProof: formData.otherConferencePapers.proof,
+          ver_otherMarks: verifiedScores.otherConferencePapers?.marks || 0,
           marks: scores.conferencePapersScore,
+          verified_marks: verifiedScores.conferencePapers?.marks || 0,
         },
       },
       3: {
         bookChapters: {
           scopusWosCount: formData.scopusWosBooksChapters.count,
           scopusWosProof: formData.scopusWosBooksChapters.proof,
+          ver_scopusWosMarks: verifiedScores.scopusWosBooksChapters?.marks || 0,
           otherCount: formData.otherBooksChapters.count,
           otherProof: formData.otherBooksChapters.proof,
+          ver_otherMarks: verifiedScores.otherBooksChapters?.marks || 0,
           marks: scores.bookChaptersScore,
+          verified_marks: verifiedScores.bookChapters?.marks || 0,
         },
       },
       4: {
         books: {
           scopusWosCount: formData.scopusWosBooks.count,
           scopusWosProof: formData.scopusWosBooks.proof,
+          ver_scopusWosMarks: verifiedScores.scopusWosBooks?.marks || 0,
           nonIndexedCount: formData.nonIndexedIntlNationalBooks.count,
           nonIndexedProof: formData.nonIndexedIntlNationalBooks.proof,
+          ver_nonIndexedMarks:
+            verifiedScores.nonIndexedIntlNationalBooks?.marks || 0,
           localCount: formData.localPublisherBooks.count,
           localProof: formData.localPublisherBooks.proof,
+          ver_localMarks: verifiedScores.localPublisherBooks?.marks || 0,
           marks: scores.booksScore,
+          verified_marks: verifiedScores.books?.marks || 0,
         },
       },
       5: {
         citations: {
           webOfScienceCount: formData.webOfScienceCitations.count,
           webOfScienceProof: formData.webOfScienceCitations.proof,
+          ver_webOfScienceMarks:
+            verifiedScores.webOfScienceCitations?.marks || 0,
           scopusCount: formData.scopusCitations.count,
           scopusProof: formData.scopusCitations.proof,
+          ver_scopusMarks: verifiedScores.scopusCitations?.marks || 0,
           googleScholarCount: formData.googleScholarCitations.count,
           googleScholarProof: formData.googleScholarCitations.proof,
+          ver_googleScholarMarks:
+            verifiedScores.googleScholarCitations?.marks || 0,
           marks: scores.citationsScore,
+          verified_marks: verifiedScores.citations?.marks || 0,
         },
       },
       6: {
         copyrightIndividual: {
           registeredCount: formData.indianCopyrightRegistered.count,
           registeredProof: formData.indianCopyrightRegistered.proof,
+          ver_registeredMarks:
+            verifiedScores.indianCopyrightRegistered?.marks || 0,
           grantedCount: formData.indianCopyrightGranted.count,
           grantedProof: formData.indianCopyrightGranted.proof,
+          ver_grantedMarks: verifiedScores.indianCopyrightGranted?.marks || 0,
           marks: scores.copyrightIndividualScore,
+          verified_marks: verifiedScores.copyrightIndividual?.marks || 0,
         },
       },
       7: {
         copyrightInstitute: {
           registeredCount: formData.indianCopyrightRegisteredInstitute.count,
           registeredProof: formData.indianCopyrightRegisteredInstitute.proof,
+          ver_registeredMarks:
+            verifiedScores.indianCopyrightRegisteredInstitute?.marks || 0,
           grantedCount: formData.indianCopyrightGrantedInstitute.count,
           grantedProof: formData.indianCopyrightGrantedInstitute.proof,
+          ver_grantedMarks:
+            verifiedScores.indianCopyrightGrantedInstitute?.marks || 0,
           marks: scores.copyrightInstituteScore,
+          verified_marks: verifiedScores.copyrightInstitute?.marks || 0,
         },
       },
       8: {
         patentIndividual: {
           registeredCount: formData.indianPatentRegistered.count,
           registeredProof: formData.indianPatentRegistered.proof,
+          ver_registeredMarks:
+            verifiedScores.indianPatentRegistered?.marks || 0,
           publishedCount: formData.indianPatentPublished.count,
           publishedProof: formData.indianPatentPublished.proof,
+          ver_publishedMarks: verifiedScores.indianPatentPublished?.marks || 0,
           grantedCount: formData.indianPatentGranted.count,
           grantedProof: formData.indianPatentGranted.proof,
+          ver_grantedMarks: verifiedScores.indianPatentGranted?.marks || 0,
           commercializedCount: formData.indianPatentCommercialized.count,
           commercializedProof: formData.indianPatentCommercialized.proof,
+          ver_commercializedMarks:
+            verifiedScores.indianPatentCommercialized?.marks || 0,
           marks: scores.patentIndividualScore,
+          verified_marks: verifiedScores.patentIndividual?.marks || 0,
         },
       },
       9: {
         patentInstitute: {
           registeredCount: formData.indianPatentRegisteredInstitute.count,
           registeredProof: formData.indianPatentRegisteredInstitute.proof,
+          ver_registeredMarks:
+            verifiedScores.indianPatentRegisteredInstitute?.marks || 0,
           publishedCount: formData.indianPatentPublishedInstitute.count,
           publishedProof: formData.indianPatentPublishedInstitute.proof,
+          ver_publishedMarks:
+            verifiedScores.indianPatentPublishedInstitute?.marks || 0,
           grantedCount: formData.indianPatentGrantedInstitute.count,
           grantedProof: formData.indianPatentGrantedInstitute.proof,
+          ver_grantedMarks:
+            verifiedScores.indianPatentGrantedInstitute?.marks || 0,
           commercializedCount:
             formData.indianPatentCommercializedInstitute.count,
           commercializedProof:
             formData.indianPatentCommercializedInstitute.proof,
+          ver_commercializedMarks:
+            verifiedScores.indianPatentCommercializedInstitute?.marks || 0,
           marks: scores.patentInstituteScore,
+          verified_marks: verifiedScores.patentInstitute?.marks || 0,
         },
       },
       10: {
         researchGrants: {
           amount: formData.researchGrants.amount,
           proof: formData.researchGrants.proof,
+          ver_amountMarks: verifiedScores.researchGrantsAmount?.marks || 0,
           marks: scores.researchGrantsScore,
+          verified_marks: verifiedScores.researchGrants?.marks || 0,
         },
       },
       11: {
         trainingPrograms: {
           amount: formData.trainingProgramsRevenue.amount,
           proof: formData.trainingProgramsRevenue.proof,
+          ver_amountMarks:
+            verifiedScores.trainingProgramsRevenueAmount?.marks || 0,
           marks: scores.trainingRevenueScore,
+          verified_marks: verifiedScores.trainingPrograms?.marks || 0,
         },
       },
       12: {
         nonResearchGrants: {
           amount: formData.nonResearchGrants.amount,
           proof: formData.nonResearchGrants.proof,
+          ver_amountMarks: verifiedScores.nonResearchGrantsAmount?.marks || 0,
           marks: scores.nonResearchGrantsScore,
+          verified_marks: verifiedScores.nonResearchGrants?.marks || 0,
         },
       },
       13: {
         productDevelopment: {
           commercializedCount: formData.commercializedProducts.count,
           commercializedProof: formData.commercializedProducts.proof,
+          ver_commercializedMarks:
+            verifiedScores.commercializedProducts?.marks || 0,
           developedCount: formData.developedProducts.count,
           developedProof: formData.developedProducts.proof,
+          ver_developedMarks: verifiedScores.developedProducts?.marks || 0,
           pocCount: formData.proofOfConcepts.count,
           pocProof: formData.proofOfConcepts.proof,
+          ver_pocMarks: verifiedScores.proofOfConcepts?.marks || 0,
           marks: scores.productDevelopedScore,
+          verified_marks: verifiedScores.productDevelopment?.marks || 0,
         },
       },
       14: {
         startup: {
           revenueFiftyKCount: formData.startupRevenueFiftyK.count,
           revenueFiftyKProof: formData.startupRevenueFiftyK.proof,
+          ver_revenueFiftyKMarks:
+            verifiedScores.startupRevenueFiftyK?.marks || 0,
           fundsFiveLakhsCount: formData.startupFundsFiveLakhs.count,
           fundsFiveLakhsProof: formData.startupFundsFiveLakhs.proof,
+          ver_fundsFiveLakhsMarks:
+            verifiedScores.startupFundsFiveLakhs?.marks || 0,
           productsCount: formData.startupProducts.count,
           productsProof: formData.startupProducts.proof,
+          ver_productsMarks: verifiedScores.startupProducts?.marks || 0,
           pocCount: formData.startupPOCs.count,
           pocProof: formData.startupPOCs.proof,
+          ver_pocMarks: verifiedScores.startupPOCs?.marks || 0,
           registeredCount: formData.startupRegistered.count,
           registeredProof: formData.startupRegistered.proof,
+          ver_registeredMarks: verifiedScores.startupRegistered?.marks || 0,
           marks: scores.startupScore,
+          verified_marks: verifiedScores.startup?.marks || 0,
         },
       },
       15: {
         awardsAndFellowships: {
           internationalAwardsCount: formData.internationalAwards.count,
           internationalAwardsProof: formData.internationalAwards.proof,
+          ver_internationalAwardsMarks:
+            verifiedScores.internationalAwards?.marks || 0,
           governmentAwardsCount: formData.governmentAwards.count,
           governmentAwardsProof: formData.governmentAwards.proof,
+          ver_governmentAwardsMarks:
+            verifiedScores.governmentAwards?.marks || 0,
           nationalAwardsCount: formData.nationalAwards.count,
           nationalAwardsProof: formData.nationalAwards.proof,
+          ver_nationalAwardsMarks: verifiedScores.nationalAwards?.marks || 0,
           internationalFellowshipsCount:
             formData.internationalFellowships.count,
           internationalFellowshipsProof:
             formData.internationalFellowships.proof,
+          ver_internationalFellowshipsMarks:
+            verifiedScores.internationalFellowships?.marks || 0,
           nationalFellowshipsCount: formData.nationalFellowships.count,
           nationalFellowshipsProof: formData.nationalFellowships.proof,
+          ver_nationalFellowshipsMarks:
+            verifiedScores.nationalFellowships?.marks || 0,
           marks: scores.awardFellowshipScore,
+          verified_marks: verifiedScores.awardsAndFellowships?.marks || 0,
         },
       },
       16: {
         industryInteraction: {
           moUsCount: formData.activeMoUs.count,
           moUsProof: formData.activeMoUs.proof,
+          ver_moUsMarks: verifiedScores.activeMoUs?.marks || 0,
           collaborationCount: formData.industryCollaboration.count,
           collaborationProof: formData.industryCollaboration.proof,
+          ver_collaborationMarks:
+            verifiedScores.industryCollaboration?.marks || 0,
           marks: scores.interactionScore,
+          verified_marks: verifiedScores.industryInteraction?.marks || 0,
         },
       },
       17: {
         internshipPlacement: {
           offersCount: formData.internshipPlacementOffers.count,
           offersProof: formData.internshipPlacementOffers.proof,
+          ver_offersMarks: verifiedScores.internshipPlacementOffers?.marks || 0,
           marks: scores.internshipPlacementScore,
+          verified_marks: verifiedScores.internshipPlacement?.marks || 0,
         },
       },
       total_marks: scores.totalScore,
+      total_verified_marks: verifiedScores.total || 0,
+      final_verified_marks: verificationResults?.finalTotal || 0,
+      verifier_id: "",
     };
 
     try {
