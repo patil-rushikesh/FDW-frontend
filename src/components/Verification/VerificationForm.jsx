@@ -1113,7 +1113,9 @@ const VerificationForm = () => {
             otherProof: formData.otherJournalPapers.proof,
             ver_otherMarks: verifiedScores.otherJournalPapers?.marks || 0,
             marks: scores.journalPapersScore,
-            verified_marks: verifiedScores.journalPapers?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('JournalPapers'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         2: {
@@ -1126,7 +1128,9 @@ const VerificationForm = () => {
             otherProof: formData.otherConferencePapers.proof,
             ver_otherMarks: verifiedScores.otherConferencePapers?.marks || 0,
             marks: scores.conferencePapersScore,
-            verified_marks: verifiedScores.conferencePapers?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('conferencePapers'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         3: {
@@ -1139,7 +1143,9 @@ const VerificationForm = () => {
             otherProof: formData.otherBooksChapters.proof,
             ver_otherMarks: verifiedScores.otherBooksChapters?.marks || 0,
             marks: scores.bookChaptersScore,
-            verified_marks: verifiedScores.bookChapters?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('bookChapters'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         4: {
@@ -1155,7 +1161,9 @@ const VerificationForm = () => {
             localProof: formData.localPublisherBooks.proof,
             ver_localMarks: verifiedScores.localPublisherBooks?.marks || 0,
             marks: scores.booksScore,
-            verified_marks: verifiedScores.books?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('books'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         5: {
@@ -1172,7 +1180,9 @@ const VerificationForm = () => {
             ver_googleScholarMarks:
               verifiedScores.googleScholarCitations?.marks || 0,
             marks: scores.citationsScore,
-            verified_marks: verifiedScores.citations?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('citations'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         6: {
@@ -1185,7 +1195,9 @@ const VerificationForm = () => {
             grantedProof: formData.indianCopyrightGranted.proof,
             ver_grantedMarks: verifiedScores.indianCopyrightGranted?.marks || 0,
             marks: scores.copyrightIndividualScore,
-            verified_marks: verifiedScores.copyrightIndividual?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('copyrightIndividual'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         7: {
@@ -1199,7 +1211,9 @@ const VerificationForm = () => {
             ver_grantedMarks:
               verifiedScores.indianCopyrightGrantedInstitute?.marks || 0,
             marks: scores.copyrightInstituteScore,
-            verified_marks: verifiedScores.copyrightInstitute?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('copyrightInstitute'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         8: {
@@ -1220,7 +1234,9 @@ const VerificationForm = () => {
             ver_commercializedMarks:
               verifiedScores.indianPatentCommercialized?.marks || 0,
             marks: scores.patentIndividualScore,
-            verified_marks: verifiedScores.patentIndividual?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('patentIndividual'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         9: {
@@ -1244,7 +1260,9 @@ const VerificationForm = () => {
             ver_commercializedMarks:
               verifiedScores.indianPatentCommercializedInstitute?.marks || 0,
             marks: scores.patentInstituteScore,
-            verified_marks: verifiedScores.patentInstitute?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('patentInstitute'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         10: {
@@ -1253,7 +1271,9 @@ const VerificationForm = () => {
             proof: formData.researchGrants.proof,
             ver_amountMarks: verifiedScores.researchGrantsAmount?.marks || 0,
             marks: scores.researchGrantsScore,
-            verified_marks: verifiedScores.researchGrants?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('researchGrants'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         11: {
@@ -1263,7 +1283,9 @@ const VerificationForm = () => {
             ver_amountMarks:
               verifiedScores.trainingProgramsRevenueAmount?.marks || 0,
             marks: scores.trainingRevenueScore,
-            verified_marks: verifiedScores.trainingPrograms?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('trainingPrograms'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         12: {
@@ -1272,7 +1294,9 @@ const VerificationForm = () => {
             proof: formData.nonResearchGrants.proof,
             ver_amountMarks: verifiedScores.nonResearchGrantsAmount?.marks || 0,
             marks: scores.nonResearchGrantsScore,
-            verified_marks: verifiedScores.nonResearchGrants?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('nonResearchGrants'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         13: {
@@ -1288,7 +1312,9 @@ const VerificationForm = () => {
             pocProof: formData.proofOfConcepts.proof,
             ver_pocMarks: verifiedScores.proofOfConcepts?.marks || 0,
             marks: scores.productDevelopedScore,
-            verified_marks: verifiedScores.productDevelopment?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('productDevelopment'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         14: {
@@ -1311,7 +1337,9 @@ const VerificationForm = () => {
             registeredProof: formData.startupRegistered.proof,
             ver_registeredMarks: verifiedScores.startupRegistered?.marks || 0,
             marks: scores.startupScore,
-            verified_marks: verifiedScores.startup?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('startup'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         15: {
@@ -1338,7 +1366,9 @@ const VerificationForm = () => {
             ver_nationalFellowshipsMarks:
               verifiedScores.nationalFellowships?.marks || 0,
             marks: scores.awardFellowshipScore,
-            verified_marks: verifiedScores.awardsAndFellowships?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('awardsAndFellowships'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         16: {
@@ -1351,7 +1381,9 @@ const VerificationForm = () => {
             ver_collaborationMarks:
               verifiedScores.industryCollaboration?.marks || 0,
             marks: scores.interactionScore,
-            verified_marks: verifiedScores.industryInteraction?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('industryInteraction'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         17: {
@@ -1361,7 +1393,9 @@ const VerificationForm = () => {
             ver_offersMarks:
               verifiedScores.internshipPlacementOffers?.marks || 0,
             marks: scores.internshipPlacementScore,
-            verified_marks: verifiedScores.internshipPlacement?.marks || 0,
+            verified_marks: Object.entries(verifiedScores)
+            .filter(([key]) => key.includes('internshipPlacement'))
+            .reduce((sum, [, value]) => sum + (value?.marks || 0), 0),
           },
         },
         total_marks: scores.totalScore,
