@@ -66,9 +66,12 @@ const Review = () => {
   const handleSubmit = async () => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/${userData.dept}/${userData._id}/submit`,
+        `http://127.0.0.1:5000/${userData.dept}/${userData._id}/submit-form`,  // Updated endpoint
         {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
       );
 
