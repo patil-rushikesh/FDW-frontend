@@ -49,7 +49,7 @@ const calculateVerifiedTotal = (sectionScores) => {
   return totals;
 };
 
-const calculateTotalVerifiedMarks = (verifiedScores, userData) => {
+const calculateTotalVerifiedMarks = (verifiedScores, facultyData) => {
   const sectionScores = [];
 
   // Collect all individual scores with their sections
@@ -74,7 +74,7 @@ const calculateTotalVerifiedMarks = (verifiedScores, userData) => {
 
   // Apply cadre-specific limits
   let finalTotal;
-  switch (userData.role) {
+  switch (facultyData.role) {
     case "Professor":
       finalTotal = Math.min(370, totalBeforeCadreLimit);
       break;
@@ -193,6 +193,33 @@ const VerificationForm = () => {
   const { department, facultyId } = useParams();
   const { isAuthenticated } = useAuth();
   const userData = JSON.parse(localStorage.getItem("userData"));
+
+  // Add this useEffect to fetch user data
+  useEffect(() => {
+    const fetchfacultyData = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:5000/users/${facultyId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+        const data = await response.json();
+        // Store the user data in state
+        setfacultyData(data);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        alert('Failed to load user data');
+      }
+    };
+
+    if (facultyId) {
+      fetchfacultyData();
+    }
+  }, [facultyId]);
+
+  // Add user data state
+  const [facultyData, setfacultyData] = useState(null);
+
+  console.log(facultyData);
 
   const initialVerifiedScores = {
     journalPapers: { marks: 0 },
@@ -877,37 +904,37 @@ const VerificationForm = () => {
     const conferencePapersScore = Math.min(
       180,
       formData.scopusWosConferencePapers.count * 30 +
-        formData.otherConferencePapers.count * 5
+      formData.otherConferencePapers.count * 5
     );
 
     // 3. Book Chapter Publication (Max 150)
     const bookChaptersScore = Math.min(
       150,
       formData.scopusWosBooksChapters.count * 30 +
-        formData.otherBooksChapters.count * 5
+      formData.otherBooksChapters.count * 5
     );
 
     // 4. Book Publication (Max 200)
     const booksScore = Math.min(
       200,
       formData.scopusWosBooks.count * 100 +
-        formData.nonIndexedIntlNationalBooks.count * 30 +
-        formData.localPublisherBooks.count * 10
+      formData.nonIndexedIntlNationalBooks.count * 30 +
+      formData.localPublisherBooks.count * 10
     );
 
     // 5. Last three Years Citations (Max 50)
     const citationsScore = Math.min(
       50,
       Math.floor(formData.webOfScienceCitations.count / 3) * 3 +
-        Math.floor(formData.scopusCitations.count / 3) * 3 +
-        Math.floor(formData.googleScholarCitations.count / 3)
+      Math.floor(formData.scopusCitations.count / 3) * 3 +
+      Math.floor(formData.googleScholarCitations.count / 3)
     );
 
     // 6. Copyright in Individual Name (Max 30)
     const copyrightIndividualScore = Math.min(
       30,
       formData.indianCopyrightRegistered.count * 5 +
-        formData.indianCopyrightGranted.count * 15
+      formData.indianCopyrightGranted.count * 15
     );
 
     // 7. Copyright in Institute Name (No Max)
@@ -919,9 +946,9 @@ const VerificationForm = () => {
     const patentIndividualScore = Math.min(
       100,
       formData.indianPatentRegistered.count * 15 +
-        formData.indianPatentPublished.count * 30 +
-        formData.indianPatentGranted.count * 50 +
-        formData.indianPatentCommercialized.count * 100
+      formData.indianPatentPublished.count * 30 +
+      formData.indianPatentGranted.count * 50 +
+      formData.indianPatentCommercialized.count * 100
     );
 
     // 9. Patent in Institute name (No Max)
@@ -951,8 +978,8 @@ const VerificationForm = () => {
     const productDevelopedScore = Math.min(
       100,
       formData.commercializedProducts.count * 100 +
-        formData.developedProducts.count * 40 +
-        formData.proofOfConcepts.count * 10
+      formData.developedProducts.count * 40 +
+      formData.proofOfConcepts.count * 10
     );
 
     // 14. Start Up with PCCoE-CIIL Stake (No Max)
@@ -967,10 +994,10 @@ const VerificationForm = () => {
     const awardFellowshipScore = Math.min(
       50,
       formData.internationalAwards.count * 30 +
-        formData.governmentAwards.count * 20 +
-        formData.nationalAwards.count * 5 +
-        formData.internationalFellowships.count * 50 +
-        formData.nationalFellowships.count * 30
+      formData.governmentAwards.count * 20 +
+      formData.nationalAwards.count * 5 +
+      formData.internationalFellowships.count * 50 +
+      formData.nationalFellowships.count * 30
     );
 
     // 16. Outcome through National/ International Industry/ University Interaction (No Max)
@@ -1002,20 +1029,28 @@ const VerificationForm = () => {
       interactionScore +
       internshipPlacementScore;
 
-    // Apply cadre-specific limits
-    let totalScore;
-    switch (userData.role) {
-      case "Professor":
-        totalScore = Math.min(370, totalScoreBeforeCadreLimit);
-        break;
-      case "Associate Professor":
-        totalScore = Math.min(300, totalScoreBeforeCadreLimit);
-        break;
-      case "Assistant Professor":
-        totalScore = Math.min(210, totalScoreBeforeCadreLimit);
-        break;
-      default:
-        totalScore = 0;
+
+    console.log("Total Score Before Cadre Limit: ", totalScoreBeforeCadreLimit);
+
+
+
+
+    let totalScore = totalScoreBeforeCadreLimit; // default to total before limit
+  
+    if (facultyData && facultyData.role) {
+      switch (facultyData.role) {
+        case "Professor":
+          totalScore = Math.min(370, totalScoreBeforeCadreLimit);
+          break;
+        case "Associate Professor":
+          totalScore = Math.min(300, totalScoreBeforeCadreLimit);
+          break;
+        case "Assistant Professor":
+          totalScore = Math.min(210, totalScoreBeforeCadreLimit);
+          break;
+        default:
+          totalScore = totalScoreBeforeCadreLimit;
+      }
     }
 
     return {
@@ -1040,6 +1075,13 @@ const VerificationForm = () => {
       totalScore,
     };
   };
+  if (isLoading || !facultyData) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <ClipLoader color="#4F46E5" size={50} />
+      </div>
+    );
+  }
 
   const scores = calculateScores();
 
@@ -1049,7 +1091,7 @@ const VerificationForm = () => {
     try {
       const verificationResults = calculateTotalVerifiedMarks(
         verifiedScores,
-        userData
+        facultyData
       );
 
       const payload = {
@@ -1348,6 +1390,7 @@ const VerificationForm = () => {
             return await verifyResponse.json();
           } else {
             console.error(
+              console.log(verifyResponse.body),
               "Research verification failed:",
               verifyResponse.status
             );
@@ -2600,7 +2643,7 @@ const VerificationForm = () => {
                 </span>
                 <span className="text-xl font-bold text-green-600">
                   {
-                    calculateTotalVerifiedMarks(verifiedScores, userData)
+                    calculateTotalVerifiedMarks(verifiedScores, facultyData)
                       .finalTotal
                   }
                 </span>
