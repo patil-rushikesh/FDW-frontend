@@ -87,21 +87,26 @@ const CourseOutcomeInput = ({ courseData, onChange, index }) => (
         />
       </div>
       <div className="flex-1">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Timely submission</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Timely submission
+        </label>
         <label className="inline-flex items-center space-x-3">
           <input
             type="checkbox"
             checked={courseData.timelySubmissionCO}
-            onChange={(e) => onChange(index, "timelySubmissionCO", e.target.checked)}
+            onChange={(e) =>
+              onChange(index, "timelySubmissionCO", e.target.checked)
+            }
             className="form-checkbox h-5 w-5 text-blue-600 rounded"
           />
-          <span className="text-gray-700">Timely submission of CO attainment</span>
+          <span className="text-gray-700">
+            Timely submission of CO attainment
+          </span>
         </label>
       </div>
     </div>
   </div>
 );
-
 
 // Create a new component for Academic Engagement Input
 const AcademicEngagementInput = ({ courseData, onChange, index }) => (
@@ -129,7 +134,6 @@ const AcademicEngagementInput = ({ courseData, onChange, index }) => (
     </div>
   </div>
 );
-
 
 const FeedbackInput = ({ courseData, onChange, index }) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
@@ -198,12 +202,13 @@ const InputField = ({
       min="0" // Add min attribute to prevent negative values
       onKeyDown={(e) => {
         // Prevent minus sign
-        if (e.key === '-') {
+        if (e.key === "-") {
           e.preventDefault();
         }
       }}
-      onWheel={(e) => e.target.blur()} 
-      className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"    />
+      onWheel={(e) => e.target.blur()}
+      className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+    />
   </div>
 );
 
@@ -243,60 +248,71 @@ const TeachingPerformance = () => {
         setIsLoading(false);
         return;
       }
-  
+
       try {
         const response = await fetch(
           `http://127.0.0.1:5000/${userData.dept}/${userData._id}/A`
         );
-        
+
         if (!response.ok) {
-          throw new Error('Failed to fetch data');
+          throw new Error("Failed to fetch data");
         }
-  
+
         const data = await response.json();
-        
+        console.log("data is ", data);
         // Update courseResults with fetched data
-        if (data['1']?.courses) {
-          const updatedCourseResults = Object.entries(data['1'].courses).map(([courseCode, courseData]) => ({
-            courseCode,
-            studentsAbove60: courseData.studentsAbove60.toString(),
-            students50to59: courseData.students50to59.toString(),
-            students40to49: courseData.students40to49.toString(),
-            totalStudents: courseData.totalStudents.toString(),
-            // Get CO data from section 2
-            coAttainment: data['2']?.courses[courseCode]?.coAttainment?.toString() || '',
-            timelySubmissionCO: data['2']?.courses[courseCode]?.timelySubmissionCO || false,
-            courseSem: data['2']?.courses[courseCode]?.semester || '',
-            // Get Academic Engagement data from section 4
-            studentsPresent: data['4']?.courses[courseCode]?.studentsPresent?.toString() || '',
-            totalEnrolledStudents: data['4']?.courses[courseCode]?.totalEnrolledStudents?.toString() || '',
-            // Get Feedback data from section 7
-            feedbackPercentage: data['7']?.courses[courseCode]?.feedbackPercentage?.toString() || '',
-          }));
+        if (data["1"]?.courses) {
+          const updatedCourseResults = Object.entries(data["1"].courses).map(
+            ([courseCode, courseData]) => ({
+              courseCode,
+              studentsAbove60: courseData.studentsAbove60.toString(),
+              students50to59: courseData.students50to59.toString(),
+              students40to49: courseData.students40to49.toString(),
+              totalStudents: courseData.totalStudents.toString(),
+              // Get CO data from section 2
+              coAttainment:
+                data["2"]?.courses[courseCode]?.coAttainment?.toString() || "",
+              timelySubmissionCO:
+                data["2"]?.courses[courseCode]?.timelySubmissionCO || false,
+              courseSem: data["2"]?.courses[courseCode]?.semester || "",
+              // Get Academic Engagement data from section 4
+              studentsPresent:
+                data["4"]?.courses[courseCode]?.studentsPresent?.toString() ||
+                "",
+              totalEnrolledStudents:
+                data["4"]?.courses[
+                  courseCode
+                ]?.totalEnrolledStudents?.toString() || "",
+              // Get Feedback data from section 7
+              feedbackPercentage:
+                data["7"]?.courses[
+                  courseCode
+                ]?.feedbackPercentage?.toString() || "",
+            })
+          );
           setCourseResults(updatedCourseResults);
         }
-  
+
         // Update formData with fetched data
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          elearningInstances: data['3']?.elearningInstances?.toString() || '',
-          weeklyLoadSem1: data['5']?.weeklyLoadSem1?.toString() || '',
-          weeklyLoadSem2: data['5']?.weeklyLoadSem2?.toString() || '',
-          adminResponsibility: data['5']?.adminResponsibility === 1,
-          projectsGuided: data['6']?.projectsGuided?.toString() || '',
-          ptgMeetings: data['8']?.ptgMeetings?.toString() || '',
+          elearningInstances: data["3"]?.elearningInstances?.toString() || "",
+          weeklyLoadSem1: data["5"]?.weeklyLoadSem1?.toString() || "",
+          weeklyLoadSem2: data["5"]?.weeklyLoadSem2?.toString() || "",
+          adminResponsibility: data["5"]?.adminResponsibility === 1,
+          projectsGuided: data["6"]?.projectsGuided?.toString() || "",
+          ptgMeetings: data["8"]?.ptgMeetings?.toString() || "",
         }));
-  
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       } finally {
         setIsLoading(false);
       }
     };
-  
+
     fetchData();
   }, []);
-  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -346,58 +362,61 @@ const TeachingPerformance = () => {
     });
 
     return totalScore / totalCourses;
-  }; 
+  };
 
-// Add helper functions to calculate CO scores
-const calculateSemesterCOScore = (courses, semester) => {
-  const semesterCourses = courses.filter(course => course.courseSem === semester);
-  
-  if (semesterCourses.length === 0) return 0;
-  
-  const semesterTotal = semesterCourses.reduce((total, course) => {
-    const coAttainment = Number(course.coAttainment || 0);
-    const timelyBonus = course.timelySubmissionCO ? 20 : 0;
-    const courseScore = (coAttainment * 30) / 100 + timelyBonus;
-    return total + courseScore;
-  }, 0);
-  
-  return semesterTotal / semesterCourses.length;
-};
+  // Add helper functions to calculate CO scores
+  const calculateSemesterCOScore = (courses, semester) => {
+    const semesterCourses = courses.filter(
+      (course) => course.courseSem === semester
+    );
 
+    if (semesterCourses.length === 0) return 0;
+
+    const semesterTotal = semesterCourses.reduce((total, course) => {
+      const coAttainment = Number(course.coAttainment || 0);
+      const timelyBonus = course.timelySubmissionCO ? 20 : 0;
+      const courseScore = (coAttainment * 30) / 100 + timelyBonus;
+      return total + courseScore;
+    }, 0);
+
+    return semesterTotal / semesterCourses.length;
+  };
 
   // Add this helper function to calculate individual academic engagement scores
-const calculateAcademicEngagementScore = (course) => {
-  const studentsPresent = Number(course.studentsPresent || 0);
-  const totalEnrolled = Number(course.totalEnrolledStudents || 0);
-  
-  if (totalEnrolled > 0) {
-    return 50 * (studentsPresent / totalEnrolled);
-  }
-  return 0;
-};
+  const calculateAcademicEngagementScore = (course) => {
+    const studentsPresent = Number(course.studentsPresent || 0);
+    const totalEnrolled = Number(course.totalEnrolledStudents || 0);
 
+    if (totalEnrolled > 0) {
+      return 50 * (studentsPresent / totalEnrolled);
+    }
+    return 0;
+  };
 
-const calculateFeedbackScore = (course) => {
-  return Number(course.feedbackPercentage || 0);
-};
+  const calculateFeedbackScore = (course) => {
+    return Number(course.feedbackPercentage || 0);
+  };
 
   const calculateScores = () => {
     // Result Analysis Score
     const resultScore = calculateResultScore();
 
-  // Calculate CO Score semester-wise
-  const sem1Score = calculateSemesterCOScore(courseResults, "Sem I");
-  const sem2Score = calculateSemesterCOScore(courseResults, "Sem II");
-  
-  // Calculate final CO score as average of both semesters
-  const coScore = (sem1Score + sem2Score) / 2;
+    // Calculate CO Score semester-wise
+    const sem1Score = calculateSemesterCOScore(courseResults, "Sem I");
+    const sem2Score = calculateSemesterCOScore(courseResults, "Sem II");
+
+    // Calculate final CO score as average of both semesters
+    const coScore = (sem1Score + sem2Score) / 2;
 
     // Other scores calculations as before
     const elearningScore =
       Number(Math.min(5, formData.elearningInstances) || 0) * 10;
     // Feedback Score
-      const feedbackScores = courseResults.map(course => calculateFeedbackScore(course));
-      const feedbackScore = feedbackScores.length > 0
+    const feedbackScores = courseResults.map((course) =>
+      calculateFeedbackScore(course)
+    );
+    const feedbackScore =
+      feedbackScores.length > 0
         ? feedbackScores.reduce((a, b) => a + b, 0) / feedbackScores.length
         : 0;
     // PTG Meetings Score
@@ -405,10 +424,14 @@ const calculateFeedbackScore = (course) => {
     const ptgScore = (ptgMeetings * 50) / 6;
 
     // Academic Engagement Score
-    const academicEngagementScores = courseResults.map(course => calculateAcademicEngagementScore(course));
-    const academicEngagementScore = academicEngagementScores.length > 0
-      ? academicEngagementScores.reduce((a, b) => a + b, 0) / academicEngagementScores.length
-      : 0;
+    const academicEngagementScores = courseResults.map((course) =>
+      calculateAcademicEngagementScore(course)
+    );
+    const academicEngagementScore =
+      academicEngagementScores.length > 0
+        ? academicEngagementScores.reduce((a, b) => a + b, 0) /
+          academicEngagementScores.length
+        : 0;
 
     // Teaching Load Score
     const loadSem1 = Number(formData.weeklyLoadSem1 || 0);
@@ -481,17 +504,21 @@ const calculateFeedbackScore = (course) => {
   };
 
   // Add this helper function to calculate individual course scores
-const calculateCourseScore = (course) => {
-  const studentsAbove60 = Number(course.studentsAbove60 || 0);
-  const students50to59 = Number(course.students50to59 || 0);
-  const students40to49 = Number(course.students40to49 || 0);
-  const totalStudents = Number(course.totalStudents || 0);
+  const calculateCourseScore = (course) => {
+    const studentsAbove60 = Number(course.studentsAbove60 || 0);
+    const students50to59 = Number(course.students50to59 || 0);
+    const students40to49 = Number(course.students40to49 || 0);
+    const totalStudents = Number(course.totalStudents || 0);
 
-  if (totalStudents > 0) {
-    return ((studentsAbove60 * 5 + students50to59 * 4 + students40to49 * 3) / totalStudents) * 10;
-  }
-  return 0;
-};
+    if (totalStudents > 0) {
+      return (
+        ((studentsAbove60 * 5 + students50to59 * 4 + students40to49 * 3) /
+          totalStudents) *
+        10
+      );
+    }
+    return 0;
+  };
 
   const handleSubmit = async () => {
     const userData = JSON.parse(localStorage.getItem("userData"));
@@ -512,7 +539,7 @@ const calculateCourseScore = (course) => {
         students40to49: Number(course.students40to49) || 0,
         totalStudents: Number(course.totalStudents) || 0,
         // Calculate individual course marks
-        marks: calculateCourseScore(course)
+        marks: calculateCourseScore(course),
       };
     });
 
@@ -529,13 +556,15 @@ const calculateCourseScore = (course) => {
               coAttainment: Number(course.coAttainment) || 0,
               timelySubmissionCO: course.timelySubmissionCO,
               semester: course.courseSem,
-              marks: (Number(course.coAttainment || 0) * 30) / 100 + (course.timelySubmissionCO ? 20 : 0)
+              marks:
+                (Number(course.coAttainment || 0) * 30) / 100 +
+                (course.timelySubmissionCO ? 20 : 0),
             },
           ])
         ),
         semesterScores: {
           "Sem I": scores.sem1COScore,
-          "Sem II": scores.sem2COScore
+          "Sem II": scores.sem2COScore,
         },
         total_marks: scores.coScore,
       },
@@ -551,7 +580,7 @@ const calculateCourseScore = (course) => {
               studentsPresent: Number(course.studentsPresent) || 0,
               totalEnrolledStudents: Number(course.totalEnrolledStudents) || 0,
               marks: calculateAcademicEngagementScore(course),
-            }
+            },
           ])
         ),
         total_marks: scores.academicEngagementScore,
@@ -599,23 +628,24 @@ const calculateCourseScore = (course) => {
       );
 
       if (response.ok) {
-        navigate('/submission-status', { 
-          state: { 
-            status: 'success',
-            formName: 'Teaching Performance Form',
-            message: 'Your Teaching Performance details have been successfully submitted!'
-          }
+        navigate("/submission-status", {
+          state: {
+            status: "success",
+            formName: "Teaching Performance Form",
+            message:
+              "Your Teaching Performance details have been successfully submitted!",
+          },
         });
       } else {
         throw new Error(errorData.error || "Failed to submit data");
       }
     } catch (error) {
-      navigate('/submission-status', { 
-        state: { 
-          status: 'error',
-          formName: 'Teaching Performance Form',
-          error: error.message
-        }
+      navigate("/submission-status", {
+        state: {
+          status: "error",
+          formName: "Teaching Performance Form",
+          error: error.message,
+        },
       });
     }
   };
@@ -624,9 +654,9 @@ const calculateCourseScore = (course) => {
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
-        <Header/>
+      <Header />
 
-        <TestComponent onCoursesUpdate={setCourseResults} />
+      <TestComponent onCoursesUpdate={setCourseResults} />
 
       {/* Result Analysis Section */}
       <SectionCard
@@ -651,36 +681,36 @@ const calculateCourseScore = (course) => {
 
       {/* Course Outcome Section */}
       <SectionCard
-    title="Course Outcome Analysis"
-    icon="📈"
-    borderColor="border-green-500"
-  >
-    {courseResults.map((courseData, index) => (
-      <CourseOutcomeInput
-        key={courseData.courseCode}
-        courseData={courseData}
-        onChange={handleCourseResultChange}
-        index={index}
-      />
-    ))}
-    <div className="mt-4 space-y-4">
-      <ScoreCard
-        label="Semester I CO Score"
-        score={scores.sem1COScore.toFixed(2)}
-        total="50"
-      />
-      <ScoreCard
-        label="Semester II CO Score"
-        score={scores.sem2COScore.toFixed(2)}
-        total="50"
-      />
-      <ScoreCard
-        label="Final CO Analysis Score (Average of both semesters)"
-        score={scores.coScore.toFixed(2)}
-        total="50"
-      />
-    </div>
-  </SectionCard>
+        title="Course Outcome Analysis"
+        icon="📈"
+        borderColor="border-green-500"
+      >
+        {courseResults.map((courseData, index) => (
+          <CourseOutcomeInput
+            key={courseData.courseCode}
+            courseData={courseData}
+            onChange={handleCourseResultChange}
+            index={index}
+          />
+        ))}
+        <div className="mt-4 space-y-4">
+          <ScoreCard
+            label="Semester I CO Score"
+            score={scores.sem1COScore.toFixed(2)}
+            total="50"
+          />
+          <ScoreCard
+            label="Semester II CO Score"
+            score={scores.sem2COScore.toFixed(2)}
+            total="50"
+          />
+          <ScoreCard
+            label="Final CO Analysis Score (Average of both semesters)"
+            score={scores.coScore.toFixed(2)}
+            total="50"
+          />
+        </div>
+      </SectionCard>
 
       {/* E-learning Section */}
       <SectionCard
@@ -701,68 +731,69 @@ const calculateCourseScore = (course) => {
           total="50"
         />
       </SectionCard>
-<SectionCard
-  title="Academic Engagement"
-  icon="📖"
-  borderColor="border-indigo-500"
->
-  {courseResults.map((courseData, index) => (
-    <AcademicEngagementInput
-      key={courseData.courseCode}
-      courseData={courseData}
-      onChange={handleCourseResultChange}
-      index={index}
-    />
-  ))}
-  <ScoreCard
-    label="Academic Engagement Score (Average across all courses)"
-    score={scores.academicEngagementScore.toFixed(2)}
-    total="50"
-  />
-</SectionCard>
+      <SectionCard
+        title="Academic Engagement"
+        icon="📖"
+        borderColor="border-indigo-500"
+      >
+        {courseResults.map((courseData, index) => (
+          <AcademicEngagementInput
+            key={courseData.courseCode}
+            courseData={courseData}
+            onChange={handleCourseResultChange}
+            index={index}
+          />
+        ))}
+        <ScoreCard
+          label="Academic Engagement Score (Average across all courses)"
+          score={scores.academicEngagementScore.toFixed(2)}
+          total="50"
+        />
+      </SectionCard>
 
       {/* Teaching Load Section */}
-        <SectionCard
-          title="Teaching Load"
-          icon="📚"
-          borderColor="border-yellow-500"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InputField
-          label="Weekly Load Semester I"
-          name="weeklyLoadSem1"
-          value={formData.weeklyLoadSem1}
-          onChange={handleChange}
-          placeholder="Enter weekly load"
-            />
-            <InputField
-          label="Weekly Load Semester II"
-          name="weeklyLoadSem2"
-          value={formData.weeklyLoadSem2}
-          onChange={handleChange}
-          placeholder="Enter weekly load"
-            />
-            <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700">
-            Are You Ph.D Supervisor Having Scholars Enrolled at PCCOE Research Center
-          </label>
-          <input
-            type="checkbox" 
-            name="adminResponsibility"
-            checked={formData.adminResponsibility}
+      <SectionCard
+        title="Teaching Load"
+        icon="📚"
+        borderColor="border-yellow-500"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InputField
+            label="Weekly Load Semester I"
+            name="weeklyLoadSem1"
+            value={formData.weeklyLoadSem1}
             onChange={handleChange}
-            className="h-5 w-5 text-blue-600 rounded"
+            placeholder="Enter weekly load"
           />
-            </div>
+          <InputField
+            label="Weekly Load Semester II"
+            name="weeklyLoadSem2"
+            value={formData.weeklyLoadSem2}
+            onChange={handleChange}
+            placeholder="Enter weekly load"
+          />
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              Are You Ph.D Supervisor Having Scholars Enrolled at PCCOE Research
+              Center
+            </label>
+            <input
+              type="checkbox"
+              name="adminResponsibility"
+              checked={formData.adminResponsibility}
+              onChange={handleChange}
+              className="h-5 w-5 text-blue-600 rounded"
+            />
           </div>
-          <ScoreCard
-            label="Teaching Load Score"
-            score={scores.teachingLoadScore.toFixed(2)}
-            total="50"
-          />
-        </SectionCard>
+        </div>
+        <ScoreCard
+          label="Teaching Load Score"
+          score={scores.teachingLoadScore.toFixed(2)}
+          total="50"
+        />
+      </SectionCard>
 
-        {/* Projects Guided Section */}
+      {/* Projects Guided Section */}
       <SectionCard
         title="UG Project / PG Dissertations Guided"
         icon="🎓"
@@ -784,24 +815,24 @@ const calculateCourseScore = (course) => {
 
       {/* Feedback Section */}
       <SectionCard
-    title="Feedback of Faculty by Student"
-    icon="📊"
-    borderColor="border-blue-500"
-  >
-    {courseResults.map((courseData, index) => (
-      <FeedbackInput
-        key={courseData.courseCode}
-        courseData={courseData}
-        onChange={handleCourseResultChange}
-        index={index}
-      />
-    ))}
-    <ScoreCard
-      label="Average Feedback Score (across all courses)"
-      score={scores.feedbackScore.toFixed(2)}
-      total="100"
-    />
-  </SectionCard>
+        title="Feedback of Faculty by Student"
+        icon="📊"
+        borderColor="border-blue-500"
+      >
+        {courseResults.map((courseData, index) => (
+          <FeedbackInput
+            key={courseData.courseCode}
+            courseData={courseData}
+            onChange={handleCourseResultChange}
+            index={index}
+          />
+        ))}
+        <ScoreCard
+          label="Average Feedback Score (across all courses)"
+          score={scores.feedbackScore.toFixed(2)}
+          total="100"
+        />
+      </SectionCard>
 
       {/* PTG Meetings Section */}
       <SectionCard
@@ -853,42 +884,31 @@ const calculateCourseScore = (course) => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap">Professor</td>
-                <td className="px-6 py-4 whitespace-nowrap">300</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {userData.role === "Professor"
-                    ? scores.finalScore.toFixed(2)
-                    : "-"}
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  Associate Professor
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">360</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {userData.role === "Associate Professor"
-                    ? scores.finalScore.toFixed(2)
-                    : "-"}
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  Assistant Professor
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">440</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {userData.role === "Assistant Professor"
-                    ? scores.finalScore.toFixed(2)
-                    : "-"}
-                </td>
-              </tr>
+              {(() => {
+                const maxMarks = {
+                  Professor: 300,
+                  "Associate Professor": 360,
+                  "Assistant Professor": 440,
+                };
+
+                return (
+                  <tr>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {userData.role}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {maxMarks[userData.role]}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {scores.finalScore.toFixed(2)}
+                    </td>
+                  </tr>
+                );
+              })()}
             </tbody>
           </table>
         </div>
       </SectionCard>
-
       {/* Submit Button */}
       <div className="flex justify-end mt-8">
         <button
@@ -901,7 +921,6 @@ const calculateCourseScore = (course) => {
     </div>
   );
 };
-
 
 const TeachingPerformanceWithProvider = () => (
   <CourseProvider>
