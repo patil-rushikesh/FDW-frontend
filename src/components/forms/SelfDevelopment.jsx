@@ -60,6 +60,21 @@ const InputField = ({ label, name, type = "number", value, onChange, placeholder
   </div>
 );
 
+// Add this new RadioField component after the existing components
+const RadioField = ({ label, name, checked, onChange, disabled = false }) => (
+  <div className="flex items-center gap-2 mb-4">
+    <input
+      type="radio"
+      name={name}
+      checked={checked}
+      onChange={onChange}
+      disabled={disabled}
+      className="h-5 w-5 text-blue-600"
+    />
+    <label className="text-sm font-medium text-gray-700">{label}</label>
+  </div>
+);
+
 const SelfDevelopment = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -70,19 +85,19 @@ const SelfDevelopment = () => {
     pdfCompleted: false,
     pdfOngoing: false,
     phdAwarded: false,
-    
+
     // Training Programs Attended
     twoWeekProgram: 0,
     oneWeekProgram: 0,
     twoToFiveDayProgram: 0,
     oneDayProgram: 0,
-    
+
     // Training Programs Organized
     organizedTwoWeekProgram: 0,
     organizedOneWeekProgram: 0,
     organizedTwoToFiveDayProgram: 0,
     organizedOneDayProgram: 0,
-    
+
     // PhD Guided
     phdDegreeAwarded: 0,
     phdThesisSubmitted: 0,
@@ -145,11 +160,13 @@ const SelfDevelopment = () => {
     }));
   };
 
+  // Update the calculateQualificationScore function
+  // Update the calculateQualificationScore function
   const calculateQualificationScore = () => {
-    if (userData.role === "Professor" || userData.role === "Associate Professor") {
-      return formData.pdfCompleted ? 20 : (formData.pdfOngoing ? 15 : 0);
-    } else if (userData.role === "Assistant Professor") {
-      return formData.phdAwarded ? 20 : 0;
+    if (formData.pdfCompleted || formData.phdAwarded) {
+      return 20;
+    } else if (formData.pdfOngoing) {
+      return 15;
     }
     return 0;
   };
@@ -185,9 +202,9 @@ const SelfDevelopment = () => {
     const trainingAttendedScore = calculateTrainingAttendedScore();
     const trainingOrganizedScore = calculateTrainingOrganizedScore();
     const phdGuidedScore = calculatePhDGuidedScore();
-    
+
     const totalScore = qualificationScore + trainingAttendedScore + trainingOrganizedScore + phdGuidedScore;
-    
+
     // Apply cadre-specific limits
     switch (userData.role) {
       case "Professor":
@@ -263,8 +280,8 @@ const SelfDevelopment = () => {
       );
 
       if (response.ok) {
-        navigate('/submission-status', { 
-          state: { 
+        navigate('/submission-status', {
+          state: {
             status: 'success',
             formName: 'Self Development Form',
             message: 'Your self development details have been successfully submitted!'
@@ -274,8 +291,8 @@ const SelfDevelopment = () => {
         throw new Error(errorData.error || "Failed to submit data");
       }
     } catch (error) {
-      navigate('/submission-status', { 
-        state: { 
+      navigate('/submission-status', {
+        state: {
           status: 'error',
           formName: 'Self Development Form',
           error: error.message
@@ -312,26 +329,60 @@ const SelfDevelopment = () => {
         icon="🎓"
         borderColor="border-blue-500"
       >
-        {(userData.role === "Professor" || userData.role === "Associate Professor") ? (
-          <div className="space-y-4">
-            <CheckboxField
-              label="PDF Completed"
-              checked={formData.pdfCompleted}
-              onChange={(e) => handleChange({ target: { name: 'pdfCompleted', type: 'checkbox', checked: e.target.checked }})}
-            />
-            <CheckboxField
-              label="PDF Ongoing"
-              checked={formData.pdfOngoing}
-              onChange={(e) => handleChange({ target: { name: 'pdfOngoing', type: 'checkbox', checked: e.target.checked }})}
-            />
-          </div>
-        ) : (
-          <CheckboxField
-            label="Ph.D. Degree Awarded / Thesis Submitted"
-            checked={formData.phdAwarded}
-            onChange={(e) => handleChange({ target: { name: 'phdAwarded', type: 'checkbox', checked: e.target.checked }})}
+        <div className="space-y-4">
+          <RadioField
+            label="PDF Completed"
+            name="qualificationStatus"
+            checked={formData.pdfCompleted}
+            onChange={() => {
+              setFormData(prev => ({
+                ...prev,
+                pdfCompleted: true,
+                pdfOngoing: false,
+                phdAwarded: false
+              }));
+            }}
           />
-        )}
+          <RadioField
+            label="PDF Ongoing"
+            name="qualificationStatus"
+            checked={formData.pdfOngoing}
+            onChange={() => {
+              setFormData(prev => ({
+                ...prev,
+                pdfCompleted: false,
+                pdfOngoing: true,
+                phdAwarded: false
+              }));
+            }}
+          />
+          <RadioField
+            label="Ph.D. Degree Awarded / Thesis Submitted"
+            name="qualificationStatus"
+            checked={formData.phdAwarded}
+            onChange={() => {
+              setFormData(prev => ({
+                ...prev,
+                pdfCompleted: false,
+                pdfOngoing: false,
+                phdAwarded: true
+              }));
+            }}
+          />
+          <RadioField
+            label="None"
+            name="qualificationStatus"
+            checked={!formData.pdfCompleted && !formData.pdfOngoing && !formData.phdAwarded}
+            onChange={() => {
+              setFormData(prev => ({
+                ...prev,
+                pdfCompleted: false,
+                pdfOngoing: false,
+                phdAwarded: false
+              }));
+            }}
+          />
+        </div>
         <ScoreCard
           label="Qualification Score"
           score={scores.qualificationScore}
@@ -465,25 +516,25 @@ const SelfDevelopment = () => {
 
       {/* Total Score Section */}
       <div className="mt-8 bg-white rounded-lg shadow-md">
-  <div className="p-6 border-b border-gray-200">
-    <h2 className="text-2xl font-bold text-gray-900">Total Score</h2>
-  </div>
-  <div className="p-6">
-    <div className="p-4 bg-gradient-to-r from-blue-100 to-blue-200 rounded-lg">
-      <div className="flex justify-between items-center">
-        <span className="text-xl font-semibold text-gray-800">Total Score:</span>
-        <span className="text-3xl font-bold text-blue-700">{scores.totalScore}</span>
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900">Total Score</h2>
+        </div>
+        <div className="p-6">
+          <div className="p-4 bg-gradient-to-r from-blue-100 to-blue-200 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="text-xl font-semibold text-gray-800">Total Score:</span>
+              <span className="text-3xl font-bold text-blue-700">{scores.totalScore}</span>
+            </div>
+            <div className="mt-2 text-sm text-gray-600">
+              Maximum score for {userData.role}: {
+                userData.role === "Professor" ? "160" :
+                  userData.role === "Associate Professor" ? "170" :
+                    userData.role === "Assistant Professor" ? "180" : "N/A"
+              }
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="mt-2 text-sm text-gray-600">
-        Maximum score for {userData.role}: {
-          userData.role === "Professor" ? "160" :
-          userData.role === "Associate Professor" ? "170" :
-          userData.role === "Assistant Professor" ? "180" : "N/A"
-        }
-      </div>
-    </div>
-  </div>
-</div>
 
       {/* Submit Button */}
       <div className="flex justify-end mt-8">
@@ -491,8 +542,8 @@ const SelfDevelopment = () => {
           onClick={handleSubmit}
           disabled={isSubmitting}
           className={`px-6 py-3 text-white rounded-lg focus:ring-4 focus:ring-blue-300 transition-colors duration-300
-            ${isSubmitting 
-              ? 'bg-blue-400 cursor-not-allowed' 
+            ${isSubmitting
+              ? 'bg-blue-400 cursor-not-allowed'
               : 'bg-blue-600 hover:bg-blue-700'
             }`}
         >
