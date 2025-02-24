@@ -334,7 +334,7 @@ const Portfolio = () => {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
       {/* Portfolio Type Selection - Only show if not administrative role */}
-      {designation === "Faculty" && (
+      {
         <SectionCard
           title="Portfolio Selection"
           icon="📋"
@@ -353,7 +353,7 @@ const Portfolio = () => {
             onChange={handlePortfolioTypeChange}
           />
         </SectionCard>
-      )}
+        }
 
       {/* Self Assessment */}
       <SectionCard

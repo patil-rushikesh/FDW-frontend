@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
-const FacultyEvaluationForm = () => {
+const DeanEvaluationForm = () => {
   const location = useLocation();
   const { faculty } = location.state || {};
 
@@ -24,14 +24,12 @@ const FacultyEvaluationForm = () => {
     isFirstTime: false
   });
 
-  const [hodMarks, setHodMarks] = useState(0);
+  const [deanMarks, setDeanMarks] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Update the fetchPortfolioData function with proper error handling and null checking
   const fetchPortfolioData = async () => {
     try {
-      // Get values from faculty information
       const department = faculty?.department;
       const userId = faculty?.id;
 
@@ -46,13 +44,10 @@ const FacultyEvaluationForm = () => {
       const data = response.data || {};
 
       setPortfolioData(data);
-
       console.log("Portfolio Data:", data);
-
-      setHodMarks(data?.hodMarks ?? 0);
+      setDeanMarks(data?.deanMarks ?? 0);
     } catch (error) {
       console.error("Error fetching portfolio data:", error);
-      // Set default values in case of error
       setPortfolioData({
         portfolioType: "both",
         selfAwardedMarks: 0,
@@ -73,32 +68,32 @@ const FacultyEvaluationForm = () => {
     }
   };
 
-  // Update the useEffect to include proper dependency array and error handling
   useEffect(() => {
     if (faculty?.id && faculty?.department) {
       fetchPortfolioData();
     } else {
       console.warn("Faculty information is incomplete");
     }
-  }, [faculty?.id, faculty?.department]); // Add specific dependencies
+  }, [faculty?.id, faculty?.department]);
 
-  // Calculate total score based on portfolio type
   const calculateTotalScore = () => {
     const selfScore = Math.min(60, Number(portfolioData.selfAwardedMarks) || 0);
-    const hodScore = Math.min(60, Number(hodMarks) || 0);
+    const hodScore = Math.min(60, Number(portfolioData.hodMarks) || 0);
+    const deanScore = Math.min(60, Number(deanMarks) || 0);
 
-    // For regular faculty
     if (!portfolioData.isAdministrativeRole) {
       switch (portfolioData.portfolioType) {
         case "both":
-          return Math.min(120, selfScore + (hodScore/2));
+          return Math.min(180, selfScore + (hodScore/2) + (deanScore/2));
+        case "institute":
+          return Math.min(120, selfScore + deanScore); // Only self and dean marks
         case "department":
-          return Math.min(120, selfScore + hodScore);
+          return Math.min(120, selfScore + hodScore); // Only self and HOD marks
         default:
-          return selfScore; // For institute level, HOD doesn't give marks
+          return selfScore;
       }
     }
-    return 0; // For administrative roles
+    return 0;
   };
 
   const handleSubmit = async (e) => {
@@ -116,11 +111,11 @@ const FacultyEvaluationForm = () => {
         return;
       }
 
-      // Prepare updated portfolio data
       const updatedPortfolioData = {
         ...portfolioData,
-        hodMarks: Number(hodMarks),
-        isMarkHOD: true, // Mark as reviewed by HOD
+        deanMarks: Number(deanMarks),
+        isMarkDean: true,
+        status: "Done", // Update status to Done after dean verification
         total_marks: calculateTotalScore()
       };
 
@@ -131,12 +126,7 @@ const FacultyEvaluationForm = () => {
 
       setIsModalOpen(false);
       alert("Marks saved successfully!");
-      navigate("/hodcnfverify", {
-        state: {
-          faculty,
-          portfolioData: updatedPortfolioData
-        }
-      });
+      navigate("/associate-deans-list"); // Navigate back to the list
     } catch (error) {
       console.error("Error saving marks:", error);
       alert("Error saving marks. Please try again.");
@@ -144,14 +134,13 @@ const FacultyEvaluationForm = () => {
     }
   };
 
-  // Update the JSX to show portfolio details
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="bg-white rounded-lg shadow-lg p-6">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
-            Faculty Portfolio Evaluation
+            Faculty Portfolio Evaluation - Dean Review
           </h1>
         </div>
 
@@ -169,12 +158,12 @@ const FacultyEvaluationForm = () => {
             ].map((item, index) => (
               <div
                 key={index}
-                className="bg-white p-4 rounded-lg border border-blue-200 shadow-sm min-h-[120px] flex flex-col"
+                className="bg-white p-4 rounded-lg border border-blue-200 shadow-sm"
               >
                 <label className="block text-sm font-medium text-blue-700 mb-2">
                   {item.label}
                 </label>
-                <div className="flex-1 w-full p-2 bg-blue-50 border border-blue-200 rounded-md text-gray-700 font-medium flex items-center">
+                <div className="p-2 bg-blue-50 border border-blue-200 rounded-md">
                   {item.value || "N/A"}
                 </div>
               </div>
@@ -185,96 +174,74 @@ const FacultyEvaluationForm = () => {
         {/* Portfolio Type and Documents Section */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Portfolio Type:{" "}
-            {portfolioData?.portfolioType?.toUpperCase() || "Not Specified"}
+            Portfolio Type: {portfolioData?.portfolioType?.toUpperCase() || "Not Specified"}
           </h3>
-          <div className="mb-6 space-y-4">
-            <h3 className="text-lg font-medium text-gray-800 mb-2">
-              Portfolio Documents
-            </h3>
-
-            {/* Institute Level Portfolio */}
+          <div className="space-y-4">
             {portfolioData.instituteLevelPortfolio && (
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
-                <h4 className="font-medium text-gray-700 mb-2">
-                  Institute Level Portfolio
-                </h4>
+                <h4 className="font-medium text-gray-700 mb-2">Institute Level Portfolio</h4>
                 <div className="bg-white p-4 rounded border border-gray-200">
                   {portfolioData.instituteLevelPortfolio}
                 </div>
               </div>
             )}
-
-            {/* Department Level Portfolio */}
-            {portfolioData.departmentLevelPortfolio && (
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
-                <h4 className="font-medium text-gray-700 mb-2">
-                  Department Level Portfolio
-                </h4>
-                <div className="bg-white p-4 rounded border border-gray-200">
-                  {portfolioData.departmentLevelPortfolio}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
-        {/* HOD Marks Input Section */}
+        {/* Dean Marks Input Section */}
         <div className="mb-6 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
           <div className="flex flex-col space-y-4">
             <label className="text-gray-700 font-medium">
-              Enter HOD Marks (Maximum 60)
+              Enter Dean Marks (Maximum 60)
             </label>
             <input
               type="number"
-              className="w-full md:w-1/3 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full md:w-1/3 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               max="60"
               min="0"
-              value={hodMarks}
-              onChange={(e) => setHodMarks(e.target.value)}
+              value={deanMarks}
+              onChange={(e) => setDeanMarks(e.target.value)}
             />
           </div>
         </div>
 
-        {/* Update the Summary Table to use only HOD marks */}
+        {/* Summary Table */}
         <div className="overflow-x-auto mb-6">
-          <table className="w-full border-collapse border border-gray-300 mt-8">
+          <table className="w-full border-collapse border border-gray-300">
             <thead>
               <tr className="bg-gray-50">
-                <th className="border border-gray-300 p-2 text-left">Cadre</th>
-                <th className="border border-gray-300 p-2 text-center">
-                  Maximum Marks
-                </th>
-                <th className="border border-gray-300 p-2 text-center">
-                  Marks Awarded
-                </th>
+                <th className="border border-gray-300 p-2 text-left">Evaluation Type</th>
+                <th className="border border-gray-300 p-2 text-center">Maximum Marks</th>
+                <th className="border border-gray-300 p-2 text-center">Marks Awarded</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td className="border border-gray-300 p-2">
-                  Self Awarded Marks (50 % of Max)
-                </td>
+                <td className="border border-gray-300 p-2">Self Awarded Marks</td>
                 <td className="border border-gray-300 p-2 text-center">60</td>
-                <td className="border border-gray-300 p-2 text-center bg-gray-50">
+                <td className="border border-gray-300 p-2 text-center">
                   {portfolioData.selfAwardedMarks}
                 </td>
               </tr>
               <tr>
-                <td className="border border-gray-300 p-2">
-                  HOD Evaluation Marks
-                </td>
+                <td className="border border-gray-300 p-2">HOD Evaluation Marks</td>
                 <td className="border border-gray-300 p-2 text-center">60</td>
-                <td className="border border-gray-300 p-2 text-center bg-gray-50">
-                  {hodMarks}
+                <td className="border border-gray-300 p-2 text-center">
+                  {portfolioData.hodMarks}
                 </td>
               </tr>
-              {/* Update the problematic table row with the new calculation */}
+              <tr>
+                <td className="border border-gray-300 p-2">Dean Evaluation Marks</td>
+                <td className="border border-gray-300 p-2 text-center">60</td>
+                <td className="border border-gray-300 p-2 text-center">
+                  {deanMarks}
+                </td>
+              </tr>
               <tr className="font-medium">
                 <td colSpan="2" className="border border-gray-300 p-2">
                   Total Marks Obtained:
                 </td>
-                <td className="border border-gray-300 p-2 text-center bg-gray-50">
+                <td className="border border-gray-300 p-2 text-center">
                   {calculateTotalScore()}
                 </td>
               </tr>
@@ -286,9 +253,9 @@ const FacultyEvaluationForm = () => {
         <div className="flex justify-end">
           <button
             onClick={handleSubmit}
-            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors"
           >
-            Submit
+            Submit Evaluation
           </button>
         </div>
       </div>
@@ -299,13 +266,12 @@ const FacultyEvaluationForm = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold mb-4">Confirm Submission</h2>
             <p className="mb-4">
-              Details can't be changed after the final submission. Confirm
-              Submit?
+              Details can't be changed after the final submission. Are you sure you want to submit?
             </p>
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-4">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2"
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded"
               >
                 Cancel
               </button>
@@ -323,4 +289,4 @@ const FacultyEvaluationForm = () => {
   );
 };
 
-export default FacultyEvaluationForm;
+export default DeanEvaluationForm;
