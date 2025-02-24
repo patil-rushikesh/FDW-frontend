@@ -61,6 +61,15 @@ const directorPrivilegeItems = [
   },
 ];
 
+// Add this after directorPrivilegeItems
+const deanPrivilegeItems = [
+  {
+    icon: ClipboardCheck,
+    label: "Associate Dean List",
+    path: "/dean/associate-dean-list",
+  }
+];
+
 const paperVerificationItems = [
   { icon: ClipboardCheck, label: "Verify", path: "/paper-verification/verify" },
 ];
@@ -118,12 +127,27 @@ export default function Sidebar({ isOpen, onClose }) {
   };
 
   const renderPrivilegeSection = () => {
-    if (userRole !== "hod" && userRole !== "director") return null;
+    if (userRole !== "hod" && userRole !== "director" && userRole !== "dean") return null;
 
-    const privilegeItems =
-      userRole === "hod" ? hodPrivilegeItems : directorPrivilegeItems;
-    const sectionTitle =
-      userRole === "hod" ? "HOD Privileges" : "Director Privileges";
+    let privilegeItems;
+    let sectionTitle;
+
+    switch(userRole) {
+      case "hod":
+        privilegeItems = hodPrivilegeItems;
+        sectionTitle = "HOD Privileges";
+        break;
+      case "director":
+        privilegeItems = directorPrivilegeItems;
+        sectionTitle = "Director Privileges";
+        break;
+      case "dean":
+        privilegeItems = deanPrivilegeItems;
+        sectionTitle = "Dean Privileges";
+        break;
+      default:
+        return null;
+    }
 
     return (
       <div className="mb-3">

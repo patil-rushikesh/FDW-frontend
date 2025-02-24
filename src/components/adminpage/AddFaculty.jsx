@@ -9,6 +9,8 @@ const AddFaculty = () => {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [deanSuggestions, setDeanSuggestions] = useState([]);
+  const [showDeanSuggestions, setShowDeanSuggestions] = useState(false);
 
   const departments = [
     "Computer",
@@ -40,7 +42,25 @@ const AddFaculty = () => {
     mail: "",
     mob: "",
     desg: "",
+    higherDean: "", // Add this new field
   });
+
+  const fetchDeanSuggestions = async (query) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/deans`);
+      if (!response.ok) throw new Error('Failed to fetch deans');
+      const result = await response.json();
+      // Extract dean data from the response
+      const deans = result.data.map(dean => ({
+        _id: dean._id,
+        name: dean.name
+      }));
+      setDeanSuggestions(deans);
+    } catch (error) {
+      console.error('Error fetching dean suggestions:', error);
+      setDeanSuggestions([]);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -80,6 +100,7 @@ const AddFaculty = () => {
       mail: "",
       mob: "",
       desg: "",
+      higherDean: "",
     });
   };
 
@@ -224,6 +245,50 @@ const AddFaculty = () => {
                     />
                   </div>
                 </div>
+
+                {formData.desg === "Associate Dean" && (
+                  <div className="space-y-2 mt-6">
+                    <label className="text-sm font-medium text-gray-700">
+                      Higher Dean
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="higherDean"
+                        placeholder="Search for Dean"
+                        value={formData.higherDean}
+                        onClick={() => {
+                          fetchDeanSuggestions();
+                          setShowDeanSuggestions(true);
+                        }}
+                        onChange={(e) => {
+                          handleInputChange(e);
+                          setShowDeanSuggestions(true);
+                        }}
+                        className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      {showDeanSuggestions && deanSuggestions.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          {deanSuggestions.map((dean) => (
+                            <div
+                              key={dean._id}
+                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                              onClick={() => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  higherDean: `${dean._id}`
+                                }));
+                                setShowDeanSuggestions(false);
+                              }}
+                            >
+                              {dean._id} - {dean.name}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-6 flex gap-4">
                   <button

@@ -87,10 +87,17 @@ const FacultyFormsList = () => {
     "Dean",
   ];
 
-  // Enhanced filter function with marks range
+  // Update the filteredData useMemo function
   const filteredData = useMemo(() => {
     return facultyData
       .filter((faculty) => {
+        // First check if the faculty has an allowed designation
+        const allowedDesignation = 
+          faculty.designation === "Faculty" || 
+          faculty.designation === "Associate Dean";
+
+        if (!allowedDesignation) return false;
+
         const searchMatch =
           faculty._id.toLowerCase().includes(filters.search.toLowerCase()) ||
           faculty.name?.toLowerCase().includes(filters.search.toLowerCase());
@@ -315,7 +322,7 @@ const FacultyFormsList = () => {
                     <tr>
                       <th className="px-6 py-3 text-gray-600">ID</th>
                       <th className="px-6 py-3 text-gray-600">Name</th>
-
+                      <th className="px-6 py-3 text-gray-600">Designation</th>
                       <th className="px-6 py-3 text-gray-600">Role</th>
                       <th className="px-6 py-3 text-gray-600">Total Marks</th>
                       <th className="px-6 py-3 text-gray-600">Status</th>
@@ -332,6 +339,7 @@ const FacultyFormsList = () => {
                         <td className="px-6 py-4 font-medium">
                           {faculty.name}
                         </td>
+                        <td className="px-6 py-4">{faculty.designation}</td>
                         <td className="px-6 py-4">{faculty.role}</td>
                         <td className="px-6 py-4">{displayMarks(faculty)}</td>
                         <td className="px-6 py-4">

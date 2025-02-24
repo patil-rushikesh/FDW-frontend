@@ -6,38 +6,25 @@ const FacultyEvaluationForm = () => {
   const location = useLocation();
   const { faculty } = location.state || {};
 
-  const [tableData, setTableData] = useState({
-    deanMarks: {
-      both: "",
-      institute: "",
-      department: "",
-    },
-    hodMarks: {
-      both: "",
-      institute: "",
-      department: "",
-    },
-    selfAwarded: "",
+  const [portfolioData, setPortfolioData] = useState({
+    portfolioType: "both",
+    selfAwardedMarks: 0,
+    deanMarks: 0,
+    hodMarks: 0,
+    isMarkHOD: false,
+    isMarkDean: false,
+    isAdministrativeRole: false,
+    administrativeRole: "",
+    adminSelfAwardedMarks: 30,
+    directorMarks: 0,
+    adminDeanMarks: 0,
+    instituteLevelPortfolio: "",
+    departmentLevelPortfolio: "",
+    total_marks: 0,
+    isFirstTime: false
   });
 
-  const [portfolioData, setPortfolioData] = useState({
-    portfolioDetails: {
-      adminSelfAwardedMarks: 0,
-      administrativeRole: "",
-      departmentLevelPortfolio: "",
-      instituteLevelPortfolio: "",
-      isAdministrative: false,
-      selfAwardedMarks: 0,
-      superiorMarks: {
-        adminDeanMarks: 0,
-        deanMarks: 0,
-        directorMarks: 0,
-        hodMarks: 0,
-      },
-      type: "",
-    },
-    total_marks: 0,
-  });
+  const [hodMarks, setHodMarks] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -62,34 +49,26 @@ const FacultyEvaluationForm = () => {
 
       console.log("Portfolio Data:", data);
 
-      setTableData((prev) => ({
-        ...prev,
-        selfAwarded: data?.portfolioDetails?.selfAwardedMarks ?? 0,
-        hodMarks: {
-          ...prev.hodMarks,
-          department: data?.portfolioDetails?.superiorMarks?.hodMarks ?? 0,
-        },
-      }));
+      setHodMarks(data?.hodMarks ?? 0);
     } catch (error) {
       console.error("Error fetching portfolio data:", error);
       // Set default values in case of error
       setPortfolioData({
-        portfolioDetails: {
-          adminSelfAwardedMarks: 0,
-          administrativeRole: "",
-          departmentLevelPortfolio: "",
-          instituteLevelPortfolio: "",
-          isAdministrative: false,
-          selfAwardedMarks: 0,
-          superiorMarks: {
-            adminDeanMarks: 0,
-            deanMarks: 0,
-            directorMarks: 0,
-            hodMarks: 0,
-          },
-          type: "",
-        },
+        portfolioType: "both",
+        selfAwardedMarks: 0,
+        deanMarks: 0,
+        hodMarks: 0,
+        isMarkHOD: false,
+        isMarkDean: false,
+        isAdministrativeRole: false,
+        administrativeRole: "",
+        adminSelfAwardedMarks: 30,
+        directorMarks: 0,
+        adminDeanMarks: 0,
+        instituteLevelPortfolio: "",
+        departmentLevelPortfolio: "",
         total_marks: 0,
+        isFirstTime: false
       });
     }
   };
@@ -103,41 +82,26 @@ const FacultyEvaluationForm = () => {
     }
   }, [faculty?.id, faculty?.department]); // Add specific dependencies
 
-  const calculateMaxMarks = () => {
-    const avg = calculateColumnAverage();
-    const instituteMarks = parseFloat(tableData.deanMarks.institute) || 0;
-    const deptMarks = parseFloat(tableData.hodMarks.department) || 0;
-    return Math.max(avg, instituteMarks, deptMarks);
+  // Calculate total score based on portfolio type
+  const calculateTotalScore = () => {
+    const selfScore = Math.min(60, Number(portfolioData.selfAwardedMarks) || 0);
+    const hodScore = Math.min(60, Number(hodMarks) || 0);
+
+    // For regular faculty
+    if (!portfolioData.isAdministrativeRole) {
+      switch (portfolioData.portfolioType) {
+        case "both":
+          return Math.min(120, selfScore + hodScore);
+        case "department":
+          return Math.min(120, selfScore + hodScore);
+        default:
+          return selfScore; // For institute level, HOD doesn't give marks
+      }
+    }
+    return 0; // For administrative roles
   };
 
-  const calculateTotal = () => {
-    const selfAwarded = parseFloat(tableData.selfAwarded) || 0;
-    const maxMarks = calculateMaxMarks();
-    return selfAwarded + maxMarks;
-  };
-
-  const handleInputChange2 = (section, column, value) => {
-    setTableData((prev) => ({
-      ...prev,
-      [section]:
-        section === "selfAwarded"
-          ? value
-          : {
-              ...prev[section],
-              [column]: value,
-            },
-    }));
-  };
-
-  function handleInputChange(field, subField, value) {
-    setTableData((prevData) => {
-      const updatedData = { ...prevData };
-      updatedData[field][subField] = value;
-      return updatedData;
-    });
-  }
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsModalOpen(true);
   };
@@ -152,20 +116,14 @@ const FacultyEvaluationForm = () => {
         return;
       }
 
-      // Prepare the data to be sent
+      // Prepare updated portfolio data
       const updatedPortfolioData = {
         ...portfolioData,
-        portfolioDetails: {
-          ...portfolioData.portfolioDetails,
-          superiorMarks: {
-            ...portfolioData.portfolioDetails.superiorMarks,
-            hodMarks: parseFloat(tableData.hodMarks.department) || 0,
-          },
-        },
-        total_marks: parseFloat(totalMarks()), // Moved outside portfolioDetails
+        hodMarks: Number(hodMarks),
+        isMarkHOD: true, // Mark as reviewed by HOD
+        total_marks: calculateTotalScore()
       };
 
-      // Make the POST request
       await axios.post(
         `http://localhost:5000/${department}/${userId}/D`,
         updatedPortfolioData
@@ -173,18 +131,11 @@ const FacultyEvaluationForm = () => {
 
       setIsModalOpen(false);
       alert("Marks saved successfully!");
-      // Update navigation to include state
       navigate("/hodcnfverify", {
         state: {
           faculty,
-          portfolioData: updatedPortfolioData,
-          verifiedMarks: {
-            selfAwardedMarks:
-              portfolioData?.portfolioDetails?.selfAwardedMarks || 0,
-            hodMarks: parseFloat(tableData.hodMarks.department) || 0,
-            totalMarks: parseFloat(totalMarks()),
-          },
-        },
+          portfolioData: updatedPortfolioData
+        }
       });
     } catch (error) {
       console.error("Error saving marks:", error);
@@ -193,63 +144,7 @@ const FacultyEvaluationForm = () => {
     }
   };
 
-  const calculateAverage = () => {
-    const deanBoth = parseFloat(tableData.deanMarks.both) || 0;
-    const hodBoth = parseFloat(tableData.hodMarks.both) || 0;
-    return ((deanBoth + hodBoth) / 2).toFixed(2);
-  };
-
-  const calculateColumnAverage = () => {
-    const deanInstitute = parseFloat(tableData.deanMarks.both) || 0;
-    const hodInstitute = parseFloat(tableData.hodMarks.both) || 0;
-    return ((deanInstitute + hodInstitute) / 2).toFixed(2);
-  };
-
-  const totalMarks = () => {
-    const selfAwardedMarks =
-      parseFloat(portfolioData?.portfolioDetails?.selfAwardedMarks) || 0;
-    const hodMarks = parseFloat(tableData.hodMarks.department) || 0;
-    return (selfAwardedMarks + hodMarks).toFixed(2);
-  };
-
-  const PortfolioDocuments = () => {
-    const type = portfolioData?.portfolioDetails?.type;
-
-    return (
-      <div className="mb-6 space-y-4">
-        <h3 className="text-lg font-medium text-gray-800 mb-2">
-          Portfolio Documents
-        </h3>
-
-        {/* Institute Level Portfolio */}
-        {(type === "both" || type === "institute") && (
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
-            <h4 className="font-medium text-gray-700 mb-2">
-              Institute Level Portfolio
-            </h4>
-            <div className="bg-white p-4 rounded border border-gray-200">
-              {portfolioData?.portfolioDetails?.instituteLevelPortfolio ||
-                "No document available"}
-            </div>
-          </div>
-        )}
-
-        {/* Department Level Portfolio */}
-        {(type === "both" || type === "department") && (
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
-            <h4 className="font-medium text-gray-700 mb-2">
-              Department Level Portfolio
-            </h4>
-            <div className="bg-white p-4 rounded border border-gray-200">
-              {portfolioData?.portfolioDetails?.departmentLevelPortfolio ||
-                "No document available"}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
+  // Update the JSX to show portfolio details
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="bg-white rounded-lg shadow-lg p-6">
@@ -260,7 +155,6 @@ const FacultyEvaluationForm = () => {
           </h1>
         </div>
 
-        {/* Faculty Information Section */}
         {/* Faculty Information Section */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-6 border border-blue-200">
           <h2 className="text-xl font-semibold text-blue-800 mb-4">
@@ -292,10 +186,37 @@ const FacultyEvaluationForm = () => {
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
             Portfolio Type:{" "}
-            {portfolioData?.portfolioDetails?.type?.toUpperCase() ||
-              "Not Specified"}
+            {portfolioData?.portfolioType?.toUpperCase() || "Not Specified"}
           </h3>
-          <PortfolioDocuments />
+          <div className="mb-6 space-y-4">
+            <h3 className="text-lg font-medium text-gray-800 mb-2">
+              Portfolio Documents
+            </h3>
+
+            {/* Institute Level Portfolio */}
+            {portfolioData.instituteLevelPortfolio && (
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
+                <h4 className="font-medium text-gray-700 mb-2">
+                  Institute Level Portfolio
+                </h4>
+                <div className="bg-white p-4 rounded border border-gray-200">
+                  {portfolioData.instituteLevelPortfolio}
+                </div>
+              </div>
+            )}
+
+            {/* Department Level Portfolio */}
+            {portfolioData.departmentLevelPortfolio && (
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
+                <h4 className="font-medium text-gray-700 mb-2">
+                  Department Level Portfolio
+                </h4>
+                <div className="bg-white p-4 rounded border border-gray-200">
+                  {portfolioData.departmentLevelPortfolio}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* HOD Marks Input Section */}
@@ -309,10 +230,8 @@ const FacultyEvaluationForm = () => {
               className="w-full md:w-1/3 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               max="60"
               min="0"
-              value={tableData.hodMarks.department}
-              onChange={(e) =>
-                handleInputChange("hodMarks", "department", e.target.value)
-              }
+              value={hodMarks}
+              onChange={(e) => setHodMarks(e.target.value)}
             />
           </div>
         </div>
@@ -338,7 +257,7 @@ const FacultyEvaluationForm = () => {
                 </td>
                 <td className="border border-gray-300 p-2 text-center">60</td>
                 <td className="border border-gray-300 p-2 text-center bg-gray-50">
-                  {portfolioData?.portfolioDetails?.selfAwardedMarks || 0}
+                  {portfolioData.selfAwardedMarks}
                 </td>
               </tr>
               <tr>
@@ -347,7 +266,7 @@ const FacultyEvaluationForm = () => {
                 </td>
                 <td className="border border-gray-300 p-2 text-center">60</td>
                 <td className="border border-gray-300 p-2 text-center bg-gray-50">
-                  {tableData.hodMarks.department}
+                  {hodMarks}
                 </td>
               </tr>
               {/* Update the problematic table row with the new calculation */}
@@ -356,7 +275,7 @@ const FacultyEvaluationForm = () => {
                   Total Marks Obtained:
                 </td>
                 <td className="border border-gray-300 p-2 text-center bg-gray-50">
-                  {totalMarks()}
+                  {calculateTotalScore()}
                 </td>
               </tr>
             </tbody>

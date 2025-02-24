@@ -53,13 +53,15 @@ const VerificationTeam = () => {
     setCommitteeIds(newCommitteeIds);
     setActiveInputIndex(index);
 
-    // Filter suggestions based on input
-    if (value.trim()) {
+    // Filter suggestions based on input and department
+    if (value.trim() && selectedDepartment) {
       const filtered = allFaculty
         .filter(faculty => 
-          // Only filter by ID or name containing input value
+          // Filter by ID or name containing input value
           (faculty._id.toLowerCase().includes(value.toLowerCase()) ||
            faculty.name.toLowerCase().includes(value.toLowerCase())) &&
+          // Exclude faculty from selected department
+          faculty.dept !== selectedDepartment &&
           // Exclude already selected IDs
           !committeeIds.includes(faculty._id)
         )
@@ -170,6 +172,11 @@ const VerificationTeam = () => {
                         </option>
                       ))}
                     </select>
+                    {selectedDepartment && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        Note: You can only select verification committee members from departments other than {selectedDepartment}
+                      </p>
+                    )}
                   </div>
 
                   {/* Committee Head IDs */}
