@@ -215,42 +215,48 @@ const Research = () => {
         newFormData.sciJournalPapers = {
           count: data[1].journalPapers?.sciCount || 0,
           proof: data[1].journalPapers?.sciProof || "",
-          verifiedScore: data[1].journalPapers?.verified_marks || 0,
+          verifiedScore: data[1].journalPapers?.ver_sciMarks || 0,
         };
         newFormData.esciJournalPapers = {
           count: data[1].journalPapers?.esciCount || 0,
           proof: data[1].journalPapers?.esciProof || "",
-          verifiedScore: data[1].journalPapers?.verified_marks || 0,
+          verifiedScore: data[1].journalPapers?.ver_esciMarks || 0,
         };
         newFormData.scopusJournalPapers = {
           count: data[1].journalPapers?.scopusCount || 0,
           proof: data[1].journalPapers?.scopusProof || "",
-          verifiedScore: data[1].journalPapers?.verified_marks || 0,
+          verifiedScore: data[1].journalPapers?.ver_scopusMarks || 0,
         };
         newFormData.ugcCareJournalPapers = {
           count: data[1].journalPapers?.ugcCareCount || 0,
           proof: data[1].journalPapers?.ugcCareProof || "",
-          verifiedScore: data[1].journalPapers?.verified_marks || 0,
+          verifiedScore: data[1].journalPapers?.ver_ugcCareMarks || 0,
         };
         newFormData.otherJournalPapers = {
           count: data[1].journalPapers?.otherCount || 0,
           proof: data[1].journalPapers?.otherProof || "",
-          verifiedScore: data[1].journalPapers?.verified_marks || 0,
+          verifiedScore: data[1].journalPapers?.ver_otherMarks || 0,
         };
         newVerifiedScores.journalPapers = {
           marks: data[1].journalPapers?.marks || 0,
           verified_marks: data[1].journalPapers?.verified_marks || 0,
         };
+        console.log(
+          "newVerifiedScores.journalPapers",
+          newVerifiedScores.journalPapers
+        );
       }
 
       if (data[2]) {
         newFormData.scopusWosConferencePapers = {
           count: data[2].conferencePapers?.scopusWosCount || 0,
           proof: data[2].conferencePapers?.scopusWosProof || "",
+          verifiedScore: data[2].conferencePapers?.ver_scopusWosMarks || 0,
         };
         newFormData.otherConferencePapers = {
           count: data[2].conferencePapers?.otherCount || 0,
           proof: data[2].conferencePapers?.otherProof || "",
+          verifiedScore: data[2].conferencePapers?.ver_otherMarks || 0,
         };
         newVerifiedScores.conferencePapers = {
           marks: data[2].conferencePapers?.marks || 0,
@@ -262,10 +268,12 @@ const Research = () => {
         newFormData.scopusWosBooksChapters = {
           count: data[3].bookChapters?.scopusWosCount || 0,
           proof: data[3].bookChapters?.scopusWosProof || "",
+          verifiedScore: data[3].bookChapters?.ver_scopusWosMarks || 0,
         };
         newFormData.otherBooksChapters = {
           count: data[3].bookChapters?.otherCount || 0,
           proof: data[3].bookChapters?.otherProof || "",
+          verifiedScore: data[3].bookChapters?.ver_otherMarks || 0,
         };
         newVerifiedScores.bookChapters = {
           marks: data[3].bookChapters?.marks || 0,
@@ -277,14 +285,17 @@ const Research = () => {
         newFormData.scopusWosBooks = {
           count: data[4].books?.scopusWosCount || 0,
           proof: data[4].books?.scopusWosProof || "",
+          verifiedScore: data[4].books?.ver_scopusWosMarks || 0,
         };
         newFormData.nonIndexedIntlNationalBooks = {
           count: data[4].books?.nonIndexedCount || 0,
           proof: data[4].books?.nonIndexedProof || "",
+          verifiedScore: data[4].books?.ver_nonIndexedMarks || 0,
         };
         newFormData.localPublisherBooks = {
           count: data[4].books?.localCount || 0,
           proof: data[4].books?.localProof || "",
+          verifiedScore: data[4].books?.ver_localMarks || 0,
         };
         newVerifiedScores.books = {
           marks: data[4].books?.marks || 0,
@@ -296,14 +307,17 @@ const Research = () => {
         newFormData.webOfScienceCitations = {
           count: data[5].citations?.webOfScienceCount || 0,
           proof: data[5].citations?.webOfScienceProof || "",
+          verifiedScore: data[5].citations?.ver_webOfScienceMarks || 0,
         };
         newFormData.scopusCitations = {
           count: data[5].citations?.scopusCount || 0,
           proof: data[5].citations?.scopusProof || "",
+          verifiedScore: data[5].citations?.ver_scopusMarks || 0,
         };
         newFormData.googleScholarCitations = {
           count: data[5].citations?.googleScholarCount || 0,
           proof: data[5].citations?.googleScholarProof || "",
+          verifiedScore: data[5].citations?.ver_googleScholarMarks || 0,
         };
         newVerifiedScores.citations = {
           marks: data[5].citations?.marks || 0,
@@ -315,10 +329,12 @@ const Research = () => {
         newFormData.indianCopyrightRegistered = {
           count: data[6].copyrightIndividual?.registeredCount || 0,
           proof: data[6].copyrightIndividual?.registeredProof || "",
+          verifiedScore: data[6].copyrightIndividual?.ver_registeredMarks || 0,
         };
         newFormData.indianCopyrightGranted = {
           count: data[6].copyrightIndividual?.grantedCount || 0,
           proof: data[6].copyrightIndividual?.grantedProof || "",
+          verifiedScore: data[6].copyrightIndividual?.ver_grantedMarks || 0,
         };
         newVerifiedScores.copyrightIndividual = {
           marks: data[6].copyrightIndividual?.marks || 0,
@@ -330,10 +346,12 @@ const Research = () => {
         newFormData.indianCopyrightRegisteredInstitute = {
           count: data[7].copyrightInstitute?.registeredCount || 0,
           proof: data[7].copyrightInstitute?.registeredProof || "",
+          verifiedScore: data[7].copyrightInstitute?.ver_registeredMarks || 0,
         };
         newFormData.indianCopyrightGrantedInstitute = {
           count: data[7].copyrightInstitute?.grantedCount || 0,
           proof: data[7].copyrightInstitute?.grantedProof || "",
+          verifiedScore: data[7].copyrightInstitute?.ver_grantedMarks || 0,
         };
         newVerifiedScores.copyrightInstitute = {
           marks: data[7].copyrightInstitute?.marks || 0,
@@ -345,18 +363,22 @@ const Research = () => {
         newFormData.indianPatentRegistered = {
           count: data[8].patentIndividual?.registeredCount || 0,
           proof: data[8].patentIndividual?.registeredProof || "",
+          verifiedScore: data[8].patentIndividual?.ver_registeredMarks || 0,
         };
         newFormData.indianPatentPublished = {
           count: data[8].patentIndividual?.publishedCount || 0,
           proof: data[8].patentIndividual?.publishedProof || "",
+          verifiedScore: data[8].patentIndividual?.ver_publishedMarks || 0,
         };
         newFormData.indianPatentGranted = {
           count: data[8].patentIndividual?.grantedCount || 0,
           proof: data[8].patentIndividual?.grantedProof || "",
+          verifiedScore: data[8].patentIndividual?.ver_grantedMarks || 0,
         };
         newFormData.indianPatentCommercialized = {
           count: data[8].patentIndividual?.commercializedCount || 0,
           proof: data[8].patentIndividual?.commercializedProof || "",
+          verifiedScore: data[8].patentIndividual?.ver_commercializedMarks || 0,
         };
         newVerifiedScores.patentIndividual = {
           marks: data[8].patentIndividual?.marks || 0,
@@ -368,18 +390,22 @@ const Research = () => {
         newFormData.indianPatentRegisteredInstitute = {
           count: data[9].patentInstitute?.registeredCount || 0,
           proof: data[9].patentInstitute?.registeredProof || "",
+          verifiedScore: data[9].patentInstitute?.ver_registeredMarks || 0,
         };
         newFormData.indianPatentPublishedInstitute = {
           count: data[9].patentInstitute?.publishedCount || 0,
           proof: data[9].patentInstitute?.publishedProof || "",
+          verifiedScore: data[9].patentInstitute?.ver_publishedMarks || 0,
         };
         newFormData.indianPatentGrantedInstitute = {
           count: data[9].patentInstitute?.grantedCount || 0,
           proof: data[9].patentInstitute?.grantedProof || "",
+          verifiedScore: data[9].patentInstitute?.ver_grantedMarks || 0,
         };
         newFormData.indianPatentCommercializedInstitute = {
           count: data[9].patentInstitute?.commercializedCount || 0,
           proof: data[9].patentInstitute?.commercializedProof || "",
+          verifiedScore: data[9].patentInstitute?.ver_commercializedMarks || 0,
         };
         newVerifiedScores.patentInstitute = {
           marks: data[9].patentInstitute?.marks || 0,
@@ -391,6 +417,7 @@ const Research = () => {
         newFormData.researchGrants = {
           amount: data[10].researchGrants?.amount || 0,
           proof: data[10].researchGrants?.proof || "",
+          verifiedScore: data[10].researchGrants?.ver_amountMarks || 0,
         };
         newVerifiedScores.researchGrants = {
           marks: data[10].researchGrants?.marks || 0,
@@ -402,6 +429,7 @@ const Research = () => {
         newFormData.trainingProgramsRevenue = {
           amount: data[11].trainingPrograms?.amount || 0,
           proof: data[11].trainingPrograms?.proof || "",
+          verifiedScore: data[11].trainingPrograms?.ver_amountMarks || 0,
         };
         newVerifiedScores.trainingPrograms = {
           marks: data[11].trainingPrograms?.marks || 0,
@@ -413,6 +441,7 @@ const Research = () => {
         newFormData.nonResearchGrants = {
           amount: data[12].nonResearchGrants?.amount || 0,
           proof: data[12].nonResearchGrants?.proof || "",
+          verifiedScore: data[12].nonResearchGrants?.ver_amountMarks || 0,
         };
         newVerifiedScores.nonResearchGrants = {
           marks: data[12].nonResearchGrants?.marks || 0,
@@ -424,14 +453,18 @@ const Research = () => {
         newFormData.commercializedProducts = {
           count: data[13].productDevelopment?.commercializedCount || 0,
           proof: data[13].productDevelopment?.commercializedProof || "",
+          verifiedScore:
+            data[13].productDevelopment?.ver_commercializedMarks || 0,
         };
         newFormData.developedProducts = {
           count: data[13].productDevelopment?.developedCount || 0,
           proof: data[13].productDevelopment?.developedProof || "",
+          verifiedScore: data[13].productDevelopment?.ver_developedMarks || 0,
         };
         newFormData.proofOfConcepts = {
           count: data[13].productDevelopment?.pocCount || 0,
           proof: data[13].productDevelopment?.pocProof || "",
+          verifiedScore: data[13].productDevelopment?.ver_pocMarks || 0,
         };
         newVerifiedScores.productDevelopment = {
           marks: data[13].productDevelopment?.marks || 0,
@@ -443,22 +476,27 @@ const Research = () => {
         newFormData.startupRevenueFiftyK = {
           count: data[14].startup?.revenueFiftyKCount || 0,
           proof: data[14].startup?.revenueFiftyKProof || "",
+          verifiedScore: data[14].startup?.ver_revenueFiftyKMarks || 0,
         };
         newFormData.startupFundsFiveLakhs = {
           count: data[14].startup?.fundsFiveLakhsCount || 0,
           proof: data[14].startup?.fundsFiveLakhsProof || "",
+          verifiedScore: data[14].startup?.ver_fundsFiveLakhsMarks || 0,
         };
         newFormData.startupProducts = {
           count: data[14].startup?.productsCount || 0,
           proof: data[14].startup?.productsProof || "",
+          verifiedScore: data[14].startup?.ver_productsMarks || 0,
         };
         newFormData.startupPOCs = {
           count: data[14].startup?.pocCount || 0,
           proof: data[14].startup?.pocProof || "",
+          verifiedScore: data[14].startup?.ver_pocMarks || 0,
         };
         newFormData.startupRegistered = {
           count: data[14].startup?.registeredCount || 0,
           proof: data[14].startup?.registeredProof || "",
+          verifiedScore: data[14].startup?.ver_registeredMarks || 0,
         };
         newVerifiedScores.startup = {
           marks: data[14].startup?.marks || 0,
@@ -470,24 +508,35 @@ const Research = () => {
         newFormData.internationalAwards = {
           count: data[15].awardsAndFellowships?.internationalAwardsCount || 0,
           proof: data[15].awardsAndFellowships?.internationalAwardsProof || "",
+          verifiedScore:
+            data[15].awardsAndFellowships?.ver_internationalAwardsMarks || 0,
         };
         newFormData.governmentAwards = {
           count: data[15].awardsAndFellowships?.governmentAwardsCount || 0,
           proof: data[15].awardsAndFellowships?.governmentAwardsProof || "",
+          verifiedScore:
+            data[15].awardsAndFellowships?.ver_governmentAwardsMarks || 0,
         };
         newFormData.nationalAwards = {
           count: data[15].awardsAndFellowships?.nationalAwardsCount || 0,
           proof: data[15].awardsAndFellowships?.nationalAwardsProof || "",
+          verifiedScore:
+            data[15].awardsAndFellowships?.ver_nationalAwardsMarks || 0,
         };
         newFormData.internationalFellowships = {
           count:
             data[15].awardsAndFellowships?.internationalFellowshipsCount || 0,
           proof:
             data[15].awardsAndFellowships?.internationalFellowshipsProof || "",
+          verifiedScore:
+            data[15].awardsAndFellowships?.ver_internationalFellowshipsMarks ||
+            0,
         };
         newFormData.nationalFellowships = {
           count: data[15].awardsAndFellowships?.nationalFellowshipsCount || 0,
           proof: data[15].awardsAndFellowships?.nationalFellowshipsProof || "",
+          verifiedScore:
+            data[15].awardsAndFellowships?.ver_nationalFellowshipsMarks || 0,
         };
         newVerifiedScores.awardsAndFellowships = {
           marks: data[15].awardsAndFellowships?.marks || 0,
@@ -499,10 +548,13 @@ const Research = () => {
         newFormData.activeMoUs = {
           count: data[16].industryInteraction?.moUsCount || 0,
           proof: data[16].industryInteraction?.moUsProof || "",
+          verifiedScore: data[16].industryInteraction?.ver_moUsMarks || 0,
         };
         newFormData.industryCollaboration = {
           count: data[16].industryInteraction?.collaborationCount || 0,
           proof: data[16].industryInteraction?.collaborationProof || "",
+          verifiedScore:
+            data[16].industryInteraction?.ver_collaborationMarks || 0,
         };
         newVerifiedScores.industryInteraction = {
           marks: data[16].industryInteraction?.marks || 0,
@@ -514,6 +566,7 @@ const Research = () => {
         newFormData.internshipPlacementOffers = {
           count: data[17].internshipPlacement?.offersCount || 0,
           proof: data[17].internshipPlacement?.offersProof || "",
+          verifiedScore: data[17].internshipPlacement?.ver_offersMarks || 0,
         };
         newVerifiedScores.internshipPlacement = {
           marks: data[17].internshipPlacement?.marks || 0,
@@ -536,7 +589,7 @@ const Research = () => {
 
         if (response.ok) {
           const data = await response.json();
-          console.log(data);
+          console.log("data is ", data);
           if (data) {
             const { newFormData, newVerifiedScores } =
               transformApiResponse(data);
@@ -1107,11 +1160,21 @@ const Research = () => {
             }
           />
         </div>
-        <ScoreCard
+        {/* <ScoreCard
           label="Quality Journal Papers Score"
           score={scores.journalPapersScore}
           total="No limit"
           verifiedScore={verifiedScores.journalPapers?.marks}
+        /> */}
+
+        <ScoreCard
+          label="Quality Journal Papers Score"
+          score={scores.journalPapersScore}
+          total="No limit"
+          verifiedScore={
+            verifiedScores.journalPapers?.verified_marks ||
+            verifiedScores.journalPapers?.marks
+          }
         />
       </SectionCard>
 
@@ -1179,7 +1242,7 @@ const Research = () => {
           label="Conference Papers Score"
           score={scores.conferencePapersScore}
           total="180"
-          verifiedScore={verifiedScores.conferencePapers?.marks}
+          verifiedScore={verifiedScores.conferencePapers?.verified_marks || verifiedScores.conferencePapers?.marks}
         />
       </SectionCard>
 
@@ -1243,7 +1306,7 @@ const Research = () => {
           label="Book Chapters Score"
           score={scores.bookChaptersScore}
           total="150"
-          verifiedScore={verifiedScores.bookChapters?.marks}
+          verifiedScore={verifiedScores.bookChapters?.verified_marks || verifiedScores.bookChapters?.marks}
         />
       </SectionCard>
 
@@ -1329,7 +1392,7 @@ const Research = () => {
           label="Books Score"
           score={scores.booksScore}
           total="200"
-          verifiedScore={verifiedScores.books?.marks}
+          verifiedScore={verifiedScores.books?.verified_marks || verifiedScores.books?.marks}
         />
       </SectionCard>
 
@@ -1419,7 +1482,7 @@ const Research = () => {
           label="Citations Score"
           score={scores.citationsScore}
           total="50"
-          verifiedScore={verifiedScores.citations?.marks}
+          verifiedScore={verifiedScores.citations?.verified_marks || verifiedScores.citations?.marks}
         />
       </SectionCard>
 
@@ -1487,7 +1550,7 @@ const Research = () => {
           label="Copyright Individual Score"
           score={scores.copyrightIndividualScore}
           total="30"
-          verifiedScore={verifiedScores.copyrightIndividual?.marks}
+          verifiedScore={verifiedScores.copyrightIndividual?.verified_marks || verifiedScores.copyrightIndividual?.marks}
         />
       </SectionCard>
 
@@ -1555,7 +1618,7 @@ const Research = () => {
           label="Copyright Institute Score"
           score={scores.copyrightInstituteScore}
           total="No limit"
-          verifiedScore={verifiedScores.copyrightInstitute?.marks}
+          verifiedScore={verifiedScores.copyrightInstitute?.verified_marks ||verifiedScores.copyrightInstitute?.marks}
         />
       </SectionCard>
 
@@ -1671,7 +1734,7 @@ const Research = () => {
           label="Patent Individual Score"
           score={scores.patentIndividualScore}
           total="100"
-          verifiedScore={verifiedScores.patentIndividual?.marks}
+          verifiedScore={verifiedScores.patentIndividual?.verified_marks || verifiedScores.patentIndividual?.marks}
         />
       </SectionCard>
 
@@ -1791,7 +1854,7 @@ const Research = () => {
           label="Patent Institute Score"
           score={scores.patentInstituteScore}
           total="No limit"
-          verifiedScore={verifiedScores.patentInstitute?.marks}
+          verifiedScore={verifiedScores.patentInstitute?.verified_marks ||verifiedScores.patentInstitute?.marks}
         />
       </SectionCard>
 
@@ -1830,7 +1893,7 @@ const Research = () => {
           label="Research Grants Score"
           score={scores.researchGrantsScore}
           total="No limit"
-          verifiedScore={verifiedScores.researchGrants?.marks}
+          verifiedScore={verifiedScores.researchGrants?.verified_marks || verifiedScores.researchGrants?.marks}
         />
       </SectionCard>
 
@@ -1873,7 +1936,7 @@ const Research = () => {
           label="Training Programs Revenue Score"
           score={scores.trainingRevenueScore}
           total="40"
-          verifiedScore={verifiedScores.trainingPrograms?.marks}
+          verifiedScore={verifiedScores.trainingPrograms?.verified_marks || verifiedScores.trainingPrograms?.marks}
         />
       </SectionCard>
 
@@ -1912,7 +1975,7 @@ const Research = () => {
           label="Non-Research Grants Score"
           score={scores.nonResearchGrantsScore}
           total="40"
-          verifiedScore={verifiedScores.nonResearchGrants?.marks}
+          verifiedScore={verifiedScores.nonResearchGrants?.verified_marks || verifiedScores.nonResearchGrants?.marks}
         />
       </SectionCard>
 
@@ -1998,7 +2061,7 @@ const Research = () => {
           label="Product Development Score"
           score={scores.productDevelopedScore}
           total="100"
-          verifiedScore={verifiedScores.productDevelopment?.marks}
+          verifiedScore={verifiedScores.productDevelopment?.verified_marks || verifiedScores.productDevelopment?.marks}
         />
       </SectionCard>
 
@@ -2128,7 +2191,7 @@ const Research = () => {
           label="Startup Score"
           score={scores.startupScore}
           total="No limit"
-          verifiedScore={verifiedScores.startup?.marks}
+          verifiedScore={verifiedScores.startup?.verified_marks || verifiedScores.startup?.marks}
         />
       </SectionCard>
 
@@ -2258,7 +2321,7 @@ const Research = () => {
           label="Awards & Fellowships Score"
           score={scores.awardFellowshipScore}
           total="50"
-          verifiedScore={verifiedScores.awardsAndFellowships?.marks}
+          verifiedScore={verifiedScores.awardsAndFellowships?.verified_marks || verifiedScores.awardsAndFellowships?.marks}
         />
       </SectionCard>
 
@@ -2322,7 +2385,7 @@ const Research = () => {
           label="Industry/University Interaction Score"
           score={scores.interactionScore}
           total="No limit"
-          verifiedScore={verifiedScores.industryInteraction?.marks}
+          verifiedScore={verifiedScores.industryInteraction?.verified_marks || verifiedScores.industryInteraction?.marks}
         />
       </SectionCard>
 
@@ -2364,7 +2427,7 @@ const Research = () => {
           label="Internship/Placement Score"
           score={scores.internshipPlacementScore}
           total="No limit"
-          verifiedScore={verifiedScores.internshipPlacement?.marks}
+          verifiedScore={verifiedScores.internshipPlacement?.verified_marks || verifiedScores.internshipPlacement?.marks}
         />
       </SectionCard>
 
