@@ -241,6 +241,10 @@ const Research = () => {
           marks: data[1].journalPapers?.marks || 0,
           verified_marks: data[1].journalPapers?.verified_marks || 0,
         };
+        console.log(
+          "newVerifiedScores.journalPapers",
+          newVerifiedScores.journalPapers
+        );
       }
 
       if (data[2]) {
@@ -1156,11 +1160,21 @@ const Research = () => {
             }
           />
         </div>
-        <ScoreCard
+        {/* <ScoreCard
           label="Quality Journal Papers Score"
           score={scores.journalPapersScore}
           total="No limit"
           verifiedScore={verifiedScores.journalPapers?.marks}
+        /> */}
+
+        <ScoreCard
+          label="Quality Journal Papers Score"
+          score={scores.journalPapersScore}
+          total="No limit"
+          verifiedScore={
+            verifiedScores.journalPapers?.verified_marks ||
+            verifiedScores.journalPapers?.marks
+          }
         />
       </SectionCard>
 
@@ -1228,7 +1242,7 @@ const Research = () => {
           label="Conference Papers Score"
           score={scores.conferencePapersScore}
           total="180"
-          verifiedScore={verifiedScores.conferencePapers?.marks}
+          verifiedScore={verifiedScores.conferencePapers?.verified_marks || verifiedScores.conferencePapers?.marks}
         />
       </SectionCard>
 
@@ -1292,7 +1306,7 @@ const Research = () => {
           label="Book Chapters Score"
           score={scores.bookChaptersScore}
           total="150"
-          verifiedScore={verifiedScores.bookChapters?.marks}
+          verifiedScore={verifiedScores.bookChapters?.verified_marks || verifiedScores.bookChapters?.marks}
         />
       </SectionCard>
 
@@ -1378,7 +1392,7 @@ const Research = () => {
           label="Books Score"
           score={scores.booksScore}
           total="200"
-          verifiedScore={verifiedScores.books?.marks}
+          verifiedScore={verifiedScores.books?.verified_marks || verifiedScores.books?.marks}
         />
       </SectionCard>
 
@@ -1468,7 +1482,7 @@ const Research = () => {
           label="Citations Score"
           score={scores.citationsScore}
           total="50"
-          verifiedScore={verifiedScores.citations?.marks}
+          verifiedScore={verifiedScores.citations?.verified_marks || verifiedScores.citations?.marks}
         />
       </SectionCard>
 
@@ -1536,7 +1550,7 @@ const Research = () => {
           label="Copyright Individual Score"
           score={scores.copyrightIndividualScore}
           total="30"
-          verifiedScore={verifiedScores.copyrightIndividual?.marks}
+          verifiedScore={verifiedScores.copyrightIndividual?.verified_marks || verifiedScores.copyrightIndividual?.marks}
         />
       </SectionCard>
 
@@ -1604,7 +1618,7 @@ const Research = () => {
           label="Copyright Institute Score"
           score={scores.copyrightInstituteScore}
           total="No limit"
-          verifiedScore={verifiedScores.copyrightInstitute?.marks}
+          verifiedScore={verifiedScores.copyrightInstitute?.verified_marks ||verifiedScores.copyrightInstitute?.marks}
         />
       </SectionCard>
 
@@ -1720,7 +1734,7 @@ const Research = () => {
           label="Patent Individual Score"
           score={scores.patentIndividualScore}
           total="100"
-          verifiedScore={verifiedScores.patentIndividual?.marks}
+          verifiedScore={verifiedScores.patentIndividual?.verified_marks || verifiedScores.patentIndividual?.marks}
         />
       </SectionCard>
 
@@ -1840,7 +1854,7 @@ const Research = () => {
           label="Patent Institute Score"
           score={scores.patentInstituteScore}
           total="No limit"
-          verifiedScore={verifiedScores.patentInstitute?.marks}
+          verifiedScore={verifiedScores.patentInstitute?.verified_marks ||verifiedScores.patentInstitute?.marks}
         />
       </SectionCard>
 
@@ -1879,7 +1893,7 @@ const Research = () => {
           label="Research Grants Score"
           score={scores.researchGrantsScore}
           total="No limit"
-          verifiedScore={verifiedScores.researchGrants?.marks}
+          verifiedScore={verifiedScores.researchGrants?.verified_marks || verifiedScores.researchGrants?.marks}
         />
       </SectionCard>
 
@@ -1922,7 +1936,7 @@ const Research = () => {
           label="Training Programs Revenue Score"
           score={scores.trainingRevenueScore}
           total="40"
-          verifiedScore={verifiedScores.trainingPrograms?.marks}
+          verifiedScore={verifiedScores.trainingPrograms?.verified_marks || verifiedScores.trainingPrograms?.marks}
         />
       </SectionCard>
 
@@ -1961,7 +1975,7 @@ const Research = () => {
           label="Non-Research Grants Score"
           score={scores.nonResearchGrantsScore}
           total="40"
-          verifiedScore={verifiedScores.nonResearchGrants?.marks}
+          verifiedScore={verifiedScores.nonResearchGrants?.verified_marks || verifiedScores.nonResearchGrants?.marks}
         />
       </SectionCard>
 
@@ -2047,7 +2061,7 @@ const Research = () => {
           label="Product Development Score"
           score={scores.productDevelopedScore}
           total="100"
-          verifiedScore={verifiedScores.productDevelopment?.marks}
+          verifiedScore={verifiedScores.productDevelopment?.verified_marks || verifiedScores.productDevelopment?.marks}
         />
       </SectionCard>
 
@@ -2177,7 +2191,7 @@ const Research = () => {
           label="Startup Score"
           score={scores.startupScore}
           total="No limit"
-          verifiedScore={verifiedScores.startup?.marks}
+          verifiedScore={verifiedScores.startup?.verified_marks || verifiedScores.startup?.marks}
         />
       </SectionCard>
 
@@ -2307,7 +2321,7 @@ const Research = () => {
           label="Awards & Fellowships Score"
           score={scores.awardFellowshipScore}
           total="50"
-          verifiedScore={verifiedScores.awardsAndFellowships?.marks}
+          verifiedScore={verifiedScores.awardsAndFellowships?.verified_marks || verifiedScores.awardsAndFellowships?.marks}
         />
       </SectionCard>
 
@@ -2371,7 +2385,7 @@ const Research = () => {
           label="Industry/University Interaction Score"
           score={scores.interactionScore}
           total="No limit"
-          verifiedScore={verifiedScores.industryInteraction?.marks}
+          verifiedScore={verifiedScores.industryInteraction?.verified_marks || verifiedScores.industryInteraction?.marks}
         />
       </SectionCard>
 
@@ -2413,7 +2427,7 @@ const Research = () => {
           label="Internship/Placement Score"
           score={scores.internshipPlacementScore}
           total="No limit"
-          verifiedScore={verifiedScores.internshipPlacement?.marks}
+          verifiedScore={verifiedScores.internshipPlacement?.verified_marks || verifiedScores.internshipPlacement?.marks}
         />
       </SectionCard>
 

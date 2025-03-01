@@ -14,7 +14,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Menu, Verified } from "lucide-react";
 import LoginPage from "./components/LoginPage";
 import SplashScreen from "./components/SplashScreen";
-import TeachingPerformance from "./components/forms/TeachingPerformance";
+import TeachingPerformance from "./components/forms/TempTeachingPerfomance";
 import FacultyAdminPanel from "./components/adminpage/FacultyAdminPanel";
 import SelfDevelopment from "./components/forms/SelfDevelopment";
 import Research from "./components/forms/Research";
@@ -32,6 +32,8 @@ import HODcnfverify from "./components/HOD/ConfirmVerify";
 import VerificationPanel from "./components/HOD/VerificationPanel";
 import Verify from "./components/Verification/Verify";
 import VerificationForm from "./components/Verification/VerificationForm";
+import AssociateDeansList from "./components/Dean/AssociateDeansList";
+import DeanEvaluationForm from "./components/Dean/DeanEvaluationForm";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -160,6 +162,22 @@ function AppContent() {
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/dean/associate-dean-list"
+                    element={
+                      <ProtectedRoute>
+                        <AssociateDeansList/>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dean-evaluation/:department/:facultyId"
+                    element={
+                      <ProtectedRoute>
+                        <DeanEvaluationForm />
+                      </ProtectedRoute>
+                    }
+/>
 <Route
   path="/paper-verification/givemarks/:department/:facultyId"
   element={
