@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -153,12 +152,26 @@ const FeedbackInput = ({ courseData, onChange, index }) => (
   </div>
 );
 
-const ScoreCard = ({ label, score, total }) => (
+const ScoreCard = ({ label, score, total, isManual, onManualScoreChange, manualScore }) => (
   <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg flex items-center justify-between shadow-sm">
     <span className="font-medium text-gray-700">{label}:</span>
-    <span className="text-lg font-bold text-blue-600">
-      {score} / {total}
-    </span>
+    {isManual ? (
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          value={manualScore}
+          onChange={(e) => onManualScoreChange(e.target.value)}
+          className="w-20 px-2 py-1 border rounded"
+          min="0"
+          max={total}
+        />
+        <span className="text-lg font-bold text-blue-600">/ {total}</span>
+      </div>
+    ) : (
+      <span className="text-lg font-bold text-blue-600">
+        {score} / {total}
+      </span>
+    )}
   </div>
 );
 
@@ -170,34 +183,15 @@ const CourseNameCard = ({ name }) => (
   </span>
 );
 
-// Update the SectionCard component to handle marks calculated state
-const SectionCard = ({ title, icon, borderColor, children, maxMarks, systemScore, marksCalculated }) => (
-  <div className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${borderColor} hover:shadow-lg transition-all duration-300`}>
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-3">
-        <span className="text-2xl">{icon}</span>
-        {title}
-      </h3>
-      {maxMarks && (
-        <span className="text-sm font-medium text-gray-600">
-          Max Marks: {maxMarks}
-        </span>
-      )}
-    </div>
-    
-    {marksCalculated ? (
-      <div className="space-y-4">
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <div className="text-sm text-gray-600">System Calculated Score</div>
-          <div className="text-2xl font-bold text-blue-600">
-            {systemScore.toFixed(2)} / {maxMarks}
-          </div>
-        </div>
-        {children}
-      </div>
-    ) : (
-      children
-    )}
+const SectionCard = ({ title, icon, borderColor, children }) => (
+  <div
+    className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${borderColor} hover:shadow-lg transition-all duration-300`}
+  >
+    <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-3">
+      <span className="text-2xl">{icon}</span>
+      {title}
+    </h3>
+    {children}
   </div>
 );
 
@@ -208,7 +202,6 @@ const InputField = ({
   value,
   onChange,
   placeholder,
-  disabled,
 }) => (
   <div className="space-y-2">
     {label && (
@@ -220,7 +213,6 @@ const InputField = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      disabled={disabled}
       min="0" // Add min attribute to prevent negative values
       onKeyDown={(e) => {
         // Prevent minus sign
@@ -229,17 +221,28 @@ const InputField = ({
         }
       }}
       onWheel={(e) => e.target.blur()}
-      className={`block w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
-        disabled ? "bg-gray-100" : ""
-      }`}
+      className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
     />
   </div>
 );
 
+// Add this component definition near your other component definitions
+const ManualScoreToggle = ({ checked, onChange }) => (
+  <div className="flex items-center gap-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      className="h-5 w-5 text-blue-600 rounded"
+      id="manualScoring"
+    />
+    <label htmlFor="manualScoring" className="text-sm font-medium text-gray-700">
+      Enable Manual Score Entry
+    </label>
+  </div>
+);
+
 const TeachingPerformance = () => {
-  // Add new state for marks calculation checkbox
-  const [marksCalculated, setMarksCalculated] = useState(false);
-  
   const userData = JSON.parse(localStorage.getItem("userData"));
   console.log(userData);
   const navigate = useNavigate();
@@ -266,14 +269,14 @@ const TeachingPerformance = () => {
     ptgMeetings: "",
   });
 
-  // Add a new state for final marks
-  const [finalMarks, setFinalMarks] = useState({
+  const [manualScoring, setManualScoring] = useState(false);
+  const [manualScores, setManualScores] = useState({
     resultAnalysis: 0,
     courseOutcome: 0,
-    eLearning: 0,
+    elearning: 0,
     academicEngagement: 0,
     teachingLoad: 0,
-    projectsGuided: 0,
+    projects: 0,
     feedback: 0,
     ptgMeetings: 0
   });
@@ -299,7 +302,23 @@ const TeachingPerformance = () => {
 
         const data = await response.json();
         console.log("data is ", data);
-        // Update courseResults with fetched data
+
+        // Set manual scoring based on existing data
+        if (data.isManualScoring) {
+          setManualScoring(true);
+          setManualScores({
+            resultAnalysis: data["1"]?.total_marks || 0,
+            courseOutcome: data["2"]?.total_marks || 0,
+            elearning: data["3"]?.total_marks || 0,
+            academicEngagement: data["4"]?.total_marks || 0,
+            teachingLoad: data["5"]?.total_marks || 0,
+            projects: data["6"]?.total_marks || 0,
+            feedback: data["7"]?.total_marks || 0,
+            ptgMeetings: data["8"]?.total_marks || 0
+          });
+        }
+
+        // Rest of your existing fetch data code...
         if (data["1"]?.courses) {
           const updatedCourseResults = Object.entries(data["1"].courses).map(
             ([courseCode, courseData]) => ({
@@ -308,13 +327,11 @@ const TeachingPerformance = () => {
               students50to59: courseData.students50to59.toString(),
               students40to49: courseData.students40to49.toString(),
               totalStudents: courseData.totalStudents.toString(),
-              // Get CO data from section 2
               coAttainment:
                 data["2"]?.courses[courseCode]?.coAttainment?.toString() || "",
               timelySubmissionCO:
                 data["2"]?.courses[courseCode]?.timelySubmissionCO || false,
               courseSem: data["2"]?.courses[courseCode]?.semester || "",
-              // Get Academic Engagement data from section 4
               studentsPresent:
                 data["4"]?.courses[courseCode]?.studentsPresent?.toString() ||
                 "",
@@ -322,7 +339,6 @@ const TeachingPerformance = () => {
                 data["4"]?.courses[
                   courseCode
                 ]?.totalEnrolledStudents?.toString() || "",
-              // Get Feedback data from section 7
               feedbackPercentage:
                 data["7"]?.courses[
                   courseCode
@@ -568,7 +584,17 @@ const TeachingPerformance = () => {
       alert("Department and User ID are required. Please login again.");
       return;
     }
-    const scores = calculateScores();
+      const scores = manualScoring ? {
+    resultScore: Number(manualScores.resultAnalysis),
+    coScore: Number(manualScores.courseOutcome),
+    elearningScore: Number(manualScores.elearning),
+    academicEngagementScore: Number(manualScores.academicEngagement),
+    teachingLoadScore: Number(manualScores.teachingLoad),
+    projectScore: Number(manualScores.projects),
+    feedbackScore: Number(manualScores.feedback),
+    ptgScore: Number(manualScores.ptgMeetings),
+    finalScore: Object.values(manualScores).reduce((a, b) => Number(a) + Number(b), 0)
+  } : calculateScores();
 
     const resultAnalysisCourses = {};
     courseResults.forEach((course) => {
@@ -583,9 +609,10 @@ const TeachingPerformance = () => {
     });
 
     const payload = {
+      isManualScoring: manualScoring,
       1: {
         courses: resultAnalysisCourses,
-        total_marks: scores.resultScore,
+        total_marks: manualScoring ? Number(manualScores.resultAnalysis) : scores.resultScore,
       },
       2: {
         courses: Object.fromEntries(
@@ -605,11 +632,11 @@ const TeachingPerformance = () => {
           "Sem I": scores.sem1COScore,
           "Sem II": scores.sem2COScore,
         },
-        total_marks: scores.coScore,
+        total_marks: manualScoring ? Number(manualScores.courseOutcome) : scores.coScore,
       },
       3: {
         elearningInstances: Number(formData.elearningInstances),
-        total_marks: scores.elearningScore,
+        total_marks: manualScoring ? Number(manualScores.elearning) : scores.elearningScore,
       },
       4: {
         courses: Object.fromEntries(
@@ -622,18 +649,18 @@ const TeachingPerformance = () => {
             },
           ])
         ),
-        total_marks: scores.academicEngagementScore,
+        total_marks: manualScoring ? Number(manualScores.academicEngagement) : scores.academicEngagementScore,
       },
       5: {
         weeklyLoadSem1: Number(formData.weeklyLoadSem1),
         weeklyLoadSem2: Number(formData.weeklyLoadSem2),
         adminResponsibility: formData.adminResponsibility ? 1 : 0,
         cadre: userData.role,
-        total_marks: scores.teachingLoadScore,
+        total_marks: manualScoring ? Number(manualScores.teachingLoad) : scores.teachingLoadScore,
       },
       6: {
         projectsGuided: Number(formData.projectsGuided),
-        total_marks: scores.projectScore,
+        total_marks: manualScoring ? Number(manualScores.projects) : scores.projectScore,
       },
       7: {
         courses: Object.fromEntries(
@@ -645,24 +672,15 @@ const TeachingPerformance = () => {
             },
           ])
         ),
-        total_marks: scores.feedbackScore,
+        total_marks: manualScoring ? Number(manualScores.feedback) : scores.feedbackScore,
       },
       8: {
         ptgMeetings: Number(formData.ptgMeetings),
-        total_marks: scores.ptgScore,
+        total_marks: manualScoring ? Number(manualScores.ptgMeetings) : scores.ptgScore,
       },
-      total_marks: scores.finalScore,
-      finalMarks: {
-        resultAnalysis: finalMarks.resultAnalysis,
-        courseOutcome: finalMarks.courseOutcome,
-        eLearning: finalMarks.eLearning,
-        academicEngagement: finalMarks.academicEngagement,
-        teachingLoad: finalMarks.teachingLoad,
-        projectsGuided: finalMarks.projectsGuided,
-        feedback: finalMarks.feedback,
-        ptgMeetings: finalMarks.ptgMeetings,
-        total: Object.values(finalMarks).reduce((a, b) => a + b, 0)
-      }
+        total_marks: manualScoring 
+    ? Object.values(manualScores).reduce((a, b) => Number(a) + Number(b), 0)
+    : scores.finalScore,
     };
 
     try {
@@ -702,456 +720,257 @@ const TeachingPerformance = () => {
 
   const scores = calculateScores();
 
-  // Add this new component for the checkbox
-  const MarksCalculationCheckbox = () => (
-    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
-      <label className="flex items-center space-x-3">
-        <input
-          type="checkbox"
-          checked={marksCalculated}
-          onChange={(e) => setMarksCalculated(e.target.checked)}
-          className="form-checkbox h-5 w-5 text-blue-600 rounded"
-        />
-        <span className="text-gray-700 font-medium">
-          Have you calculated your marks?
-        </span>
-      </label>
-    </div>
-  );
-
-  // Add a new component for final marks input
-  const FinalMarkInput = React.memo(({ section, value, onChange, maxMarks }) => {
-    // Use a ref to maintain focus
-    const inputRef = React.useRef(null);
-  
-    // Handle the change without losing focus
-    const handleChange = (e) => {
-      const newValue = Math.min(Math.max(0, Number(e.target.value)), maxMarks);
-      onChange(section, newValue);
-    };
-  
-    return (
-      <div className="mt-4 p-4 bg-white rounded-lg border border-blue-200 shadow-sm">
-        <div className="flex flex-col space-y-3">
-          <label className="text-sm font-medium text-gray-700">
-            Enter final marks for this section
-          </label>
-          <div className="flex items-center gap-4">
-            <input
-              ref={inputRef}
-              type="number"
-              value={value}
-              onChange={handleChange}
-              className="w-24 px-3 py-2 text-lg font-medium text-blue-700 bg-white border border-gray-300 
-                       rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                       [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              min="0"
-              max={maxMarks}
-              step="0.01"
-              onWheel={(e) => e.target.blur()}
-              onKeyDown={(e) => {
-                if (e.key === '-' || e.key === '+' || e.key === 'e') {
-                  e.preventDefault();
-                }
-              }}
-            />
-            <div className="flex-1 bg-gray-200 h-2 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-blue-500 transition-all duration-300"
-                style={{ width: `${(value / maxMarks) * 100}%` }}
-              />
-            </div>
-            <span className="text-sm text-gray-600 w-16">
-              {((value / maxMarks) * 100).toFixed(0)}%
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  });
-
-// Update the final marks total display
-const FinalMarksTotal = ({ systemScore, finalMarks }) => (
-  <div className="mt-6 p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg shadow-sm border border-blue-200">
-    <h3 className="text-lg font-semibold text-blue-800 mb-4">
-      Total Marks Summary
-    </h3>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="p-4 bg-white rounded-lg shadow-sm">
-        <p className="text-sm text-gray-600 mb-1">System Calculated Total</p>
-        <p className="text-2xl font-bold text-blue-600">
-          {systemScore.toFixed(2)}
-        </p>
-      </div>
-      <div className="p-4 bg-white rounded-lg shadow-sm">
-        <p className="text-sm text-gray-600 mb-1">Final Marks Total</p>
-        <p className="text-2xl font-bold text-blue-600">
-          {Object.values(finalMarks).reduce((a, b) => a + b, 0).toFixed(2)}
-        </p>
-      </div>
-    </div>
-  </div>
-);
-
-  // Add handler for final marks change
-  const handleFinalMarkChange = (section, value) => {
-    setFinalMarks(prev => ({
-      ...prev,
-      [section]: Number(value)
-    }));
-  };
-
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
       <Header />
-      <MarksCalculationCheckbox />
+      <ManualScoreToggle 
+  checked={manualScoring} 
+  onChange={(e) => setManualScoring(e.target.checked)} 
+/>
 
       <TestComponent onCoursesUpdate={setCourseResults} />
 
       {/* Result Analysis Section */}
-      <SectionCard title="Result Analysis" icon="📊" borderColor="border-blue-500" maxMarks={50} systemScore={scores.resultScore} marksCalculated={marksCalculated}>
-        {marksCalculated ? (
-          <FinalMarkInput 
-            section="resultAnalysis"
-            value={finalMarks.resultAnalysis}
-            onChange={handleFinalMarkChange}
-            maxMarks={50} // Adjust max marks based on section
-          />
-        ) : (
-          courseResults.map((courseData, index) => (
-            <CourseResultInput
-              key={courseData.courseCode}
-              courseData={courseData}
-              onChange={handleCourseResultChange}
-              index={index}
-            />
-          ))
-        )}
-      </SectionCard>
+<SectionCard title="Result Analysis" icon="📊" borderColor="border-blue-500">
+  {!manualScoring && courseResults.map((courseData, index) => (
+    <CourseResultInput
+      key={courseData.courseCode}
+      courseData={courseData}
+      onChange={handleCourseResultChange}
+      index={index}
+    />
+  ))}
+  <ScoreCard
+    label="Result Analysis Score"
+    score={scores.resultScore.toFixed(2)}
+    total="50"
+    isManual={manualScoring}
+    manualScore={manualScores.resultAnalysis}
+    onManualScoreChange={(value) => 
+      setManualScores(prev => ({...prev, resultAnalysis: value}))
+    }
+  />
+</SectionCard>
 
-      {/* Course Outcome Section */}
-      <SectionCard
-        title="Course Outcome Analysis"
-        icon="📈"
-        borderColor="border-green-500"
-        maxMarks={50}
-        systemScore={scores.coScore}
-        marksCalculated={marksCalculated}
-      >
-        {courseResults.map((courseData, index) => (
-          <CourseOutcomeInput
-            key={courseData.courseCode}
-            courseData={courseData}
-            onChange={handleCourseResultChange}
-            index={index}
-          />
-        ))}
-        <div className="mt-4 space-y-4">
-          <ScoreCard
-            label="Semester I CO Score"
-            score={scores.sem1COScore.toFixed(2)}
-            total="50"
-          />
-          <ScoreCard
-            label="Semester II CO Score"
-            score={scores.sem2COScore.toFixed(2)}
-            total="50"
-          />
-          <ScoreCard
-            label="Final CO Analysis Score (Average of both semesters)"
-            score={scores.coScore.toFixed(2)}
-            total="50"
-          />
-        </div>
-        {marksCalculated && (
-          <FinalMarkInput
-            section="courseOutcome"
-            value={finalMarks.courseOutcome}
-            onChange={handleFinalMarkChange}
-          />
-        )}
-      </SectionCard>
+{/* Course Outcome Section */}
+<SectionCard title="Course Outcome Analysis" icon="📈" borderColor="border-green-500">
+  {!manualScoring && courseResults.map((courseData, index) => (
+    <CourseOutcomeInput
+      key={courseData.courseCode}
+      courseData={courseData}
+      onChange={handleCourseResultChange}
+      index={index}
+    />
+  ))}
+  <ScoreCard
+    label="Course Outcome Score"
+    score={scores.coScore.toFixed(2)}
+    total="50"
+    isManual={manualScoring}
+    manualScore={manualScores.courseOutcome}
+    onManualScoreChange={(value) => 
+      setManualScores(prev => ({...prev, courseOutcome: value}))
+    }
+  />
+</SectionCard>
 
-      {/* E-learning Section */}
-      <SectionCard
-        title="E-learning Content Development"
-        icon="💻"
-        borderColor="border-purple-500"
-        maxMarks={50}
-        systemScore={scores.elearningScore}
-        marksCalculated={marksCalculated}
-      >
-        <InputField
-          label="Number of e-learning contents developed"
-          name="elearningInstances"
-          value={formData.elearningInstances}
+{/* E-learning Section */}
+<SectionCard title="E-learning Content Development" icon="💻" borderColor="border-purple-500">
+  {!manualScoring && (
+    <InputField
+      label="Number of e-learning contents developed"
+      name="elearningInstances"
+      value={formData.elearningInstances}
+      onChange={handleChange}
+      placeholder="Enter number of e-learning contents"
+    />
+  )}
+  <ScoreCard
+    label="E-learning Score"
+    score={scores.elearningScore.toFixed(2)}
+    total="50"
+    isManual={manualScoring}
+    manualScore={manualScores.elearning}
+    onManualScoreChange={(value) => 
+      setManualScores(prev => ({...prev, elearning: value}))
+    }
+  />
+</SectionCard>
+
+{/* Academic Engagement Section */}
+<SectionCard title="Academic Engagement" icon="📖" borderColor="border-indigo-500">
+  {!manualScoring && courseResults.map((courseData, index) => (
+    <AcademicEngagementInput
+      key={courseData.courseCode}
+      courseData={courseData}
+      onChange={handleCourseResultChange}
+      index={index}
+    />
+  ))}
+  <ScoreCard
+    label="Academic Engagement Score"
+    score={scores.academicEngagementScore.toFixed(2)}
+    total="50"
+    isManual={manualScoring}
+    manualScore={manualScores.academicEngagement}
+    onManualScoreChange={(value) => 
+      setManualScores(prev => ({...prev, academicEngagement: value}))
+    }
+  />
+</SectionCard>
+
+{/* Teaching Load Section */}
+<SectionCard title="Teaching Load" icon="📚" borderColor="border-yellow-500">
+  {!manualScoring && (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <InputField
+        label="Weekly Load Semester I"
+        name="weeklyLoadSem1"
+        value={formData.weeklyLoadSem1}
+        onChange={handleChange}
+        placeholder="Enter weekly load"
+      />
+      <InputField
+        label="Weekly Load Semester II"
+        name="weeklyLoadSem2"
+        value={formData.weeklyLoadSem2}
+        onChange={handleChange}
+        placeholder="Enter weekly load"
+      />
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          name="adminResponsibility"
+          checked={formData.adminResponsibility}
           onChange={handleChange}
-          placeholder="Enter number of e-learning contents"
-          disabled={marksCalculated}
+          className="h-5 w-5 text-blue-600 rounded"
         />
-        <ScoreCard
-          label="E-learning Score"
-          score={scores.elearningScore.toFixed(2)}
-          total="50"
-        />
-        {marksCalculated && (
-          <FinalMarkInput
-            section="eLearning"
-            value={finalMarks.eLearning}
-            onChange={handleFinalMarkChange}
-          />
-        )}
-      </SectionCard>
-      <SectionCard
-        title="Academic Engagement"
-        icon="📖"
-        borderColor="border-indigo-500"
-        maxMarks={50}
-        systemScore={scores.academicEngagementScore}
-        marksCalculated={marksCalculated}
-      >
-        {courseResults.map((courseData, index) => (
-          <AcademicEngagementInput
-            key={courseData.courseCode}
-            courseData={courseData}
-            onChange={handleCourseResultChange}
-            index={index}
-          />
-        ))}
-        <ScoreCard
-          label="Academic Engagement Score (Average across all courses)"
-          score={scores.academicEngagementScore.toFixed(2)}
-          total="50"
-        />
-        {marksCalculated && (
-          <FinalMarkInput
-            section="academicEngagement"
-            value={finalMarks.academicEngagement}
-            onChange={handleFinalMarkChange}
-          />
-        )}
-      </SectionCard>
+        <label className="text-sm font-medium text-gray-700">
+          Are You Ph.D Supervisor Having Scholars Enrolled at PCCOE Research Center
+        </label>
+      </div>
+    </div>
+  )}
+  <ScoreCard
+    label="Teaching Load Score"
+    score={scores.teachingLoadScore.toFixed(2)}
+    total="50"
+    isManual={manualScoring}
+    manualScore={manualScores.teachingLoad}
+    onManualScoreChange={(value) => 
+      setManualScores(prev => ({...prev, teachingLoad: value}))
+    }
+  />
+</SectionCard>
 
-      {/* Teaching Load Section */}
-      <SectionCard
-        title="Teaching Load"
-        icon="📚"
-        borderColor="border-yellow-500"
-        maxMarks={50}
-        systemScore={scores.teachingLoadScore}
-        marksCalculated={marksCalculated}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField
-            label="Weekly Load Semester I"
-            name="weeklyLoadSem1"
-            value={formData.weeklyLoadSem1}
-            onChange={handleChange}
-            placeholder="Enter weekly load"
-            disabled={marksCalculated}
-          />
-          <InputField
-            label="Weekly Load Semester II"
-            name="weeklyLoadSem2"
-            value={formData.weeklyLoadSem2}
-            onChange={handleChange}
-            placeholder="Enter weekly load"
-            disabled={marksCalculated}
-          />
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">
-              Are You Ph.D Supervisor Having Scholars Enrolled at PCCOE Research
-              Center
-            </label>
-            <input
-              type="checkbox"
-              name="adminResponsibility"
-              checked={formData.adminResponsibility}
-              onChange={handleChange}
-              className="h-5 w-5 text-blue-600 rounded"
-              disabled={marksCalculated}
-            />
-          </div>
-        </div>
-        <ScoreCard
-          label="Teaching Load Score"
-          score={scores.teachingLoadScore.toFixed(2)}
-          total="50"
-        />
-        {marksCalculated && (
-          <FinalMarkInput
-            section="teachingLoad"
-            value={finalMarks.teachingLoad}
-            onChange={handleFinalMarkChange}
-          />
-        )}
-      </SectionCard>
+{/* Projects Section */}
+<SectionCard title="UG Project / PG Dissertations Guided" icon="🎓" borderColor="border-green-500">
+  {!manualScoring && (
+    <InputField
+      label="Number of projects guided"
+      name="projectsGuided"
+      value={formData.projectsGuided}
+      onChange={handleChange}
+      placeholder="Enter number of projects guided"
+    />
+  )}
+  <ScoreCard
+    label="Projects Score"
+    score={scores.projectScore.toFixed(2)}
+    total="40"
+    isManual={manualScoring}
+    manualScore={manualScores.projects}
+    onManualScoreChange={(value) => 
+      setManualScores(prev => ({...prev, projects: value}))
+    }
+  />
+</SectionCard>
 
-      {/* Projects Guided Section */}
-      <SectionCard
-        title="UG Project / PG Dissertations Guided"
-        icon="🎓"
-        borderColor="border-green-500"
-        maxMarks={40}
-        systemScore={scores.projectScore}
-        marksCalculated={marksCalculated}
-      >
-        <InputField
-          label="Number of projects guided"
-          name="projectsGuided"
-          value={formData.projectsGuided}
-          onChange={handleChange}
-          placeholder="Enter number of projects guided"
-          disabled={marksCalculated}
-        />
-        <ScoreCard
-          label="Projects Score"
-          score={scores.projectScore.toFixed(2)}
-          total="40"
-        />
-        {marksCalculated && (
-          <FinalMarkInput
-            section="projectsGuided"
-            value={finalMarks.projectsGuided}
-            onChange={handleFinalMarkChange}
-          />
-        )}
-      </SectionCard>
+{/* Feedback Section */}
+<SectionCard title="Feedback of Faculty by Student" icon="📊" borderColor="border-blue-500">
+  {!manualScoring && courseResults.map((courseData, index) => (
+    <FeedbackInput
+      key={courseData.courseCode}
+      courseData={courseData}
+      onChange={handleCourseResultChange}
+      index={index}
+    />
+  ))}
+  <ScoreCard
+    label="Feedback Score"
+    score={scores.feedbackScore.toFixed(2)}
+    total="100"
+    isManual={manualScoring}
+    manualScore={manualScores.feedback}
+    onManualScoreChange={(value) => 
+      setManualScores(prev => ({...prev, feedback: value}))
+    }
+  />
+</SectionCard>
 
-      {/* Feedback Section */}
-      <SectionCard
-        title="Feedback of Faculty by Student"
-        icon="📊"
-        borderColor="border-blue-500"
-        maxMarks={100}
-        systemScore={scores.feedbackScore}
-        marksCalculated={marksCalculated}
-      >
-        {courseResults.map((courseData, index) => (
-          <FeedbackInput
-            key={courseData.courseCode}
-            courseData={courseData}
-            onChange={handleCourseResultChange}
-            index={index}
-          />
-        ))}
-        <ScoreCard
-          label="Average Feedback Score (across all courses)"
-          score={scores.feedbackScore.toFixed(2)}
-          total="100"
-        />
-        {marksCalculated && (
-          <FinalMarkInput
-            section="feedback"
-            value={finalMarks.feedback}
-            onChange={handleFinalMarkChange}
-          />
-        )}
-      </SectionCard>
+{/* PTG Meetings Section */}
+<SectionCard title="Conduction of Guardian [PTG] Meetings" icon="📅" borderColor="border-purple-500">
+  {!manualScoring && (
+    <InputField
+      label="Number of PTG meetings conducted"
+      name="ptgMeetings"
+      value={formData.ptgMeetings}
+      onChange={handleChange}
+      placeholder="Enter number of PTG meetings"
+    />
+  )}
+  <ScoreCard
+    label="PTG Meetings Score"
+    score={scores.ptgScore.toFixed(2)}
+    total="50"
+    isManual={manualScoring}
+    manualScore={manualScores.ptgMeetings}
+    onManualScoreChange={(value) => 
+      setManualScores(prev => ({...prev, ptgMeetings: value}))
+    }
+  />
+</SectionCard>
 
-      {/* PTG Meetings Section */}
-      <SectionCard
-        title="Conduction of Guardian [PTG] Meetings"
-        icon="📅"
-        borderColor="border-purple-500"
-        maxMarks={50}
-        systemScore={scores.ptgScore}
-        marksCalculated={marksCalculated}
-      >
-        <InputField
-          label="Number of PTG meetings conducted"
-          name="ptgMeetings"
-          value={formData.ptgMeetings}
-          onChange={handleChange}
-          placeholder="Enter number of PTG meetings"
-          disabled={marksCalculated}
-        />
-        <div className="mt-2 text-sm text-gray-600">
-          <p className="font-semibold">Note:</p>
-          <p>
-            Minimum 6 meetings required in a year. For Student Counseling
-            efforts, marks will be taken as 50 in case of Deputy
-            Director/Deans/HoDs/PG Coordinators/Ph. D. Coordinators.
-          </p>
-        </div>
-        <ScoreCard
-          label="PTG Meetings Score"
-          score={scores.ptgScore.toFixed(2)}
-          total="50"
-        />
-        {marksCalculated && (
-          <FinalMarkInput
-            section="ptgMeetings"
-            value={finalMarks.ptgMeetings}
-            onChange={handleFinalMarkChange}
-          />
-        )}
-      </SectionCard>
+{/* Total Score Section */}
+<SectionCard title="Total Academic Performance Score" icon="📑" borderColor="border-red-500">
+  <div className="overflow-x-auto">
+    <table className="min-w-full divide-y divide-gray-200">
+      <thead className="bg-gray-50">
+        <tr>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Cadre
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Maximum Marks
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Your Score
+          </th>
+        </tr>
+      </thead>
+      <tbody className="bg-white divide-y divide-gray-200">
+        <tr>
+          <td className="px-6 py-4 whitespace-nowrap">{userData.role}</td>
+          <td className="px-6 py-4 whitespace-nowrap">
+            {userData.role === "Professor" ? "300" : 
+             userData.role === "Associate Professor" ? "360" : "440"}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap">
+            {manualScoring 
+              ? Object.values(manualScores).reduce((a, b) => Number(a) + Number(b), 0).toFixed(2)
+              : scores.finalScore.toFixed(2)}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</SectionCard>
 
-      {/* Total Score Section */}
-      <SectionCard
-        title="Total Academic Performance Score"
-        icon="📑"
-        borderColor="border-red-500"
-      >
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Cadre
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Maximum Marks
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Your Score
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {(() => {
-                const maxMarks = {
-                  Professor: 300,
-                  "Associate Professor": 360,
-                  "Assistant Professor": 440,
-                };
-
-                return (
-                  <tr>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {userData.role}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {maxMarks[userData.role]}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {scores.finalScore.toFixed(2)}
-                    </td>
-                  </tr>
-                );
-              })()}
-            </tbody>
-          </table>
-        </div>
-      </SectionCard>
-      {/* Total Final Marks */}
-      {marksCalculated && (
-        <FinalMarksTotal 
-          systemScore={scores.finalScore} 
-          finalMarks={finalMarks}
-        />
-      )}
       {/* Submit Button */}
       <div className="flex justify-end mt-8">
         <button
           onClick={handleSubmit}
-          disabled={!marksCalculated}
-          className={`px-6 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out ${
-            marksCalculated
-              ? "bg-blue-600 text-white hover:bg-blue-700"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out"
         >
           Submit Teaching Performance Data
         </button>
