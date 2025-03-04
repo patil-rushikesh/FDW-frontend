@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -34,7 +33,12 @@ const TestComponent = ({ onCoursesUpdate }) => {
   return null;
 };
 
-const CourseResultInput = ({ courseData, onChange, index }) => (
+const CourseResultInput = ({
+  courseData,
+  onChange,
+  index,
+  directScoreInput,
+}) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
     <h4 className="text-lg font-medium  mb-3">
       <CourseNameCard name={courseData.courseCode} />
@@ -46,6 +50,7 @@ const CourseResultInput = ({ courseData, onChange, index }) => (
         value={courseData.studentsAbove60}
         onChange={(e) => onChange(index, "studentsAbove60", e.target.value)}
         placeholder="Enter number of students"
+        disabled={directScoreInput}
       />
       <InputField
         label="Students with CGPA 5.26 to 6.3"
@@ -53,6 +58,7 @@ const CourseResultInput = ({ courseData, onChange, index }) => (
         value={courseData.students50to59}
         onChange={(e) => onChange(index, "students50to59", e.target.value)}
         placeholder="Enter number of students"
+        disabled={directScoreInput}
       />
       <InputField
         label="Students with CGPA 4.21 to 5.25"
@@ -60,6 +66,7 @@ const CourseResultInput = ({ courseData, onChange, index }) => (
         value={courseData.students40to49}
         onChange={(e) => onChange(index, "students40to49", e.target.value)}
         placeholder="Enter number of students"
+        disabled={directScoreInput}
       />
       <InputField
         label="Total Students"
@@ -67,12 +74,18 @@ const CourseResultInput = ({ courseData, onChange, index }) => (
         value={courseData.totalStudents}
         onChange={(e) => onChange(index, "totalStudents", e.target.value)}
         placeholder="Enter total number of students"
+        disabled={directScoreInput}
       />
     </div>
   </div>
 );
 
-const CourseOutcomeInput = ({ courseData, onChange, index }) => (
+const CourseOutcomeInput = ({
+  courseData,
+  onChange,
+  index,
+  directScoreInput,
+}) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
     <h4 className="text-lg font-medium text-gray-800 mb-3 ">
       <CourseNameCard name={courseData.courseCode} /> ({courseData.courseSem})
@@ -85,6 +98,7 @@ const CourseOutcomeInput = ({ courseData, onChange, index }) => (
           value={courseData.coAttainment}
           onChange={(e) => onChange(index, "coAttainment", e.target.value)}
           placeholder="Enter CO attainment percentage"
+          disabled={directScoreInput}
         />
       </div>
       <div className="flex-1">
@@ -99,6 +113,7 @@ const CourseOutcomeInput = ({ courseData, onChange, index }) => (
               onChange(index, "timelySubmissionCO", e.target.checked)
             }
             className="form-checkbox h-5 w-5 text-blue-600 rounded"
+            disabled={directScoreInput}
           />
           <span className="text-gray-700">
             Timely submission of CO attainment
@@ -110,7 +125,12 @@ const CourseOutcomeInput = ({ courseData, onChange, index }) => (
 );
 
 // Create a new component for Academic Engagement Input
-const AcademicEngagementInput = ({ courseData, onChange, index }) => (
+const AcademicEngagementInput = ({
+  courseData,
+  onChange,
+  index,
+  directScoreInput,
+}) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
     <h4 className="text-lg font-medium text-gray-800 mb-3">
       <CourseNameCard name={courseData.courseCode} />
@@ -122,6 +142,7 @@ const AcademicEngagementInput = ({ courseData, onChange, index }) => (
         value={courseData.studentsPresent}
         onChange={(e) => onChange(index, "studentsPresent", e.target.value)}
         placeholder="Enter number of students present"
+        disabled={directScoreInput}
       />
       <InputField
         label="Total enrolled students for lectures/practical labs/tutorials"
@@ -131,12 +152,13 @@ const AcademicEngagementInput = ({ courseData, onChange, index }) => (
           onChange(index, "totalEnrolledStudents", e.target.value)
         }
         placeholder="Enter total enrolled students"
+        disabled={directScoreInput}
       />
     </div>
   </div>
 );
 
-const FeedbackInput = ({ courseData, onChange, index }) => (
+const FeedbackInput = ({ courseData, onChange, index, directScoreInput }) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
     <h4 className="text-lg font-medium text-gray-800 mb-3">
       <CourseNameCard name={courseData.courseCode} />
@@ -148,6 +170,7 @@ const FeedbackInput = ({ courseData, onChange, index }) => (
         value={courseData.feedbackPercentage}
         onChange={(e) => onChange(index, "feedbackPercentage", e.target.value)}
         placeholder="Enter feedback percentage"
+        disabled={directScoreInput}
       />
     </div>
   </div>
@@ -170,37 +193,19 @@ const CourseNameCard = ({ name }) => (
   </span>
 );
 
-// Update the SectionCard component to handle marks calculated state
-const SectionCard = ({ title, icon, borderColor, children, maxMarks, systemScore, marksCalculated }) => (
-  <div className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${borderColor} hover:shadow-lg transition-all duration-300`}>
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-3">
-        <span className="text-2xl">{icon}</span>
-        {title}
-      </h3>
-      {maxMarks && (
-        <span className="text-sm font-medium text-gray-600">
-          Max Marks: {maxMarks}
-        </span>
-      )}
-    </div>
-    
-    {marksCalculated ? (
-      <div className="space-y-4">
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <div className="text-sm text-gray-600">System Calculated Score</div>
-          <div className="text-2xl font-bold text-blue-600">
-            {systemScore.toFixed(2)} / {maxMarks}
-          </div>
-        </div>
-        {children}
-      </div>
-    ) : (
-      children
-    )}
+const SectionCard = ({ title, icon, borderColor, children }) => (
+  <div
+    className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${borderColor} hover:shadow-lg transition-all duration-300`}
+  >
+    <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-3">
+      <span className="text-2xl">{icon}</span>
+      {title}
+    </h3>
+    {children}
   </div>
 );
 
+// Modify the InputField component to accept and use the disabled prop
 const InputField = ({
   label,
   name,
@@ -208,7 +213,7 @@ const InputField = ({
   value,
   onChange,
   placeholder,
-  disabled,
+  disabled = false,
 }) => (
   <div className="space-y-2">
     {label && (
@@ -221,25 +226,44 @@ const InputField = ({
       onChange={onChange}
       placeholder={placeholder}
       disabled={disabled}
-      min="0" // Add min attribute to prevent negative values
+      min="0"
       onKeyDown={(e) => {
-        // Prevent minus sign
         if (e.key === "-") {
           e.preventDefault();
         }
       }}
       onWheel={(e) => e.target.blur()}
       className={`block w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
-        disabled ? "bg-gray-100" : ""
+        disabled ? "bg-gray-100 cursor-not-allowed" : ""
       }`}
     />
   </div>
 );
 
+const DirectScoreInput = ({ label, name, value, onChange, max }) => (
+  <div className="border-b border-gray-200 pb-4 mb-4">
+    <InputField
+      label={`${label} (Max: ${max})`}
+      name={name}
+      value={value}
+      onChange={(e) => {
+        const newValue = Math.min(Number(e.target.value), max);
+        onChange({
+          target: {
+            name,
+            value: newValue,
+          },
+        });
+      }}
+      placeholder={`Enter final score (max ${max})`}
+      type="number"
+      min="0"
+      max={max}
+    />
+  </div>
+);
+
 const TeachingPerformance = () => {
-  // Add new state for marks calculation checkbox
-  const [marksCalculated, setMarksCalculated] = useState(false);
-  
   const userData = JSON.parse(localStorage.getItem("userData"));
   console.log(userData);
   const navigate = useNavigate();
@@ -266,16 +290,17 @@ const TeachingPerformance = () => {
     ptgMeetings: "",
   });
 
-  // Add a new state for final marks
-  const [finalMarks, setFinalMarks] = useState({
+  // Add this after the existing useState declarations in TeachingPerformance component
+  const [directScoreInput, setDirectScoreInput] = useState(false);
+  const [directScores, setDirectScores] = useState({
     resultAnalysis: 0,
     courseOutcome: 0,
-    eLearning: 0,
+    elearning: 0,
     academicEngagement: 0,
     teachingLoad: 0,
     projectsGuided: 0,
     feedback: 0,
-    ptgMeetings: 0
+    ptgMeetings: 0,
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -568,102 +593,137 @@ const TeachingPerformance = () => {
       alert("Department and User ID are required. Please login again.");
       return;
     }
-    const scores = calculateScores();
 
-    const resultAnalysisCourses = {};
-    courseResults.forEach((course) => {
-      resultAnalysisCourses[course.courseCode] = {
-        studentsAbove60: Number(course.studentsAbove60) || 0,
-        students50to59: Number(course.students50to59) || 0,
-        students40to49: Number(course.students40to49) || 0,
-        totalStudents: Number(course.totalStudents) || 0,
-        // Calculate individual course marks
-        marks: calculateCourseScore(course),
-      };
-    });
+    let payload;
 
-    const payload = {
-      1: {
-        courses: resultAnalysisCourses,
-        total_marks: scores.resultScore,
-      },
-      2: {
-        courses: Object.fromEntries(
-          courseResults.map((course) => [
-            course.courseCode,
-            {
-              coAttainment: Number(course.coAttainment) || 0,
-              timelySubmissionCO: course.timelySubmissionCO,
-              semester: course.courseSem,
-              marks:
-                (Number(course.coAttainment || 0) * 30) / 100 +
-                (course.timelySubmissionCO ? 20 : 0),
-            },
-          ])
-        ),
-        semesterScores: {
-          "Sem I": scores.sem1COScore,
-          "Sem II": scores.sem2COScore,
+    if (directScoreInput) {
+      // Create payload with direct scores
+      payload = {
+        1: {
+          courses: {},
+          total_marks: directScores.resultAnalysis,
         },
-        total_marks: scores.coScore,
-      },
-      3: {
-        elearningInstances: Number(formData.elearningInstances),
-        total_marks: scores.elearningScore,
-      },
-      4: {
-        courses: Object.fromEntries(
-          courseResults.map((course) => [
-            course.courseCode,
-            {
-              studentsPresent: Number(course.studentsPresent) || 0,
-              totalEnrolledStudents: Number(course.totalEnrolledStudents) || 0,
-              marks: calculateAcademicEngagementScore(course),
-            },
-          ])
-        ),
-        total_marks: scores.academicEngagementScore,
-      },
-      5: {
-        weeklyLoadSem1: Number(formData.weeklyLoadSem1),
-        weeklyLoadSem2: Number(formData.weeklyLoadSem2),
-        adminResponsibility: formData.adminResponsibility ? 1 : 0,
-        cadre: userData.role,
-        total_marks: scores.teachingLoadScore,
-      },
-      6: {
-        projectsGuided: Number(formData.projectsGuided),
-        total_marks: scores.projectScore,
-      },
-      7: {
-        courses: Object.fromEntries(
-          courseResults.map((course) => [
-            course.courseCode,
-            {
-              feedbackPercentage: Number(course.feedbackPercentage) || 0,
-              marks: calculateFeedbackScore(course),
-            },
-          ])
-        ),
-        total_marks: scores.feedbackScore,
-      },
-      8: {
-        ptgMeetings: Number(formData.ptgMeetings),
-        total_marks: scores.ptgScore,
-      },
-      total_marks: scores.finalScore,
-      finalMarks: {
-        resultAnalysis: finalMarks.resultAnalysis,
-        courseOutcome: finalMarks.courseOutcome,
-        eLearning: finalMarks.eLearning,
-        academicEngagement: finalMarks.academicEngagement,
-        teachingLoad: finalMarks.teachingLoad,
-        projectsGuided: finalMarks.projectsGuided,
-        feedback: finalMarks.feedback,
-        ptgMeetings: finalMarks.ptgMeetings,
-        total: Object.values(finalMarks).reduce((a, b) => a + b, 0)
-      }
-    };
+        2: {
+          courses: {},
+          total_marks: directScores.courseOutcome,
+        },
+        3: {
+          elearningInstances: 0,
+          total_marks: directScores.elearning,
+        },
+        4: {
+          courses: {},
+          total_marks: directScores.academicEngagement,
+        },
+        5: {
+          weeklyLoadSem1: 0,
+          weeklyLoadSem2: 0,
+          adminResponsibility: 0,
+          cadre: userData.role,
+          total_marks: directScores.teachingLoad,
+        },
+        6: {
+          projectsGuided: 0,
+          total_marks: directScores.projectsGuided,
+        },
+        7: {
+          courses: {},
+          total_marks: directScores.feedback,
+        },
+        8: {
+          ptgMeetings: 0,
+          total_marks: directScores.ptgMeetings,
+        },
+        total_marks: Object.values(directScores).reduce((a, b) => a + b, 0),
+      };
+    } else {
+      // Use existing calculation logic for detailed input
+      const scores = calculateScores();
+      const resultAnalysisCourses = {};
+      courseResults.forEach((course) => {
+        resultAnalysisCourses[course.courseCode] = {
+          studentsAbove60: Number(course.studentsAbove60) || 0,
+          students50to59: Number(course.students50to59) || 0,
+          students40to49: Number(course.students40to49) || 0,
+          totalStudents: Number(course.totalStudents) || 0,
+          // Calculate individual course marks
+          marks: calculateCourseScore(course),
+        };
+      });
+
+      payload = {
+        1: {
+          courses: resultAnalysisCourses,
+          total_marks: scores.resultScore,
+        },
+        2: {
+          courses: Object.fromEntries(
+            courseResults.map((course) => [
+              course.courseCode,
+              {
+                coAttainment: Number(course.coAttainment) || 0,
+                timelySubmissionCO: course.timelySubmissionCO,
+                semester: course.courseSem,
+                marks:
+                  (Number(course.coAttainment || 0) * 30) / 100 +
+                  (course.timelySubmissionCO ? 20 : 0),
+              },
+            ])
+          ),
+          semesterScores: {
+            "Sem I": scores.sem1COScore,
+            "Sem II": scores.sem2COScore,
+          },
+          total_marks: scores.coScore,
+        },
+        3: {
+          elearningInstances: Number(formData.elearningInstances),
+          total_marks: scores.elearningScore,
+        },
+        4: {
+          courses: Object.fromEntries(
+            courseResults.map((course) => [
+              course.courseCode,
+              {
+                studentsPresent: Number(course.studentsPresent) || 0,
+                totalEnrolledStudents:
+                  Number(course.totalEnrolledStudents) || 0,
+                marks: calculateAcademicEngagementScore(course),
+              },
+            ])
+          ),
+          total_marks: scores.academicEngagementScore,
+        },
+        5: {
+          weeklyLoadSem1: Number(formData.weeklyLoadSem1),
+          weeklyLoadSem2: Number(formData.weeklyLoadSem2),
+          adminResponsibility: formData.adminResponsibility ? 1 : 0,
+          cadre: userData.role,
+          total_marks: scores.teachingLoadScore,
+        },
+        6: {
+          projectsGuided: Number(formData.projectsGuided),
+          total_marks: scores.projectScore,
+        },
+        7: {
+          courses: Object.fromEntries(
+            courseResults.map((course) => [
+              course.courseCode,
+              {
+                feedbackPercentage: Number(course.feedbackPercentage) || 0,
+                marks: calculateFeedbackScore(course),
+              },
+            ])
+          ),
+          total_marks: scores.feedbackScore,
+        },
+        8: {
+          ptgMeetings: Number(formData.ptgMeetings),
+          total_marks: scores.ptgScore,
+        },
+        total_marks: scores.finalScore,
+      };
+    }
 
     try {
       const response = await fetch(
@@ -702,131 +762,175 @@ const TeachingPerformance = () => {
 
   const scores = calculateScores();
 
-  // Add this new component for the checkbox
-  const MarksCalculationCheckbox = () => (
-    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
-      <label className="flex items-center space-x-3">
-        <input
-          type="checkbox"
-          checked={marksCalculated}
-          onChange={(e) => setMarksCalculated(e.target.checked)}
-          className="form-checkbox h-5 w-5 text-blue-600 rounded"
-        />
-        <span className="text-gray-700 font-medium">
-          Have you calculated your marks?
-        </span>
-      </label>
-    </div>
-  );
-
-  // Add a new component for final marks input
-  const FinalMarkInput = React.memo(({ section, value, onChange, maxMarks }) => {
-    // Use a ref to maintain focus
-    const inputRef = React.useRef(null);
-  
-    // Handle the change without losing focus
-    const handleChange = (e) => {
-      const newValue = Math.min(Math.max(0, Number(e.target.value)), maxMarks);
-      onChange(section, newValue);
-    };
-  
-    return (
-      <div className="mt-4 p-4 bg-white rounded-lg border border-blue-200 shadow-sm">
-        <div className="flex flex-col space-y-3">
-          <label className="text-sm font-medium text-gray-700">
-            Enter final marks for this section
-          </label>
-          <div className="flex items-center gap-4">
-            <input
-              ref={inputRef}
-              type="number"
-              value={value}
-              onChange={handleChange}
-              className="w-24 px-3 py-2 text-lg font-medium text-blue-700 bg-white border border-gray-300 
-                       rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                       [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              min="0"
-              max={maxMarks}
-              step="0.01"
-              onWheel={(e) => e.target.blur()}
-              onKeyDown={(e) => {
-                if (e.key === '-' || e.key === '+' || e.key === 'e') {
-                  e.preventDefault();
-                }
-              }}
-            />
-            <div className="flex-1 bg-gray-200 h-2 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-blue-500 transition-all duration-300"
-                style={{ width: `${(value / maxMarks) * 100}%` }}
-              />
-            </div>
-            <span className="text-sm text-gray-600 w-16">
-              {((value / maxMarks) * 100).toFixed(0)}%
-            </span>
-          </div>
-        </div>
-      </div>
+  // Add this helper function to calculate direct input total
+  const calculateDirectInputTotal = (directScores, role) => {
+    const total = Object.values(directScores).reduce(
+      (sum, score) => sum + score,
+      0
     );
-  });
 
-// Update the final marks total display
-const FinalMarksTotal = ({ systemScore, finalMarks }) => (
-  <div className="mt-6 p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg shadow-sm border border-blue-200">
-    <h3 className="text-lg font-semibold text-blue-800 mb-4">
-      Total Marks Summary
-    </h3>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="p-4 bg-white rounded-lg shadow-sm">
-        <p className="text-sm text-gray-600 mb-1">System Calculated Total</p>
-        <p className="text-2xl font-bold text-blue-600">
-          {systemScore.toFixed(2)}
-        </p>
-      </div>
-      <div className="p-4 bg-white rounded-lg shadow-sm">
-        <p className="text-sm text-gray-600 mb-1">Final Marks Total</p>
-        <p className="text-2xl font-bold text-blue-600">
-          {Object.values(finalMarks).reduce((a, b) => a + b, 0).toFixed(2)}
-        </p>
-      </div>
-    </div>
-  </div>
-);
-
-  // Add handler for final marks change
-  const handleFinalMarkChange = (section, value) => {
-    setFinalMarks(prev => ({
-      ...prev,
-      [section]: Number(value)
-    }));
+    // Apply role-specific multiplier
+    switch (role) {
+      case "Professor":
+        return total * 0.68;
+      case "Associate Professor":
+        return total * 0.818;
+      case "Assistant Professor":
+        return total;
+      default:
+        return 0;
+    }
   };
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
       <Header />
-      <MarksCalculationCheckbox />
+
+      <div className="flex items-center gap-2 mb-6 p-4 bg-white rounded-lg shadow">
+        <input
+          type="checkbox"
+          id="directScore"
+          checked={directScoreInput}
+          onChange={(e) => setDirectScoreInput(e.target.checked)}
+          className="h-5 w-5 text-blue-600 rounded"
+        />
+        <label
+          htmlFor="directScore"
+          className="text-sm font-medium text-gray-700"
+        >
+          Enter final scores directly (disable detailed input)
+        </label>
+      </div>
 
       <TestComponent onCoursesUpdate={setCourseResults} />
 
-      {/* Result Analysis Section */}
-      <SectionCard title="Result Analysis" icon="📊" borderColor="border-blue-500" maxMarks={50} systemScore={scores.resultScore} marksCalculated={marksCalculated}>
-        {marksCalculated ? (
-          <FinalMarkInput 
-            section="resultAnalysis"
-            value={finalMarks.resultAnalysis}
-            onChange={handleFinalMarkChange}
-            maxMarks={50} // Adjust max marks based on section
-          />
-        ) : (
-          courseResults.map((courseData, index) => (
-            <CourseResultInput
-              key={courseData.courseCode}
-              courseData={courseData}
-              onChange={handleCourseResultChange}
-              index={index}
+      {directScoreInput && (
+        <SectionCard
+          title="Direct Score Input"
+          icon="📝"
+          borderColor="border-orange-500"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <DirectScoreInput
+              label="Result Analysis Score"
+              name="resultAnalysis"
+              value={directScores.resultAnalysis}
+              onChange={(e) =>
+                setDirectScores((prev) => ({
+                  ...prev,
+                  [e.target.name]: Math.min(Number(e.target.value) || 0, 50),
+                }))
+              }
+              max={50}
             />
-          ))
-        )}
+            <DirectScoreInput
+              label="Course Outcome Score"
+              name="courseOutcome"
+              value={directScores.courseOutcome}
+              onChange={(e) =>
+                setDirectScores((prev) => ({
+                  ...prev,
+                  [e.target.name]: Math.min(Number(e.target.value) || 0, 50),
+                }))
+              }
+              max={50}
+            />
+            <DirectScoreInput
+              label="E-learning Score"
+              name="elearning"
+              value={directScores.elearning}
+              onChange={(e) =>
+                setDirectScores((prev) => ({
+                  ...prev,
+                  [e.target.name]: Math.min(Number(e.target.value) || 0, 50),
+                }))
+              }
+              max={50}
+            />
+            <DirectScoreInput
+              label="Academic Engagement Score"
+              name="academicEngagement"
+              value={directScores.academicEngagement}
+              onChange={(e) =>
+                setDirectScores((prev) => ({
+                  ...prev,
+                  [e.target.name]: Math.min(Number(e.target.value) || 0, 50),
+                }))
+              }
+              max={50}
+            />
+            <DirectScoreInput
+              label="Teaching Load Score"
+              name="teachingLoad"
+              value={directScores.teachingLoad}
+              onChange={(e) =>
+                setDirectScores((prev) => ({
+                  ...prev,
+                  [e.target.name]: Math.min(Number(e.target.value) || 0, 50),
+                }))
+              }
+              max={50}
+            />
+            <DirectScoreInput
+              label="Projects Guided Score"
+              name="projectsGuided"
+              value={directScores.projectsGuided}
+              onChange={(e) =>
+                setDirectScores((prev) => ({
+                  ...prev,
+                  [e.target.name]: Math.min(Number(e.target.value) || 0, 40),
+                }))
+              }
+              max={40}
+            />
+            <DirectScoreInput
+              label="Feedback Score"
+              name="feedback"
+              value={directScores.feedback}
+              onChange={(e) =>
+                setDirectScores((prev) => ({
+                  ...prev,
+                  [e.target.name]: Math.min(Number(e.target.value) || 0, 100),
+                }))
+              }
+              max={100}
+            />
+            <DirectScoreInput
+              label="PTG Meetings Score"
+              name="ptgMeetings"
+              value={directScores.ptgMeetings}
+              onChange={(e) =>
+                setDirectScores((prev) => ({
+                  ...prev,
+                  [e.target.name]: Math.min(Number(e.target.value) || 0, 50),
+                }))
+              }
+              max={50}
+            />
+          </div>
+        </SectionCard>
+      )}
+
+      {/* Result Analysis Section */}
+      <SectionCard
+        title="Result Analysis"
+        icon="📊"
+        borderColor="border-blue-500"
+      >
+        {courseResults.map((courseData, index) => (
+          <CourseResultInput
+            key={courseData.courseCode}
+            courseData={courseData}
+            onChange={handleCourseResultChange}
+            index={index}
+            directScoreInput={directScoreInput}
+          />
+        ))}
+        <ScoreCard
+          label="Result Analysis Score (Average across all courses)"
+          score={scores.resultScore.toFixed(2)}
+          total="50"
+        />
       </SectionCard>
 
       {/* Course Outcome Section */}
@@ -834,9 +938,6 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
         title="Course Outcome Analysis"
         icon="📈"
         borderColor="border-green-500"
-        maxMarks={50}
-        systemScore={scores.coScore}
-        marksCalculated={marksCalculated}
       >
         {courseResults.map((courseData, index) => (
           <CourseOutcomeInput
@@ -844,6 +945,7 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
             courseData={courseData}
             onChange={handleCourseResultChange}
             index={index}
+            directScoreInput={directScoreInput}
           />
         ))}
         <div className="mt-4 space-y-4">
@@ -863,13 +965,6 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
             total="50"
           />
         </div>
-        {marksCalculated && (
-          <FinalMarkInput
-            section="courseOutcome"
-            value={finalMarks.courseOutcome}
-            onChange={handleFinalMarkChange}
-          />
-        )}
       </SectionCard>
 
       {/* E-learning Section */}
@@ -877,9 +972,6 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
         title="E-learning Content Development"
         icon="💻"
         borderColor="border-purple-500"
-        maxMarks={50}
-        systemScore={scores.elearningScore}
-        marksCalculated={marksCalculated}
       >
         <InputField
           label="Number of e-learning contents developed"
@@ -887,28 +979,18 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
           value={formData.elearningInstances}
           onChange={handleChange}
           placeholder="Enter number of e-learning contents"
-          disabled={marksCalculated}
+          disabled={directScoreInput}
         />
         <ScoreCard
           label="E-learning Score"
           score={scores.elearningScore.toFixed(2)}
           total="50"
         />
-        {marksCalculated && (
-          <FinalMarkInput
-            section="eLearning"
-            value={finalMarks.eLearning}
-            onChange={handleFinalMarkChange}
-          />
-        )}
       </SectionCard>
       <SectionCard
         title="Academic Engagement"
         icon="📖"
         borderColor="border-indigo-500"
-        maxMarks={50}
-        systemScore={scores.academicEngagementScore}
-        marksCalculated={marksCalculated}
       >
         {courseResults.map((courseData, index) => (
           <AcademicEngagementInput
@@ -916,6 +998,7 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
             courseData={courseData}
             onChange={handleCourseResultChange}
             index={index}
+            directScoreInput={directScoreInput}
           />
         ))}
         <ScoreCard
@@ -923,13 +1006,6 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
           score={scores.academicEngagementScore.toFixed(2)}
           total="50"
         />
-        {marksCalculated && (
-          <FinalMarkInput
-            section="academicEngagement"
-            value={finalMarks.academicEngagement}
-            onChange={handleFinalMarkChange}
-          />
-        )}
       </SectionCard>
 
       {/* Teaching Load Section */}
@@ -937,9 +1013,6 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
         title="Teaching Load"
         icon="📚"
         borderColor="border-yellow-500"
-        maxMarks={50}
-        systemScore={scores.teachingLoadScore}
-        marksCalculated={marksCalculated}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
@@ -948,7 +1021,7 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
             value={formData.weeklyLoadSem1}
             onChange={handleChange}
             placeholder="Enter weekly load"
-            disabled={marksCalculated}
+            disabled={directScoreInput}
           />
           <InputField
             label="Weekly Load Semester II"
@@ -956,7 +1029,7 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
             value={formData.weeklyLoadSem2}
             onChange={handleChange}
             placeholder="Enter weekly load"
-            disabled={marksCalculated}
+            disabled={directScoreInput}
           />
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700">
@@ -969,7 +1042,7 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
               checked={formData.adminResponsibility}
               onChange={handleChange}
               className="h-5 w-5 text-blue-600 rounded"
-              disabled={marksCalculated}
+              disabled={directScoreInput}
             />
           </div>
         </div>
@@ -978,13 +1051,6 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
           score={scores.teachingLoadScore.toFixed(2)}
           total="50"
         />
-        {marksCalculated && (
-          <FinalMarkInput
-            section="teachingLoad"
-            value={finalMarks.teachingLoad}
-            onChange={handleFinalMarkChange}
-          />
-        )}
       </SectionCard>
 
       {/* Projects Guided Section */}
@@ -992,9 +1058,6 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
         title="UG Project / PG Dissertations Guided"
         icon="🎓"
         borderColor="border-green-500"
-        maxMarks={40}
-        systemScore={scores.projectScore}
-        marksCalculated={marksCalculated}
       >
         <InputField
           label="Number of projects guided"
@@ -1002,20 +1065,13 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
           value={formData.projectsGuided}
           onChange={handleChange}
           placeholder="Enter number of projects guided"
-          disabled={marksCalculated}
+          disabled={directScoreInput}
         />
         <ScoreCard
           label="Projects Score"
           score={scores.projectScore.toFixed(2)}
           total="40"
         />
-        {marksCalculated && (
-          <FinalMarkInput
-            section="projectsGuided"
-            value={finalMarks.projectsGuided}
-            onChange={handleFinalMarkChange}
-          />
-        )}
       </SectionCard>
 
       {/* Feedback Section */}
@@ -1023,9 +1079,6 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
         title="Feedback of Faculty by Student"
         icon="📊"
         borderColor="border-blue-500"
-        maxMarks={100}
-        systemScore={scores.feedbackScore}
-        marksCalculated={marksCalculated}
       >
         {courseResults.map((courseData, index) => (
           <FeedbackInput
@@ -1033,6 +1086,7 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
             courseData={courseData}
             onChange={handleCourseResultChange}
             index={index}
+            directScoreInput={directScoreInput}
           />
         ))}
         <ScoreCard
@@ -1040,13 +1094,6 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
           score={scores.feedbackScore.toFixed(2)}
           total="100"
         />
-        {marksCalculated && (
-          <FinalMarkInput
-            section="feedback"
-            value={finalMarks.feedback}
-            onChange={handleFinalMarkChange}
-          />
-        )}
       </SectionCard>
 
       {/* PTG Meetings Section */}
@@ -1054,9 +1101,6 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
         title="Conduction of Guardian [PTG] Meetings"
         icon="📅"
         borderColor="border-purple-500"
-        maxMarks={50}
-        systemScore={scores.ptgScore}
-        marksCalculated={marksCalculated}
       >
         <InputField
           label="Number of PTG meetings conducted"
@@ -1064,7 +1108,7 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
           value={formData.ptgMeetings}
           onChange={handleChange}
           placeholder="Enter number of PTG meetings"
-          disabled={marksCalculated}
+          disabled={directScoreInput}
         />
         <div className="mt-2 text-sm text-gray-600">
           <p className="font-semibold">Note:</p>
@@ -1079,13 +1123,6 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
           score={scores.ptgScore.toFixed(2)}
           total="50"
         />
-        {marksCalculated && (
-          <FinalMarkInput
-            section="ptgMeetings"
-            value={finalMarks.ptgMeetings}
-            onChange={handleFinalMarkChange}
-          />
-        )}
       </SectionCard>
 
       {/* Total Score Section */}
@@ -1117,6 +1154,11 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
                   "Assistant Professor": 440,
                 };
 
+                // Calculate final score based on input mode
+                const finalScore = directScoreInput
+                  ? calculateDirectInputTotal(directScores, userData.role)
+                  : scores.finalScore;
+
                 return (
                   <tr>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -1126,32 +1168,28 @@ const FinalMarksTotal = ({ systemScore, finalMarks }) => (
                       {maxMarks[userData.role]}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {scores.finalScore.toFixed(2)}
+                      {finalScore.toFixed(2)}
                     </td>
                   </tr>
                 );
               })()}
             </tbody>
           </table>
+
+          {/* Add explanation text for scoring mode */}
+          <p className="mt-4 text-sm text-gray-600 italic">
+            {directScoreInput
+              ? "Score calculated from direct input values"
+              : "Score calculated from detailed form inputs"}
+          </p>
         </div>
       </SectionCard>
-      {/* Total Final Marks */}
-      {marksCalculated && (
-        <FinalMarksTotal 
-          systemScore={scores.finalScore} 
-          finalMarks={finalMarks}
-        />
-      )}
+
       {/* Submit Button */}
       <div className="flex justify-end mt-8">
         <button
           onClick={handleSubmit}
-          disabled={!marksCalculated}
-          className={`px-6 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out ${
-            marksCalculated
-              ? "bg-blue-600 text-white hover:bg-blue-700"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out"
         >
           Submit Teaching Performance Data
         </button>

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Download, RefreshCw } from 'lucide-react';
-import Cookies from 'js-cookie';
+import { Download, RefreshCw } from "lucide-react";
+import Cookies from "js-cookie";
 
 const ConfirmVerify = () => {
   const location = useLocation();
@@ -10,7 +10,7 @@ const ConfirmVerify = () => {
   const [apiData, setApiData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfUrl, setPdfUrl] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const navigate = useNavigate();
@@ -100,15 +100,61 @@ const ConfirmVerify = () => {
     }
   }, [apiData]);
 
+  // Add this function at the component level
+  const getMaxMarksBySection = (section, role) => {
+    const maxMarks = {
+      academic: {
+        professor: 300,
+        "associate professor": 360,
+        "assistant professor": 440,
+      },
+      selfDev: {
+        professor: 160,
+        "associate professor": 170,
+        "assistant professor": 180,
+      },
+      portfolio: {
+        professor: 120,
+        "associate professor": 120,
+        "assistant professor": 120,
+      },
+      extraOrd: {
+        professor: 50,
+        "associate professor": 50,
+        "assistant professor": 50,
+      },
+    };
+
+    const roleKey = role?.toLowerCase() || "assistant professor";
+    return maxMarks[section]?.[roleKey] || 0;
+  };
+
+  // Update the handleInputChange function
   const handleInputChange = (type, field, value) => {
+    const maxMarks = getMaxMarksBySection(field, facultyInfo.role);
+    const numValue = parseFloat(value) || 0;
+    const clampedValue = Math.min(Math.max(0, numValue), maxMarks);
+
     setMarksData((prev) => ({
       ...prev,
       [type]: {
         ...prev[type],
-        [field]: value,
+        [field]: clampedValue,
       },
     }));
   };
+
+  // Update the input fields
+
+  // const handleInputChange = (type, field, value) => {
+  //   setMarksData((prev) => ({
+  //     ...prev,
+  //     [type]: {
+  //       ...prev[type],
+  //       [field]: value,
+  //     },
+  //   }));
+  // };
 
   const calculateTotal = (type) => {
     if (type === "obtained") {
@@ -140,7 +186,7 @@ const ConfirmVerify = () => {
     const userConfirmed = window.confirm(
       "Details can't be changed after the final submission. Confirm Submit?"
     );
-    
+
     if (userConfirmed) {
       try {
         const response = await axios.post(
@@ -154,14 +200,14 @@ const ConfirmVerify = () => {
               extraOrd: marksData.obtained.extraOrd,
               adminWeight: marksData.obtained.adminWeight,
             },
-            totalMarks: calculateTotal("obtained")
+            totalMarks: calculateTotal("obtained"),
           }
         );
-  
+
         if (response.status === 200) {
           alert("Verification submitted successfully!");
           // Redirect to the faculty forms list page
-          navigate('/hod/faculty-forms-list');
+          navigate("/hod/faculty-forms-list");
         } else {
           alert("Failed to submit verification. Please try again.");
         }
@@ -172,53 +218,56 @@ const ConfirmVerify = () => {
     }
   };
 
-  const generatePDF = useCallback(async (forceUpdate = false) => {
-    if (!forceUpdate) {
-      const cachedPdf = Cookies.get(`pdfData_${facultyId}`);
-      if (cachedPdf) {
-        setPdfUrl(cachedPdf);
-        return;
-      }
-    }
-
-    setPdfLoading(true);
-    setLoadingProgress(0);
-
-    try {
-      const progressInterval = setInterval(() => {
-        setLoadingProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 5000);
-
-      const response = await fetch(
-        `http://127.0.0.1:5000/${department}/${facultyId}/generate-doc`,
-        {
-          method: 'GET',
+  const generatePDF = useCallback(
+    async (forceUpdate = false) => {
+      if (!forceUpdate) {
+        const cachedPdf = Cookies.get(`pdfData_${facultyId}`);
+        if (cachedPdf) {
+          setPdfUrl(cachedPdf);
+          return;
         }
-      );
+      }
 
-      if (!response.ok) throw new Error('Failed to generate PDF');
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-
-      clearInterval(progressInterval);
-      setLoadingProgress(100);
-
-      Cookies.set(`pdfData_${facultyId}`, url, { expires: 1 });
-      setPdfUrl(url);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-    } finally {
-      setPdfLoading(false);
+      setPdfLoading(true);
       setLoadingProgress(0);
-    }
-  }, [department, facultyId]);
+
+      try {
+        const progressInterval = setInterval(() => {
+          setLoadingProgress((prev) => {
+            if (prev >= 90) {
+              clearInterval(progressInterval);
+              return 90;
+            }
+            return prev + 10;
+          });
+        }, 5000);
+
+        const response = await fetch(
+          `http://127.0.0.1:5000/${department}/${facultyId}/generate-doc`,
+          {
+            method: "GET",
+          }
+        );
+
+        if (!response.ok) throw new Error("Failed to generate PDF");
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        clearInterval(progressInterval);
+        setLoadingProgress(100);
+
+        Cookies.set(`pdfData_${facultyId}`, url, { expires: 1 });
+        setPdfUrl(url);
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+      } finally {
+        setPdfLoading(false);
+        setLoadingProgress(0);
+      }
+    },
+    [department, facultyId]
+  );
 
   useEffect(() => {
     if (department && facultyId) {
@@ -337,7 +386,10 @@ const ConfirmVerify = () => {
                 className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
                 disabled={pdfLoading}
               >
-                <RefreshCw size={20} className={pdfLoading ? 'animate-spin' : ''} />
+                <RefreshCw
+                  size={20}
+                  className={pdfLoading ? "animate-spin" : ""}
+                />
                 Regenerate PDF
               </button>
             </div>
@@ -365,10 +417,14 @@ const ConfirmVerify = () => {
                 title="Faculty Data PDF"
               />
             </div>
-          ) : !pdfLoading && (
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
-              <p className="text-gray-500">PDF will appear here once generated</p>
-            </div>
+          ) : (
+            !pdfLoading && (
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
+                <p className="text-gray-500">
+                  PDF will appear here once generated
+                </p>
+              </div>
+            )
           )}
         </div>
         {/* Complete Summary Table */}
@@ -432,9 +488,24 @@ const ConfirmVerify = () => {
                     type="number"
                     className="w-full p-1 border-2 border-green-500 rounded focus:outline-none focus:border-green-600"
                     value={marksData.obtained.academic}
+                    min="0"
+                    max={getMaxMarksBySection("academic", facultyInfo.role)}
                     onChange={(e) =>
                       handleInputChange("obtained", "academic", e.target.value)
                     }
+                    onWheel={(e) => e.target.blur()}
+                    onBlur={(e) => {
+                      const maxMarks = getMaxMarksBySection(
+                        "academic",
+                        facultyInfo.role
+                      );
+                      const value = Number(e.target.value);
+                      if (value > maxMarks) {
+                        handleInputChange("obtained", "academic", maxMarks);
+                      } else if (value < 0) {
+                        handleInputChange("obtained", "academic", 0);
+                      }
+                    }}
                   />
                 </td>
               </tr>
@@ -482,9 +553,24 @@ const ConfirmVerify = () => {
                     type="number"
                     className="w-full p-1 border-2 border-green-500 rounded focus:outline-none focus:border-green-600"
                     value={marksData.obtained.selfDev}
+                    min="0"
+                    max={getMaxMarksBySection("selfDev", facultyInfo.role)}
                     onChange={(e) =>
                       handleInputChange("obtained", "selfDev", e.target.value)
                     }
+                    onWheel={(e) => e.target.blur()}
+                    onBlur={(e) => {
+                      const maxMarks = getMaxMarksBySection(
+                        "selfDev",
+                        facultyInfo.role
+                      );
+                      const value = Number(e.target.value);
+                      if (value > maxMarks) {
+                        handleInputChange("obtained", "selfDev", maxMarks);
+                      } else if (value < 0) {
+                        handleInputChange("obtained", "selfDev", 0);
+                      }
+                    }}
                   />
                 </td>
               </tr>
@@ -509,9 +595,24 @@ const ConfirmVerify = () => {
                     type="number"
                     className="w-full p-1 border-2 border-green-500 rounded focus:outline-none focus:border-green-600"
                     value={marksData.obtained.portfolio}
+                    min="0"
+                    max={getMaxMarksBySection("portfolio", facultyInfo.role)}
                     onChange={(e) =>
                       handleInputChange("obtained", "portfolio", e.target.value)
                     }
+                    onWheel={(e) => e.target.blur()}
+                    onBlur={(e) => {
+                      const maxMarks = getMaxMarksBySection(
+                        "portfolio",
+                        facultyInfo.role
+                      );
+                      const value = Number(e.target.value);
+                      if (value > maxMarks) {
+                        handleInputChange("obtained", "portfolio", maxMarks);
+                      } else if (value < 0) {
+                        handleInputChange("obtained", "portfolio", 0);
+                      }
+                    }}
                   />
                 </td>
               </tr>
@@ -536,9 +637,24 @@ const ConfirmVerify = () => {
                     type="number"
                     className="w-full p-1 border-2 border-green-500 rounded focus:outline-none focus:border-green-600"
                     value={marksData.obtained.extraOrd}
+                    min="0"
+                    max={getMaxMarksBySection("extraOrd", facultyInfo.role)}
                     onChange={(e) =>
                       handleInputChange("obtained", "extraOrd", e.target.value)
                     }
+                    onWheel={(e) => e.target.blur()}
+                    onBlur={(e) => {
+                      const maxMarks = getMaxMarksBySection(
+                        "extraOrd",
+                        facultyInfo.role
+                      );
+                      const value = Number(e.target.value);
+                      if (value > maxMarks) {
+                        handleInputChange("obtained", "extraOrd", maxMarks);
+                      } else if (value < 0) {
+                        handleInputChange("obtained", "extraOrd", 0);
+                      }
+                    }}
                   />
                 </td>
               </tr>

@@ -14,7 +14,8 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Menu, Verified } from "lucide-react";
 import LoginPage from "./components/LoginPage";
 import SplashScreen from "./components/SplashScreen";
-import TeachingPerformance from "./components/forms/TeachingPerformance";
+import TeachingPerformance from "./components/forms/TempTeachingPerfomance";
+// import TeachingPerformanceWithProvider from "./components/forms/TeachingPerformance";
 import FacultyAdminPanel from "./components/adminpage/FacultyAdminPanel";
 import SelfDevelopment from "./components/forms/SelfDevelopment";
 import Research from "./components/forms/Research";
@@ -103,6 +104,7 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <TeachingPerformance />
+                        
                       </ProtectedRoute>
                     }
                   />
@@ -166,7 +168,7 @@ function AppContent() {
                     path="/dean/associate-dean-list"
                     element={
                       <ProtectedRoute>
-                        <AssociateDeansList/>
+                        <AssociateDeansList />
                       </ProtectedRoute>
                     }
                   />
@@ -177,15 +179,15 @@ function AppContent() {
                         <DeanEvaluationForm />
                       </ProtectedRoute>
                     }
-/>
-<Route
-  path="/paper-verification/givemarks/:department/:facultyId"
-  element={
-    <ProtectedRoute>
-      <VerificationForm />
-    </ProtectedRoute>
-  }
-/>
+                  />
+                  <Route
+                    path="/paper-verification/givemarks/:department/:facultyId"
+                    element={
+                      <ProtectedRoute>
+                        <VerificationForm />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route
                     path="/hod/department-review"
                     element={
@@ -198,7 +200,7 @@ function AppContent() {
                     path="/paper-verification/verify"
                     element={
                       <ProtectedRoute>
-                        <Verify/>
+                        <Verify />
                       </ProtectedRoute>
                     }
                   />
