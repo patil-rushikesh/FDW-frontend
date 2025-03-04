@@ -607,24 +607,38 @@ const TeachingPerformance = () => {
     const userData = JSON.parse(localStorage.getItem("userData"));
     const department = userData.dept;
     const user_id = userData._id;
-
+  
     if (!department || !user_id) {
       alert("Department and User ID are required. Please login again.");
       return;
     }
-      const scores = manualScoring ? {
-    resultScore: Number(manualScores.resultAnalysis),
-    coScore: Number(manualScores.courseOutcome),
-    elearningScore: Number(manualScores.elearning),
-    academicEngagementScore: Number(manualScores.academicEngagement),
-    teachingLoadScore: Number(manualScores.teachingLoad),
-    projectScore: Number(manualScores.projects),
-    feedbackScore: Number(manualScores.feedback),
-    ptgScore: Number(manualScores.ptgMeetings),
-    finalScore: Object.values(manualScores).reduce((a, b) => Number(a) + Number(b), 0)
-  } : calculateScores();
-
-
+  
+    // Create resultAnalysisCourses object from courseResults
+    const resultAnalysisCourses = Object.fromEntries(
+      courseResults.map((course) => [
+        course.courseCode,
+        {
+          studentsAbove60: Number(course.studentsAbove60) || 0,
+          students50to59: Number(course.students50to59) || 0,
+          students40to49: Number(course.students40to49) || 0,
+          totalStudents: Number(course.totalStudents) || 0,
+          marks: calculateCourseScore(course),
+        },
+      ])
+    );
+  
+    const scores = manualScoring ? {
+      resultScore: Number(manualScores.resultAnalysis),
+      coScore: Number(manualScores.courseOutcome),
+      elearningScore: Number(manualScores.elearning),
+      academicEngagementScore: Number(manualScores.academicEngagement),
+      teachingLoadScore: Number(manualScores.teachingLoad),
+      projectScore: Number(manualScores.projects),
+      feedbackScore: Number(manualScores.feedback),
+      ptgScore: Number(manualScores.ptgMeetings),
+      finalScore: Object.values(manualScores).reduce((a, b) => Number(a) + Number(b), 0)
+    } : calculateScores();
+  
     const payload = {
       isManualScoring: manualScoring,
       1: {
@@ -699,8 +713,8 @@ const TeachingPerformance = () => {
     ? Object.values(manualScores).reduce((a, b) => Number(a) + Number(b), 0)
     : scores.finalScore,
     };
-
-
+  
+  
     try {
       const response = await fetch(
         `http://127.0.0.1:5000/${department}/${user_id}/A`,
@@ -712,7 +726,7 @@ const TeachingPerformance = () => {
           body: JSON.stringify(payload),
         }
       );
-
+  
       if (response.ok) {
         navigate("/submission-status", {
           state: {
@@ -735,6 +749,7 @@ const TeachingPerformance = () => {
       });
     }
   };
+  
 
   const scores = calculateScores();
 
