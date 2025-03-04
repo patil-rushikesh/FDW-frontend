@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ClipboardCheck,
   Users,
+  Award,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -32,6 +33,11 @@ const partsNavItems = [
     icon: GraduationCap,
     label: "Part D: Portfolio-Departmental & Central",
     path: "/portfolio",
+  },
+  {
+    icon: Award,
+    label: "Part E: Extra-ordinary Contribution",
+    path: "/extra",
   },
 ];
 
