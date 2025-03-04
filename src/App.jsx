@@ -42,6 +42,7 @@ import AssignFacultyToExternal from "./components/HOD/AssignFacultyToExternal";
 // Import the external dashboard component
 import ExternalDashboard from "./components/External/ExternalDashboard";
 import Extra from "./components/forms/Extra";
+import EvaluateFacultyPage from "./components/External/EvaluateFacultyPage";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -146,7 +147,7 @@ function AppContent() {
                     path="/extra"
                     element={
                       <ProtectedRoute>
-                        <Extra/>
+                        <Extra />
                       </ProtectedRoute>
                     }
                   />
@@ -243,6 +244,14 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <ExternalDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/evaluate-faculty/:facultyId"
+                    element={
+                      <ProtectedRoute>
+                        <EvaluateFacultyPage />
                       </ProtectedRoute>
                     }
                   />
