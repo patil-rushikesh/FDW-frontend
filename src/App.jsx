@@ -14,7 +14,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Menu, Verified } from "lucide-react";
 import LoginPage from "./components/LoginPage";
 import SplashScreen from "./components/SplashScreen";
-import TeachingPerformance from "./components/forms/TempTeachingPerfomance";
+import TeachingPerformance from "./components/forms/TeachingPerformance";
 import FacultyAdminPanel from "./components/adminpage/FacultyAdminPanel";
 import SelfDevelopment from "./components/forms/SelfDevelopment";
 import Research from "./components/forms/Research";

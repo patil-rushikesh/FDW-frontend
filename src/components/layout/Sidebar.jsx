@@ -61,13 +61,32 @@ const directorPrivilegeItems = [
   },
 ];
 
+// Add this after hodPrivilegeItems
+const hodInteractionItems = [
+  {
+    icon: Users,
+    label: "Add External Faculty",
+    path: "/hod/add-external-faculty",
+  },
+  {
+    icon: Users,
+    label: "Assign Faculty to External",
+    path: "/hod/assign-faculty-external",
+  },
+  {
+    icon: Users,
+    label: "Assign Interaction Panel",
+    path: "/hod/assign-interaction-panel",
+  },
+];
+
 // Add this after directorPrivilegeItems
 const deanPrivilegeItems = [
   {
     icon: ClipboardCheck,
     label: "Associate Dean List",
     path: "/dean/associate-dean-list",
-  }
+  },
 ];
 
 const paperVerificationItems = [
@@ -79,6 +98,7 @@ export default function Sidebar({ isOpen, onClose }) {
   const [isPartsOpen, setIsPartsOpen] = useState(false);
   const [isPrivilegeOpen, setIsPrivilegeOpen] = useState(false);
   const [isPaperVerificationOpen, setIsPaperVerificationOpen] = useState(false);
+  const [isInteractionOpen, setIsInteractionOpen] = useState(false);
 
   // Get user role from localStorage
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
@@ -87,7 +107,9 @@ export default function Sidebar({ isOpen, onClose }) {
 
   const toggleParts = () => setIsPartsOpen(!isPartsOpen);
   const togglePrivilege = () => setIsPrivilegeOpen(!isPrivilegeOpen);
-  const togglePaperVerification = () => setIsPaperVerificationOpen(!isPaperVerificationOpen);
+  const togglePaperVerification = () =>
+    setIsPaperVerificationOpen(!isPaperVerificationOpen);
+  const toggleInteraction = () => setIsInteractionOpen(!isInteractionOpen);
 
   // 1. Update the NavLink component with improved line styling
   const NavLink = ({ item, isActive, isDropdownItem }) => {
@@ -100,7 +122,7 @@ export default function Sidebar({ isOpen, onClose }) {
           flex items-center space-x-4 p-4 rounded-lg transition-all
           hover:scale-[1.02] transform relative
           ${
-            isDropdownItem 
+            isDropdownItem
               ? `
                 ml-4 border-l-2 border-indigo-500 pl-6
                 before:content-[""]
@@ -110,8 +132,8 @@ export default function Sidebar({ isOpen, onClose }) {
                 before:w-4
                 before:h-[2px]
                 before:bg-indigo-500
-              ` 
-              : ''
+              `
+              : ""
           }
           ${
             isActive
@@ -127,12 +149,13 @@ export default function Sidebar({ isOpen, onClose }) {
   };
 
   const renderPrivilegeSection = () => {
-    if (userRole !== "hod" && userRole !== "director" && userRole !== "dean") return null;
+    if (userRole !== "hod" && userRole !== "director" && userRole !== "dean")
+      return null;
 
     let privilegeItems;
     let sectionTitle;
 
-    switch(userRole) {
+    switch (userRole) {
       case "hod":
         privilegeItems = hodPrivilegeItems;
         sectionTitle = "HOD Privileges";
@@ -167,7 +190,8 @@ export default function Sidebar({ isOpen, onClose }) {
         </button>
 
         {isPrivilegeOpen && (
-          <div className={`
+          <div
+            className={`
             relative pl-4 mt-2
             before:content-[""]
             before:absolute
@@ -179,7 +203,8 @@ export default function Sidebar({ isOpen, onClose }) {
             space-y-2
             transition-all
             duration-200
-          `}>
+          `}
+          >
             {privilegeItems.map((item) => (
               <NavLink
                 key={item.path}
@@ -215,7 +240,8 @@ export default function Sidebar({ isOpen, onClose }) {
         </button>
 
         {isPaperVerificationOpen && (
-          <div className={`
+          <div
+            className={`
             relative pl-4 mt-2
             before:content-[""]
             before:absolute
@@ -227,8 +253,59 @@ export default function Sidebar({ isOpen, onClose }) {
             space-y-2
             transition-all
             duration-200
-          `}>
+          `}
+          >
             {paperVerificationItems.map((item) => (
+              <NavLink
+                key={item.path}
+                item={item}
+                isActive={location.pathname === item.path}
+                isDropdownItem={true}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderInteractionSection = () => {
+    if (userRole !== "hod") return null;
+
+    return (
+      <div className="mb-3">
+        <button
+          onClick={toggleInteraction}
+          className="w-full flex items-center justify-between p-4 rounded-lg text-indigo-100 hover:bg-indigo-700/70"
+        >
+          <div className="flex items-center space-x-4">
+            <Users size={24} strokeWidth={2} />
+            <span className="text-base font-medium">Interaction</span>
+          </div>
+          {isInteractionOpen ? (
+            <ChevronDown size={20} />
+          ) : (
+            <ChevronRight size={20} />
+          )}
+        </button>
+
+        {isInteractionOpen && (
+          <div
+            className={`
+            relative pl-4 mt-2
+            before:content-[""]
+            before:absolute
+            before:left-0
+            before:top-0
+            before:bottom-4
+            before:w-[2px]
+            before:bg-indigo-500
+            space-y-2
+            transition-all
+            duration-200
+          `}
+          >
+            {hodInteractionItems.map((item) => (
               <NavLink
                 key={item.path}
                 item={item}
@@ -306,7 +383,8 @@ export default function Sidebar({ isOpen, onClose }) {
               </button>
 
               {isPartsOpen && (
-                <div className={`
+                <div
+                  className={`
                   relative pl-4 mt-2
                   before:content-[""]
                   before:absolute
@@ -318,7 +396,8 @@ export default function Sidebar({ isOpen, onClose }) {
                   space-y-2
                   transition-all
                   duration-200
-                `}>
+                `}
+                >
                   {partsNavItems.map((item) => (
                     <NavLink
                       key={item.path}
@@ -333,6 +412,9 @@ export default function Sidebar({ isOpen, onClose }) {
 
             {/* Privilege Section for HOD/Director */}
             {renderPrivilegeSection()}
+
+            {/* Interaction Section for HOD */}
+            {renderInteractionSection()}
 
             {/* Paper Verification Section */}
             {renderPaperVerificationSection()}
