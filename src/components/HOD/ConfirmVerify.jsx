@@ -30,7 +30,27 @@ const ConfirmVerify = () => {
 
         console.log(response);
         if (response.data.status === "success") {
-          setApiData(response.data.data);
+          const apiResponse = response.data.data;
+          setApiData({
+            name: apiResponse.name,
+            _id: apiResponse._id,
+            department: apiResponse.department,
+            status: apiResponse.status,
+            grand_total: apiResponse.grand_total_marks,
+            grand_verified_total: apiResponse.grand_verified_marks,
+            section_totals: {
+              A_total: apiResponse.section_totals.A_total,
+              A_verified_total: apiResponse.section_totals.A_verified_total,
+              B_total: apiResponse.section_totals.B_total,
+              B_verified_total: apiResponse.section_totals.B_verified_total,
+              C_total: apiResponse.section_totals.C_total,
+              C_verified_total: apiResponse.section_totals.C_verified_total,
+              D_total: apiResponse.section_totals.D_total,
+              D_verified_total: apiResponse.section_totals.D_verified_total,
+              E_total: apiResponse.section_totals.E_total,
+              E_verified_total: apiResponse.section_totals.E_verified_total
+            }
+          });
         } else {
           setError("Failed to fetch data");
         }
@@ -82,18 +102,15 @@ const ConfirmVerify = () => {
           research: apiData.section_totals.B_total || "",
           selfDev: apiData.section_totals.C_total || "",
           portfolio: apiData.section_totals.D_total || "",
-          extraOrd: "",
+          extraOrd: apiData.section_totals.E_total || "",
           adminWeight: "",
         },
         obtained: {
-          academic: apiData.section_totals.A_total || "",
-          research:
-            apiData.section_totals.B_verified_total ||
-            apiData.section_totals.B_total ||
-            "",
-          selfDev: apiData.section_totals.C_total || "",
-          portfolio: apiData.section_totals.D_total || "",
-          extraOrd: "",
+          academic: apiData.section_totals.A_verified_total || apiData.section_totals.A_total || "",
+          research: apiData.section_totals.B_verified_total || apiData.section_totals.B_total || "",
+          selfDev: apiData.section_totals.C_verified_total || apiData.section_totals.C_total || "",
+          portfolio: apiData.section_totals.D_verified_total || apiData.section_totals.D_total || "",
+          extraOrd: apiData.section_totals.E_verified_total || apiData.section_totals.E_total || "",
           adminWeight: "",
         },
       });
@@ -179,7 +196,7 @@ const ConfirmVerify = () => {
   };
 
   const getTotalFromApi = () => {
-    return apiData?.grand_total || 0;
+    return apiData?.grand_total_marks || 0;
   };
 
   const handleSubmit = async () => {
@@ -189,19 +206,18 @@ const ConfirmVerify = () => {
 
     if (userConfirmed) {
       try {
+        // Format the data according to the required structure
+        const formattedData = {
+          "A": { "verified_marks": parseFloat(marksData.obtained.academic) || 0 },
+          "B": { "verified_marks": parseFloat(marksData.obtained.research) || 0 },
+          "C": { "verified_marks": parseFloat(marksData.obtained.selfDev) || 0 },
+          "D": { "verified_marks": parseFloat(marksData.obtained.portfolio) || 0 },
+          "E": { "verified_marks": parseFloat(marksData.obtained.extraOrd) || 0 }
+        };
+
         const response = await axios.post(
-          `http://127.0.0.1:5000/${department}/${facultyId}/verify-authority`,
-          {
-            verifiedMarks: {
-              academic: marksData.obtained.academic,
-              research: marksData.obtained.research,
-              selfDev: marksData.obtained.selfDev,
-              portfolio: marksData.obtained.portfolio,
-              extraOrd: marksData.obtained.extraOrd,
-              adminWeight: marksData.obtained.adminWeight,
-            },
-            totalMarks: calculateTotal("obtained"),
-          }
+          `http://127.0.0.1:5000/total_marks/${department}/${facultyId}`,
+          formattedData
         );
 
         if (response.status === 200) {

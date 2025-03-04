@@ -116,30 +116,30 @@ const FacultyEvaluationForm = () => {
         return;
       }
 
-      // Prepare updated portfolio data
-      const updatedPortfolioData = {
-        ...portfolioData,
-        hodMarks: Number(hodMarks),
-        isMarkHOD: true, // Mark as reviewed by HOD
-        total_marks: calculateTotalScore(),
+      // Only update specific fields while keeping existing data
+      const payload = {
+        D: {
+          ...portfolioData,  // Keep all existing data
+          hodMarks: Number(hodMarks),  // Update HOD marks
+          isMarkHOD: true,  // Update HOD verification status
+          total_marks: calculateTotalScore()  // Update total score
+        }
       };
 
       await axios.post(
         `http://localhost:5000/${department}/${userId}/D`,
-        updatedPortfolioData
+        payload
       );
 
       setIsModalOpen(false);
-      alert("Marks saved successfully!");
       navigate("/hodcnfverify", {
         state: {
           faculty,
-          portfolioData: updatedPortfolioData,
-        },
+          portfolioData: payload.D
+        }
       });
     } catch (error) {
       console.error("Error saving marks:", error);
-      alert("Error saving marks. Please try again.");
       setIsModalOpen(false);
     }
   };

@@ -11,7 +11,6 @@ import {
   ChevronRight,
   ClipboardCheck,
   Users,
-  Award,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -33,11 +32,6 @@ const partsNavItems = [
     icon: GraduationCap,
     label: "Part D: Portfolio-Departmental & Central",
     path: "/portfolio",
-  },
-  {
-    icon: Award,
-    label: "Part E: Extra-ordinary Contribution",
-    path: "/extra",
   },
 ];
 
@@ -108,8 +102,14 @@ export default function Sidebar({ isOpen, onClose }) {
 
   // Get user role from localStorage
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-  const userRole = userData.desg?.toLowerCase() || "faculty";
+  const userRole = userData.role?.toLowerCase() || "faculty";
+  console.log(userRole);
   const isInVerificationPanel = userData.isInVerificationPanel || false;
+
+  // Don't render sidebar for external users
+  if (userRole === "external") {
+    return null;
+  }
 
   const toggleParts = () => setIsPartsOpen(!isPartsOpen);
   const togglePrivilege = () => setIsPrivilegeOpen(!isPrivilegeOpen);
