@@ -1,0 +1,412 @@
+import React, { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
+import {
+  User,
+  Mail,
+  Phone,
+  Briefcase,
+  School,
+  MapPin,
+  Trash2,
+} from "lucide-react";
+
+const AddExternalFaculty = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    mobile: "",
+    designation: "",
+    specialization: "",
+    organization: "",
+    address: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [facultyList, setFacultyList] = useState([]);
+
+  // Load faculty list from localStorage on component mount
+  useEffect(() => {
+    const savedFaculty = localStorage.getItem("externalFaculty");
+    if (savedFaculty) {
+      try {
+        setFacultyList(JSON.parse(savedFaculty));
+      } catch (error) {
+        console.error("Error parsing saved faculty data:", error);
+      }
+    }
+  }, []);
+
+  // Save faculty list to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("externalFaculty", JSON.stringify(facultyList));
+  }, [facultyList]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Validate form
+      if (
+        !formData.name ||
+        !formData.email ||
+        !formData.mobile ||
+        !formData.designation
+      ) {
+        toast.error("Please fill all required fields");
+        setLoading(false);
+        return;
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        toast.error("Please enter a valid email address");
+        setLoading(false);
+        return;
+      }
+
+      // Mobile validation
+      if (!/^\d{10}$/.test(formData.mobile)) {
+        toast.error("Mobile number should be 10 digits");
+        setLoading(false);
+        return;
+      }
+
+      // Check for duplicate email
+      if (facultyList.some((faculty) => faculty.email === formData.email)) {
+        toast.error("A faculty with this email already exists");
+        setLoading(false);
+        return;
+      }
+
+      // Add timestamp and id to the new faculty record
+      const newFaculty = {
+        ...formData,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+      };
+
+      // Simulating API call with timeout
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Add to the list
+      setFacultyList((prev) => [newFaculty, ...prev]);
+
+      toast.success("External faculty added successfully!");
+      setFormData({
+        name: "",
+        email: "",
+        mobile: "",
+        designation: "",
+        specialization: "",
+        organization: "",
+        address: "",
+      });
+    } catch (error) {
+      console.error("Error adding external faculty:", error);
+      toast.error("Failed to add external faculty");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      // Ask for confirmation
+      if (!window.confirm("Are you sure you want to delete this faculty?")) {
+        return;
+      }
+
+      // Simulating API call for deletion
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // Remove from the list
+      setFacultyList((prev) => prev.filter((faculty) => faculty.id !== id));
+      toast.success("Faculty removed successfully");
+    } catch (error) {
+      console.error("Error deleting faculty:", error);
+      toast.error("Failed to delete faculty");
+    }
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+        {/* Header */}
+        <div className="bg-indigo-700 px-6 py-4">
+          <h1 className="text-xl font-bold text-white">Add External Faculty</h1>
+          <p className="text-indigo-100 text-sm">
+            Create new external faculty profiles for interaction panels
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Name */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <User size={16} /> Full Name{" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                placeholder="Enter full name"
+                required
+              />
+            </div>
+
+            {/* Email */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Mail size={16} /> Email Address{" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                placeholder="Enter email address"
+                required
+              />
+            </div>
+
+            {/* Mobile */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Phone size={16} /> Mobile Number{" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="mobile"
+                value={formData.mobile}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                placeholder="Enter 10-digit mobile number"
+                required
+              />
+            </div>
+
+            {/* Designation */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Briefcase size={16} /> Designation{" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="designation"
+                value={formData.designation}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                placeholder="Enter designation"
+                required
+              />
+            </div>
+
+            {/* Specialization */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <School size={16} /> Specialization
+              </label>
+              <input
+                type="text"
+                name="specialization"
+                value={formData.specialization}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                placeholder="Enter area of expertise"
+              />
+            </div>
+
+            {/* Organization */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Briefcase size={16} /> Organization
+              </label>
+              <input
+                type="text"
+                name="organization"
+                value={formData.organization}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                placeholder="Enter organization name"
+              />
+            </div>
+
+            {/* Address */}
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <MapPin size={16} /> Address
+              </label>
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                placeholder="Enter full address"
+                rows="3"
+              />
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex justify-end pt-4 border-t border-gray-200">
+            <button
+              type="submit"
+              disabled={loading}
+              className={`px-6 py-2 bg-indigo-700 text-white rounded-md shadow-sm hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 flex items-center ${
+                loading ? "opacity-70 cursor-not-allowed" : ""
+              }`}
+            >
+              {loading ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Processing...
+                </>
+              ) : (
+                "Add External Faculty"
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Faculty List Table */}
+      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="bg-indigo-700 px-6 py-4">
+          <h2 className="text-xl font-bold text-white">
+            External Faculty List
+          </h2>
+          <p className="text-indigo-100 text-sm">
+            Manage existing external faculty profiles
+          </p>
+        </div>
+
+        <div className="p-6">
+          {facultyList.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>No external faculty members added yet.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Name
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Contact
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Position
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Organization
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {facultyList.map((faculty) => (
+                    <tr key={faculty.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">
+                          {faculty.name}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900">
+                          {faculty.email}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {faculty.mobile}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900">
+                          {faculty.designation}
+                        </div>
+                        {faculty.specialization && (
+                          <div className="text-sm text-gray-500">
+                            {faculty.specialization}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {faculty.organization || "—"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          onClick={() => handleDelete(faculty.id)}
+                          className="text-red-600 hover:text-red-900 focus:outline-none"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AddExternalFaculty;

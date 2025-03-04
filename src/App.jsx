@@ -35,6 +35,8 @@ import Verify from "./components/Verification/Verify";
 import VerificationForm from "./components/Verification/VerificationForm";
 import AssociateDeansList from "./components/Dean/AssociateDeansList";
 import DeanEvaluationForm from "./components/Dean/DeanEvaluationForm";
+// Import the new component
+import AddExternalFaculty from "./components/HOD/AddExternalFaculty";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -104,7 +106,6 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <TeachingPerformance />
-                        
                       </ProtectedRoute>
                     }
                   />
@@ -201,6 +202,14 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <Verify />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/hod/add-external-faculty"
+                    element={
+                      <ProtectedRoute>
+                        <AddExternalFaculty />
                       </ProtectedRoute>
                     }
                   />
