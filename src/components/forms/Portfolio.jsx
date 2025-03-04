@@ -66,29 +66,31 @@ const Portfolio = () => {
     adminDeanMarks: 0,
   });
 
-  const [instituteLevelPortfolio, setInstituteLevelPortfolio] = useState('');
-  const [departmentLevelPortfolio, setDepartmentLevelPortfolio] = useState('');
+  const [instituteLevelPortfolio, setInstituteLevelPortfolio] = useState("");
+  const [departmentLevelPortfolio, setDepartmentLevelPortfolio] = useState("");
 
   // Function to fetch portfolio data from backend
   const fetchPortfolioData = async () => {
     try {
       setLoading(true);
-      const storedUserData = JSON.parse(localStorage.getItem('userData'));
-      
+      const storedUserData = JSON.parse(localStorage.getItem("userData"));
+
       if (!storedUserData) {
         throw new Error("User data not found");
       }
-  
+
       const department = storedUserData.dept;
       const userId = storedUserData._id;
       console.log("Fetching data for:", department, userId);
-  
+
       try {
-        const response = await axios.get(`http://127.0.0.1:5000/${department}/${userId}/D`);
-        
+        const response = await axios.get(
+          `http://127.0.0.1:5000/${department}/${userId}/D`
+        );
+
         if (response.data) {
           setPortfolioData(response.data);
-          
+
           // Update form data with existing values
           setFormData({
             portfolioType: response.data.portfolioType || "both",
@@ -101,12 +103,16 @@ const Portfolio = () => {
             administrativeRole: response.data.administrativeRole || "",
             adminSelfAwardedMarks: response.data.adminSelfAwardedMarks || 30,
             directorMarks: response.data.directorMarks || 0,
-            adminDeanMarks: response.data.adminDeanMarks || 0
+            adminDeanMarks: response.data.adminDeanMarks || 0,
           });
-          
+
           // Update institute and department level portfolio texts
-          setInstituteLevelPortfolio(response.data.instituteLevelPortfolio || "");
-          setDepartmentLevelPortfolio(response.data.departmentLevelPortfolio || "");
+          setInstituteLevelPortfolio(
+            response.data.instituteLevelPortfolio || ""
+          );
+          setDepartmentLevelPortfolio(
+            response.data.departmentLevelPortfolio || ""
+          );
         }
       } catch (error) {
         if (error.response && error.response.status === 404) {
@@ -122,7 +128,7 @@ const Portfolio = () => {
             administrativeRole: "",
             adminSelfAwardedMarks: 30,
             directorMarks: 0,
-            adminDeanMarks: 0
+            adminDeanMarks: 0,
           });
           setInstituteLevelPortfolio("");
           setDepartmentLevelPortfolio("");
@@ -130,14 +136,14 @@ const Portfolio = () => {
           throw error;
         }
       }
-      
+
       setLoading(false);
       setInitialDataLoaded(true);
     } catch (error) {
       console.error("Error fetching portfolio data:", error);
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        error: "Failed to load portfolio data. Please try again."
+        error: "Failed to load portfolio data. Please try again.",
       }));
       setLoading(false);
       setInitialDataLoaded(true);
@@ -146,7 +152,7 @@ const Portfolio = () => {
 
   // Load user data and fetch portfolio data
   useEffect(() => {
-    const storedUserData = JSON.parse(localStorage.getItem('userData'));
+    const storedUserData = JSON.parse(localStorage.getItem("userData"));
     if (storedUserData) {
       setUserData({
         _id: storedUserData._id,
@@ -155,13 +161,13 @@ const Portfolio = () => {
         name: storedUserData.name,
         role: storedUserData.role,
         mail: storedUserData.mail,
-        mob: storedUserData.mob
+        mob: storedUserData.mob,
       });
       fetchPortfolioData();
     } else {
       setLoading(false);
       setInitialDataLoaded(true);
-      navigate('/login'); // Redirect to login if no user data found
+      navigate("/login"); // Redirect to login if no user data found
     }
   }, [navigate]);
 
@@ -170,7 +176,7 @@ const Portfolio = () => {
   // Update administrative role based on designation
   useEffect(() => {
     if (!userData) return;
-    
+
     const designation = userData.desg;
     const isAdminRole =
       designation === "deputy_director" ||
@@ -196,7 +202,10 @@ const Portfolio = () => {
   const calculatePortfolioScore = () => {
     if (formData.isAdministrativeRole) {
       // For administrative roles
-      const selfScore = Math.min(60, Number(formData.adminSelfAwardedMarks) || 0);
+      const selfScore = Math.min(
+        60,
+        Number(formData.adminSelfAwardedMarks) || 0
+      );
       const superiorScore =
         formData.administrativeRole === "associate_dean"
           ? Number(formData.adminDeanMarks) || 0
@@ -209,7 +218,10 @@ const Portfolio = () => {
 
       switch (formData.portfolioType) {
         case "both":
-          superiorScore = ((Number(formData.deanMarks) || 0) + (Number(formData.hodMarks) || 0)) / 2;
+          superiorScore =
+            ((Number(formData.deanMarks) || 0) +
+              (Number(formData.hodMarks) || 0)) /
+            2;
           break;
         case "institute":
           superiorScore = Number(formData.deanMarks) || 0;
@@ -233,7 +245,7 @@ const Portfolio = () => {
       const department = userData?.dept || "Computer Science";
       const userId = userData?._id || "123";
       const score = calculatePortfolioScore();
-      
+
       // Prepare payload for API
       const payload = {
         portfolioType: formData.portfolioType,
@@ -250,34 +262,37 @@ const Portfolio = () => {
         instituteLevelPortfolio,
         departmentLevelPortfolio,
         total_marks: score,
-        isFirstTime: !portfolioData // Add flag to indicate if this is first submission
+        isFirstTime: !portfolioData, // Add flag to indicate if this is first submission
       };
-      
+
       // Send data to backend
-      const method = portfolioData ? 'post' : 'post';
-      const response = await axios[method](`http://127.0.0.1:5000/${department}/${userId}/D`, payload);
-      
+      const method = portfolioData ? "post" : "post";
+      const response = await axios[method](
+        `http://127.0.0.1:5000/${department}/${userId}/D`,
+        payload
+      );
+
       // Handle successful response
       if (response.data) {
         navigate("/submission-status", {
           state: {
             status: "success",
             formName: "Portfolio Form",
-            message: `Your portfolio details have been successfully ${portfolioData ? 'updated' : 'submitted'}!`,
-            grandTotal: response.data.grand_total
+            message: `Your portfolio details have been successfully ${portfolioData ? "updated" : "submitted"}!`,
+            grandTotal: response.data.grand_total,
           },
         });
       }
     } catch (error) {
       console.error("Error submitting portfolio data:", error);
-      
+
       // Show error message
       navigate("/submission-status", {
         state: {
           status: "error",
           formName: "Portfolio Form",
           message: "Failed to submit portfolio details. Please try again.",
-          error: error.message
+          error: error.message,
         },
       });
     } finally {
@@ -386,6 +401,7 @@ const Portfolio = () => {
                     : "selfAwardedMarks"]: value,
                 }));
               }}
+              onWheel={(e) => e.target.blur()}
               onBlur={(e) => {
                 const value = Number(e.target.value);
                 if (value > 60) {
@@ -399,7 +415,9 @@ const Portfolio = () => {
               }}
               className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
-            <p className="mt-1 text-sm text-gray-500">Maximum marks allowed: 60</p>
+            <p className="mt-1 text-sm text-gray-500">
+              Maximum marks allowed: 60
+            </p>
           </div>
         </div>
       </SectionCard>
@@ -426,7 +444,9 @@ const Portfolio = () => {
                         className="w-full h-40 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter institute level portfolios..."
                         value={instituteLevelPortfolio}
-                        onChange={(e) => setInstituteLevelPortfolio(e.target.value)}
+                        onChange={(e) =>
+                          setInstituteLevelPortfolio(e.target.value)
+                        }
                       />
                     </div>
                   </td>
@@ -450,7 +470,9 @@ const Portfolio = () => {
                         className="w-full h-40 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter department level portfolios..."
                         value={departmentLevelPortfolio}
-                        onChange={(e) => setDepartmentLevelPortfolio(e.target.value)}
+                        onChange={(e) =>
+                          setDepartmentLevelPortfolio(e.target.value)
+                        }
                       />
                     </div>
                   </td>
@@ -462,61 +484,79 @@ const Portfolio = () => {
       </SectionCard>
 
       {/* Score Card - Show current calculated score */}
-      <SectionCard title="Current Score" icon="🏆" borderColor="border-yellow-500">
-        <ScoreCard 
-          label="Total Portfolio Score" 
-          score={currentScore} 
-          total={120} 
+      <SectionCard
+        title="Current Score"
+        icon="🏆"
+        borderColor="border-yellow-500"
+      >
+        <ScoreCard
+          label="Total Portfolio Score"
+          score={currentScore}
+          total={120}
         />
-        
+
         {/* Show marks status information */}
         <div className="mt-4 space-y-2">
           {!formData.isAdministrativeRole && (
             <>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Self Awarded Marks:</span>
+                <span className="text-sm text-gray-600">
+                  Self Awarded Marks:
+                </span>
                 <span className="font-medium">{formData.selfAwardedMarks}</span>
               </div>
-              
+
               {formData.portfolioType !== "department" && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Dean Marks:</span>
                   <span className="font-medium">
-                    {formData.isMarkDean ? formData.deanMarks : "Not reviewed yet"}
+                    {formData.isMarkDean
+                      ? formData.deanMarks
+                      : "Not reviewed yet"}
                   </span>
                 </div>
               )}
-              
+
               {formData.portfolioType !== "institute" && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">HOD Marks:</span>
                   <span className="font-medium">
-                    {formData.isMarkHOD ? formData.hodMarks : "Not reviewed yet"}
+                    {formData.isMarkHOD
+                      ? formData.hodMarks
+                      : "Not reviewed yet"}
                   </span>
                 </div>
               )}
             </>
           )}
-          
+
           {formData.isAdministrativeRole && (
             <>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Self Awarded Marks:</span>
-                <span className="font-medium">{formData.adminSelfAwardedMarks}</span>
+                <span className="text-sm text-gray-600">
+                  Self Awarded Marks:
+                </span>
+                <span className="font-medium">
+                  {formData.adminSelfAwardedMarks}
+                </span>
               </div>
-              
+
               {formData.administrativeRole === "associate_dean" ? (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Dean Marks:</span>
                   <span className="font-medium">
-                    {formData.isMarkDean ? formData.adminDeanMarks : "Not reviewed yet"}
+                    {formData.isMarkDean
+                      ? formData.adminDeanMarks
+                      : "Not reviewed yet"}
                   </span>
                 </div>
               ) : (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Director Marks:</span>
                   <span className="font-medium">
-                    {formData.directorMarks > 0 ? formData.directorMarks : "Not reviewed yet"}
+                    {formData.directorMarks > 0
+                      ? formData.directorMarks
+                      : "Not reviewed yet"}
                   </span>
                 </div>
               )}
@@ -531,7 +571,9 @@ const Portfolio = () => {
           onClick={handleSubmit}
           disabled={submitting}
           className={`px-6 py-3 ${
-            submitting ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+            submitting
+              ? "bg-blue-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
           } text-white rounded-lg focus:ring-4 focus:ring-blue-300 transition-colors duration-300 flex items-center`}
         >
           {submitting ? (

@@ -92,8 +92,8 @@ const FacultyFormsList = () => {
     return facultyData
       .filter((faculty) => {
         // First check if the faculty has an allowed designation
-        const allowedDesignation = 
-          faculty.designation === "Faculty" || 
+        const allowedDesignation =
+          faculty.designation === "Faculty" ||
           faculty.designation === "Associate Dean";
 
         if (!allowedDesignation) return false;
@@ -161,17 +161,19 @@ const FacultyFormsList = () => {
         <button
           type="button"
           className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-          onClick={() => navigate("/hodverify", { 
-            state: { 
-              faculty: {
-                name: faculty.name,
-                id: faculty._id,
-                role: faculty.role,
-                department: department, // Changed this line to use HOD's department from state
-                // Add any other relevant faculty data you want to pass
-              } 
-            }
-          })}
+          onClick={() =>
+            navigate("/hodverify", {
+              state: {
+                faculty: {
+                  name: faculty.name,
+                  id: faculty._id,
+                  role: faculty.role,
+                  department: department, // Changed this line to use HOD's department from state
+                  // Add any other relevant faculty data you want to pass
+                },
+              },
+            })
+          }
         >
           <CheckCircle2 className="h-4 w-4 text-green-600" />
           <span className="font-semibold text-green-700">Verify</span>

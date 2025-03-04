@@ -32,7 +32,12 @@ const AddFaculty = () => {
     "Faculty",
   ];
 
-  const roles = ["Professor", "Assistant Professor", "Associate Professor"];
+  const roles = [
+    "Professor",
+    "Assistant Professor",
+    "Associate Professor",
+    "external",
+  ];
 
   const [formData, setFormData] = useState({
     _id: "",

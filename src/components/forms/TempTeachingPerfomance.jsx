@@ -33,7 +33,12 @@ const TestComponent = ({ onCoursesUpdate }) => {
   return null;
 };
 
-const CourseResultInput = ({ courseData, onChange, index }) => (
+const CourseResultInput = ({
+  courseData,
+  onChange,
+  index,
+  directScoreInput,
+}) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
     <h4 className="text-lg font-medium  mb-3">
       <CourseNameCard name={courseData.courseCode} />
@@ -45,6 +50,7 @@ const CourseResultInput = ({ courseData, onChange, index }) => (
         value={courseData.studentsAbove60}
         onChange={(e) => onChange(index, "studentsAbove60", e.target.value)}
         placeholder="Enter number of students"
+        disabled={directScoreInput}
       />
       <InputField
         label="Students with CGPA 5.26 to 6.3"
@@ -52,6 +58,7 @@ const CourseResultInput = ({ courseData, onChange, index }) => (
         value={courseData.students50to59}
         onChange={(e) => onChange(index, "students50to59", e.target.value)}
         placeholder="Enter number of students"
+        disabled={directScoreInput}
       />
       <InputField
         label="Students with CGPA 4.21 to 5.25"
@@ -59,6 +66,7 @@ const CourseResultInput = ({ courseData, onChange, index }) => (
         value={courseData.students40to49}
         onChange={(e) => onChange(index, "students40to49", e.target.value)}
         placeholder="Enter number of students"
+        disabled={directScoreInput}
       />
       <InputField
         label="Total Students"
@@ -66,12 +74,18 @@ const CourseResultInput = ({ courseData, onChange, index }) => (
         value={courseData.totalStudents}
         onChange={(e) => onChange(index, "totalStudents", e.target.value)}
         placeholder="Enter total number of students"
+        disabled={directScoreInput}
       />
     </div>
   </div>
 );
 
-const CourseOutcomeInput = ({ courseData, onChange, index }) => (
+const CourseOutcomeInput = ({
+  courseData,
+  onChange,
+  index,
+  directScoreInput,
+}) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
     <h4 className="text-lg font-medium text-gray-800 mb-3 ">
       <CourseNameCard name={courseData.courseCode} /> ({courseData.courseSem})
@@ -84,6 +98,7 @@ const CourseOutcomeInput = ({ courseData, onChange, index }) => (
           value={courseData.coAttainment}
           onChange={(e) => onChange(index, "coAttainment", e.target.value)}
           placeholder="Enter CO attainment percentage"
+          disabled={directScoreInput}
         />
       </div>
       <div className="flex-1">
@@ -98,6 +113,7 @@ const CourseOutcomeInput = ({ courseData, onChange, index }) => (
               onChange(index, "timelySubmissionCO", e.target.checked)
             }
             className="form-checkbox h-5 w-5 text-blue-600 rounded"
+            disabled={directScoreInput}
           />
           <span className="text-gray-700">
             Timely submission of CO attainment
@@ -109,7 +125,12 @@ const CourseOutcomeInput = ({ courseData, onChange, index }) => (
 );
 
 // Create a new component for Academic Engagement Input
-const AcademicEngagementInput = ({ courseData, onChange, index }) => (
+const AcademicEngagementInput = ({
+  courseData,
+  onChange,
+  index,
+  directScoreInput,
+}) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
     <h4 className="text-lg font-medium text-gray-800 mb-3">
       <CourseNameCard name={courseData.courseCode} />
@@ -121,6 +142,7 @@ const AcademicEngagementInput = ({ courseData, onChange, index }) => (
         value={courseData.studentsPresent}
         onChange={(e) => onChange(index, "studentsPresent", e.target.value)}
         placeholder="Enter number of students present"
+        disabled={directScoreInput}
       />
       <InputField
         label="Total enrolled students for lectures/practical labs/tutorials"
@@ -130,12 +152,13 @@ const AcademicEngagementInput = ({ courseData, onChange, index }) => (
           onChange(index, "totalEnrolledStudents", e.target.value)
         }
         placeholder="Enter total enrolled students"
+        disabled={directScoreInput}
       />
     </div>
   </div>
 );
 
-const FeedbackInput = ({ courseData, onChange, index }) => (
+const FeedbackInput = ({ courseData, onChange, index, directScoreInput }) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
     <h4 className="text-lg font-medium text-gray-800 mb-3">
       <CourseNameCard name={courseData.courseCode} />
@@ -147,6 +170,7 @@ const FeedbackInput = ({ courseData, onChange, index }) => (
         value={courseData.feedbackPercentage}
         onChange={(e) => onChange(index, "feedbackPercentage", e.target.value)}
         placeholder="Enter feedback percentage"
+        disabled={directScoreInput}
       />
     </div>
   </div>
@@ -195,6 +219,7 @@ const SectionCard = ({ title, icon, borderColor, children }) => (
   </div>
 );
 
+// Modify the InputField component to accept and use the disabled prop
 const InputField = ({
   label,
   name,
@@ -214,14 +239,15 @@ const InputField = ({
       onChange={onChange}
       placeholder={placeholder}
       min="0" // Add min attribute to prevent negative values
+
       onKeyDown={(e) => {
-        // Prevent minus sign
         if (e.key === "-") {
           e.preventDefault();
         }
       }}
       onWheel={(e) => e.target.blur()}
       className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+
     />
   </div>
 );
@@ -239,6 +265,7 @@ const ManualScoreToggle = ({ checked, onChange }) => (
     <label htmlFor="manualScoring" className="text-sm font-medium text-gray-700">
       Enable Manual Score Entry
     </label>
+
   </div>
 );
 
@@ -271,6 +298,7 @@ const TeachingPerformance = () => {
 
   const [manualScoring, setManualScoring] = useState(false);
   const [manualScores, setManualScores] = useState({
+
     resultAnalysis: 0,
     courseOutcome: 0,
     elearning: 0,
@@ -278,7 +306,7 @@ const TeachingPerformance = () => {
     teachingLoad: 0,
     projects: 0,
     feedback: 0,
-    ptgMeetings: 0
+    ptgMeetings: 0,
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -596,17 +624,6 @@ const TeachingPerformance = () => {
     finalScore: Object.values(manualScores).reduce((a, b) => Number(a) + Number(b), 0)
   } : calculateScores();
 
-    const resultAnalysisCourses = {};
-    courseResults.forEach((course) => {
-      resultAnalysisCourses[course.courseCode] = {
-        studentsAbove60: Number(course.studentsAbove60) || 0,
-        students50to59: Number(course.students50to59) || 0,
-        students40to49: Number(course.students40to49) || 0,
-        totalStudents: Number(course.totalStudents) || 0,
-        // Calculate individual course marks
-        marks: calculateCourseScore(course),
-      };
-    });
 
     const payload = {
       isManualScoring: manualScoring,
@@ -682,6 +699,7 @@ const TeachingPerformance = () => {
     ? Object.values(manualScores).reduce((a, b) => Number(a) + Number(b), 0)
     : scores.finalScore,
     };
+
 
     try {
       const response = await fetch(

@@ -21,7 +21,7 @@ const FacultyEvaluationForm = () => {
     instituteLevelPortfolio: "",
     departmentLevelPortfolio: "",
     total_marks: 0,
-    isFirstTime: false
+    isFirstTime: false,
   });
 
   const [hodMarks, setHodMarks] = useState(0);
@@ -68,7 +68,7 @@ const FacultyEvaluationForm = () => {
         instituteLevelPortfolio: "",
         departmentLevelPortfolio: "",
         total_marks: 0,
-        isFirstTime: false
+        isFirstTime: false,
       });
     }
   };
@@ -91,7 +91,7 @@ const FacultyEvaluationForm = () => {
     if (!portfolioData.isAdministrativeRole) {
       switch (portfolioData.portfolioType) {
         case "both":
-          return Math.min(120, selfScore + (hodScore/2));
+          return Math.min(120, selfScore + hodScore / 2);
         case "department":
           return Math.min(120, selfScore + hodScore);
         default:
@@ -121,7 +121,7 @@ const FacultyEvaluationForm = () => {
         ...portfolioData,
         hodMarks: Number(hodMarks),
         isMarkHOD: true, // Mark as reviewed by HOD
-        total_marks: calculateTotalScore()
+        total_marks: calculateTotalScore(),
       };
 
       await axios.post(
@@ -134,8 +134,8 @@ const FacultyEvaluationForm = () => {
       navigate("/hodcnfverify", {
         state: {
           faculty,
-          portfolioData: updatedPortfolioData
-        }
+          portfolioData: updatedPortfolioData,
+        },
       });
     } catch (error) {
       console.error("Error saving marks:", error);
@@ -231,7 +231,19 @@ const FacultyEvaluationForm = () => {
               max="60"
               min="0"
               value={hodMarks}
-              onChange={(e) => setHodMarks(e.target.value)}
+              onWheel={(e) => e.target.blur()}
+              onChange={(e) => {
+                const value = Math.min(60, Math.max(0, Number(e.target.value)));
+                setHodMarks(value);
+              }}
+              onBlur={(e) => {
+                const value = Number(e.target.value);
+                if (value > 60) {
+                  setHodMarks(60);
+                } else if (value < 0) {
+                  setHodMarks(0);
+                }
+              }}
             />
           </div>
         </div>

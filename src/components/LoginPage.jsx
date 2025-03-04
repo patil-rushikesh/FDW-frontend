@@ -39,10 +39,14 @@ const LoginPage = () => {
       if (response.ok) {
         setSuccess("Logged in successfully!");
         login(data);
-        
+
         // Wait for 1.5 seconds to show the success message before redirecting
         setTimeout(() => {
-          navigate("/dashboard");
+          if (data.role === "external") {
+            navigate("/external/dashboard");
+          } else {
+            navigate("/dashboard"); // Regular users
+          }
         }, 1500);
       } else {
         setError(data.error || "Login failed. Please try again.");
