@@ -242,58 +242,67 @@ const Portfolio = () => {
     setSubmitting(true);
 
     try {
-      const department = userData?.dept || "Computer Science";
-      const userId = userData?._id || "123";
+      const department = userData?.dept;
+      const userId = userData?._id;
+
+      if (!department || !userId) {
+        throw new Error("Department and User ID are required");
+      }
+
       const score = calculatePortfolioScore();
 
-      // Prepare payload for API
       const payload = {
-        portfolioType: formData.portfolioType,
-        selfAwardedMarks: parseInt(formData.selfAwardedMarks),
-        deanMarks: parseInt(formData.deanMarks),
-        hodMarks: parseInt(formData.hodMarks),
-        isMarkHOD: formData.isMarkHOD,
-        isMarkDean: formData.isMarkDean,
-        isAdministrativeRole: formData.isAdministrativeRole,
-        administrativeRole: formData.administrativeRole,
-        adminSelfAwardedMarks: parseInt(formData.adminSelfAwardedMarks),
-        directorMarks: parseInt(formData.directorMarks),
-        adminDeanMarks: parseInt(formData.adminDeanMarks),
-        instituteLevelPortfolio,
-        departmentLevelPortfolio,
-        total_marks: score,
-        isFirstTime: !portfolioData, // Add flag to indicate if this is first submission
+        D: {  // Add this wrapper to match backend expectation
+          portfolioType: formData.portfolioType,
+          selfAwardedMarks: parseInt(formData.selfAwardedMarks),
+          deanMarks: parseInt(formData.deanMarks),
+          hodMarks: parseInt(formData.hodMarks),
+          isMarkHOD: formData.isMarkHOD,
+          isMarkDean: formData.isMarkDean,
+          isAdministrativeRole: formData.isAdministrativeRole,
+          administrativeRole: formData.administrativeRole,
+          adminSelfAwardedMarks: parseInt(formData.adminSelfAwardedMarks),
+          directorMarks: parseInt(formData.directorMarks),
+          adminDeanMarks: parseInt(formData.adminDeanMarks),
+          instituteLevelPortfolio,
+          departmentLevelPortfolio,
+          total_marks: score,
+          isFirstTime: !portfolioData
+        }
       };
 
-      // Send data to backend
-      const method = portfolioData ? "post" : "post";
-      const response = await axios[method](
+      // Make the request
+      const response = await axios.post(
         `http://127.0.0.1:5000/${department}/${userId}/D`,
-        payload
+        payload,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
-      // Handle successful response
       if (response.data) {
         navigate("/submission-status", {
           state: {
             status: "success",
             formName: "Portfolio Form",
-            message: `Your portfolio details have been successfully ${portfolioData ? "updated" : "submitted"}!`,
-            grandTotal: response.data.grand_total,
-          },
+            message: `Your portfolio details have been successfully ${
+              portfolioData ? "updated" : "submitted"
+            }!`,
+            grandTotal: response.data.grand_total
+          }
         });
       }
     } catch (error) {
       console.error("Error submitting portfolio data:", error);
-
-      // Show error message
       navigate("/submission-status", {
         state: {
           status: "error",
           formName: "Portfolio Form",
           message: "Failed to submit portfolio details. Please try again.",
-          error: error.message,
-        },
+          error: error.message
+        }
       });
     } finally {
       setSubmitting(false);
