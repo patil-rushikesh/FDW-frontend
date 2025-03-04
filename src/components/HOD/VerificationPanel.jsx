@@ -7,7 +7,7 @@ import {
   RefreshCw,
   CheckCircle,
 } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 const VerificationPanel = () => {
   const [committeeData, setCommitteeData] = useState({});
@@ -32,17 +32,17 @@ const VerificationPanel = () => {
   useEffect(() => {
     const fetchCommitteeData = async () => {
       if (!userDept) return;
-      
+
       try {
         setLoading(true);
         const response = await fetch(
           `http://localhost:5000/${userDept}/verification-committee`
         );
         if (!response.ok) throw new Error("Failed to fetch committee data");
-        
+
         const data = await response.json();
         setCommitteeData(data);
-        
+
         // Initialize selectedFaculties with empty arrays for each committee member
         const initialSelection = {};
         Object.keys(data.committees).forEach((member) => {
@@ -59,19 +59,29 @@ const VerificationPanel = () => {
     fetchCommitteeData();
   }, [userDept]);
 
+  // Add this constant at the top of your file, after imports
+  const ALLOWED_ROLES = [
+    "Professor",
+    "Associate Professor",
+    "Assistant Professor",
+  ];
+
   // Fetch faculty list
   useEffect(() => {
     const fetchFaculties = async () => {
       if (!userDept) return;
-      
+
       try {
         const response = await fetch("http://localhost:5000/users");
         if (!response.ok) throw new Error("Failed to fetch faculty data");
-        
+
         const data = await response.json();
         // Filter faculties by department
         const departmentFaculties = data.filter(
-          (faculty) => faculty.dept === userDept
+          (faculty) =>
+            faculty.dept === userDept &&
+            faculty.role !== "HOD" &&
+            ALLOWED_ROLES.includes(faculty.role)
         );
         setFacultyList(departmentFaculties);
       } catch (err) {
@@ -86,7 +96,7 @@ const VerificationPanel = () => {
   const handleFacultySelection = (committeeMember, facultyId) => {
     setSelectedFaculties((prev) => {
       const updatedSelection = { ...prev };
-      
+
       // Check if faculty is already selected for this committee member
       if (updatedSelection[committeeMember].includes(facultyId)) {
         // Remove faculty from selection
@@ -100,7 +110,7 @@ const VerificationPanel = () => {
           facultyId,
         ];
       }
-      
+
       return updatedSelection;
     });
   };
@@ -108,10 +118,10 @@ const VerificationPanel = () => {
   // Handle submission of faculty allocation
   const handleSubmit = async () => {
     if (!userDept) return;
-    
+
     try {
       setIsSubmitting(true);
-      
+
       const response = await fetch(
         `http://localhost:5000/${userDept}/verification-committee/addfaculties`,
         {
@@ -124,25 +134,24 @@ const VerificationPanel = () => {
       );
 
       if (!response.ok) throw new Error("Failed to allocate faculties");
-      
+
       // Navigate to SubmissionStatus page with success state
-      navigate('/submission-status', {
+      navigate("/submission-status", {
         state: {
-          status: 'success',
-          message: 'Faculty allocation has been successfully completed!',
-          formName: 'verification panel allocation'
-        }
+          status: "success",
+          message: "Faculty allocation has been successfully completed!",
+          formName: "verification panel allocation",
+        },
       });
-      
     } catch (err) {
       // Navigate to SubmissionStatus page with error state
-      navigate('/submission-status', {
+      navigate("/submission-status", {
         state: {
-          status: 'error',
-          message: 'Failed to allocate faculties',
+          status: "error",
+          message: "Failed to allocate faculties",
           error: err.message,
-          formName: 'verification panel allocation'
-        }
+          formName: "verification panel allocation",
+        },
       });
     }
   };
@@ -173,8 +182,14 @@ const VerificationPanel = () => {
     });
   };
 
-  if (loading) return <div className="flex justify-center items-center h-64"><RefreshCw className="animate-spin text-blue-600" size={48} /></div>;
-  if (error) return <div className="text-red-600 p-4 bg-red-50 rounded-lg">{error}</div>;
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-64">
+        <RefreshCw className="animate-spin text-blue-600" size={48} />
+      </div>
+    );
+  if (error)
+    return <div className="text-red-600 p-4 bg-red-50 rounded-lg">{error}</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -261,22 +276,25 @@ const VerificationPanel = () => {
                                 faculty._id !== extractFacultyId(member)
                             )
                             .map((faculty) => {
-                              const isAllocated = isFacultyAllocated(faculty._id, member);
+                              const isAllocated = isFacultyAllocated(
+                                faculty._id,
+                                member
+                              );
                               return (
                                 <tr
                                   key={faculty._id}
                                   className={`border-b ${
-                                    isAllocated 
-                                      ? 'bg-gray-50 opacity-60' 
-                                      : 'hover:bg-gray-50'
+                                    isAllocated
+                                      ? "bg-gray-50 opacity-60"
+                                      : "hover:bg-gray-50"
                                   }`}
                                 >
                                   <td className="px-6 py-4">
                                     <input
                                       type="checkbox"
-                                      checked={selectedFaculties[member]?.includes(
-                                        faculty._id
-                                      )}
+                                      checked={selectedFaculties[
+                                        member
+                                      ]?.includes(faculty._id)}
                                       onChange={() =>
                                         handleFacultySelection(
                                           member,
