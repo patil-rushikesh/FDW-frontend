@@ -36,7 +36,6 @@ const AddFaculty = () => {
     "Professor",
     "Assistant Professor",
     "Associate Professor",
-    "external",
   ];
 
   const [formData, setFormData] = useState({
