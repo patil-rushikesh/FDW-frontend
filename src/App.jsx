@@ -37,6 +37,10 @@ import AssociateDeansList from "./components/Dean/AssociateDeansList";
 import DeanEvaluationForm from "./components/Dean/DeanEvaluationForm";
 // Import the new component
 import AddExternalFaculty from "./components/HOD/AddExternalFaculty";
+// Import the new component
+import AssignFacultyToExternal from "./components/HOD/AssignFacultyToExternal";
+// Import the external dashboard component
+import ExternalDashboard from "./components/External/ExternalDashboard";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -49,7 +53,7 @@ const ProtectedRoute = ({ children }) => {
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, userRole } = useAuth(); // Make sure you get userRole from your auth context
   const [showSplash, setShowSplash] = useState(!isAuthenticated);
 
   useEffect(() => {
@@ -69,10 +73,14 @@ function AppContent() {
   return (
     <FormProvider>
       <div className="min-h-screen bg-gray-50">
-        {isAuthenticated && (
+        {isAuthenticated && userRole !== "external" && (
           <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         )}
-        <div className={isAuthenticated ? "lg:ml-64" : ""}>
+        <div
+          className={
+            isAuthenticated && userRole !== "external" ? "lg:ml-64" : ""
+          }
+        >
           {isAuthenticated && (
             <Navbar onMenuClick={() => setSidebarOpen(true)} />
           )}
@@ -210,6 +218,22 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <AddExternalFaculty />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/hod/assign-faculty-external"
+                    element={
+                      <ProtectedRoute>
+                        <AssignFacultyToExternal />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/external/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <ExternalDashboard />
                       </ProtectedRoute>
                     }
                   />
