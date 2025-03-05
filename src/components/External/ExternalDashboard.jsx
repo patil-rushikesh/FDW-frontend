@@ -61,12 +61,12 @@ const ExternalDashboard = () => {
     }
 
     // // Setup mock faculty assignments
-    // const mockAssignments = {
-    //   ext1: ["1", "2", "3"],
-    //   ext2: ["4", "5"],
-    //   ext3: ["2", "6"],
-    // };
-    // localStorage.setItem("facultyAssignments", JSON.stringify(mockAssignments));
+    const mockAssignments = {
+      ext1: ["1", "2", "3"],
+      ext2: ["4", "5"],
+      ext3: ["2", "6"],
+    };
+    localStorage.setItem("facultyAssignments", JSON.stringify(mockAssignments));
 
     // Load saved evaluations or initialize empty
     const savedEvaluations = localStorage.getItem("externalEvaluations");
