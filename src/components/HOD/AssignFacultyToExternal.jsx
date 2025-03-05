@@ -30,16 +30,6 @@ const AssignFacultyToExternal = () => {
 
   // Load data from localStorage on component mount
   useEffect(() => {
-    // Load external faculty
-    const savedExternalFaculty = localStorage.getItem("externalFaculty");
-    if (savedExternalFaculty) {
-      try {
-        setExternalFacultyList(JSON.parse(savedExternalFaculty));
-      } catch (error) {
-        console.error("Error parsing external faculty data:", error);
-      }
-    }
-
     // Load existing assignments
     const savedAssignments = localStorage.getItem("facultyAssignments");
     if (savedAssignments) {
@@ -113,6 +103,67 @@ const AssignFacultyToExternal = () => {
     localStorage.setItem("facultyAssignments", JSON.stringify(assignments));
   }, [assignments]);
 
+  // First, remove the localStorage related code for external faculty and add this useEffect
+  useEffect(() => {
+    const fetchExternalFaculty = async () => {
+      if (!userDept) return;
+
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `http://localhost:5000/${userDept}/get-externals`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch external faculty list");
+        }
+
+        const data = await response.json();
+        console.log("Fetched external faculty:", data);
+
+        // Transform the data to match component structure
+        const formattedExternals = data.data.map((external) => ({
+          id: external._id,
+          name: external.full_name,
+          designation: external.designation,
+          organization: external.organization,
+          email: external.email,
+        }));
+
+        setExternalFacultyList(formattedExternals);
+      } catch (error) {
+        console.error("Error fetching external faculty:", error);
+        toast.error("Failed to load external faculty list");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExternalFaculty();
+  }, [userDept]);
+
+  // Add useEffect to fetch existing assignments
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      if (!userDept) return;
+
+      try {
+        const response = await fetch(
+          `http://localhost:5000/${userDept}/external-assignments`
+        );
+        if (!response.ok) throw new Error("Failed to fetch assignments");
+
+        const data = await response.json();
+        setAssignments(data.data || {});
+      } catch (error) {
+        console.error("Error fetching assignments:", error);
+        toast.error("Failed to load assignments");
+      }
+    };
+
+    fetchAssignments();
+  }, [userDept]);
+
   const openAssignModal = (externalFaculty) => {
     setSelectedExternal(externalFaculty);
     setModalOpen(true);
@@ -124,50 +175,108 @@ const AssignFacultyToExternal = () => {
     setSearchQuery("");
   };
 
-  const handleAssignFaculty = (internalFacultyId) => {
+  // Update the handleAssignFaculty function
+  const handleAssignFaculty = async (internalFacultyId) => {
     if (!selectedExternal) return;
 
     const externalId = selectedExternal.id;
-
     setLoading(true);
 
-    // Simulate API delay
-    setTimeout(() => {
-      setAssignments((prev) => {
-        // Initialize if not exists
-        const currentAssignments = prev[externalId] || [];
+    try {
+      // Get current assignments
+      const currentAssignments =
+        assignments[externalId]?.assigned_faculty || [];
 
-        // Check if already assigned
-        if (currentAssignments.includes(internalFacultyId)) {
-          toast.error("This faculty is already assigned");
-          setLoading(false);
-          return prev;
+      // Check if already assigned
+      if (
+        currentAssignments.some((faculty) => faculty._id === internalFacultyId)
+      ) {
+        toast.error("This faculty is already assigned");
+        return;
+      }
+
+      // Prepare the assignments data structure
+      const external_assignments = {
+        [externalId]: [
+          ...(assignments[externalId]?.assigned_faculty?.map((f) => f._id) ||
+            []),
+          internalFacultyId,
+        ],
+      };
+
+      // Make API call
+      const response = await fetch(
+        `http://localhost:5000/${userDept}/assign-externals`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ external_assignments }),
         }
+      );
 
-        // Add to assignments
-        const newAssignments = {
-          ...prev,
-          [externalId]: [...currentAssignments, internalFacultyId],
-        };
+      const data = await response.json();
 
-        toast.success("Faculty assigned successfully");
-        setLoading(false);
-        return newAssignments;
-      });
-    }, 500);
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to assign faculty");
+      }
+
+      // Update local state with the response data
+      setAssignments(data.assignments);
+      toast.success("Faculty assigned successfully");
+    } catch (error) {
+      console.error("Error assigning faculty:", error);
+      toast.error(error.message || "Failed to assign faculty");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleRemoveFaculty = (externalId, internalFacultyId) => {
-    setAssignments((prev) => {
-      const currentAssignments = prev[externalId] || [];
-      return {
-        ...prev,
-        [externalId]: currentAssignments.filter(
-          (id) => id !== internalFacultyId
-        ),
+  // Update the handleRemoveFaculty function
+  const handleRemoveFaculty = async (externalId, internalFacultyId) => {
+    try {
+      setLoading(true);
+
+      // Get current assignments excluding the faculty to remove
+      const currentAssignments =
+        assignments[externalId]?.assigned_faculty || [];
+      const updatedFacultyIds = currentAssignments
+        .filter((faculty) => faculty._id !== internalFacultyId)
+        .map((faculty) => faculty._id);
+
+      // Prepare the assignments data structure
+      const external_assignments = {
+        [externalId]: updatedFacultyIds,
       };
-    });
-    toast.success("Faculty removed from assignment");
+
+      // Make API call
+      const response = await fetch(
+        `http://localhost:5000/${userDept}/assign-externals`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ external_assignments }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to remove faculty");
+      }
+
+      // Update local state with the response data
+      setAssignments(data.assignments);
+      toast.success("Faculty removed successfully");
+    } catch (error) {
+      console.error("Error removing faculty:", error);
+      toast.error(error.message || "Failed to remove faculty");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Filter internal faculty based on search query
@@ -177,19 +286,15 @@ const AssignFacultyToExternal = () => {
       faculty.department.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Get the assigned faculty details for an external faculty
+  // Update the getAssignedFacultyDetails function
   const getAssignedFacultyDetails = (externalId) => {
-    const assignedIds = assignments[externalId] || [];
-    return internalFacultyList.filter((faculty) =>
-      assignedIds.includes(faculty.id)
-    );
+    return assignments[externalId]?.assigned_faculty || [];
   };
 
-  // Add this helper function after your existing helper functions
+  // Update the isFacultyAssignedToAnyExternal function
   const isFacultyAssignedToAnyExternal = (facultyId) => {
-    // Check if faculty is assigned to any external reviewer
-    return Object.values(assignments).some((assignedFaculties) =>
-      assignedFaculties.includes(facultyId)
+    return Object.values(assignments).some((assignment) =>
+      assignment?.assigned_faculty?.some((faculty) => faculty._id === facultyId)
     );
   };
 
@@ -207,7 +312,12 @@ const AssignFacultyToExternal = () => {
         </div>
 
         <div className="p-6">
-          {externalFacultyList.length === 0 ? (
+          {loading && externalFacultyList.length === 0 ? (
+            <div className="text-center py-8">
+              <RefreshCw className="animate-spin h-8 w-8 text-indigo-600 mx-auto" />
+              <p className="mt-2 text-gray-500">Loading external faculty...</p>
+            </div>
+          ) : externalFacultyList.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <p>
                 No external faculty members available. Please add external
@@ -257,7 +367,7 @@ const AssignFacultyToExternal = () => {
                         <ul className="space-y-2">
                           {assignedFaculty.map((faculty) => (
                             <li
-                              key={faculty.id}
+                              key={faculty._id}
                               className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-md"
                             >
                               <div className="flex items-center">
@@ -268,13 +378,10 @@ const AssignFacultyToExternal = () => {
                                 <span className="text-gray-800">
                                   {faculty.name}
                                 </span>
-                                <span className="text-gray-500 text-sm ml-2">
-                                  ({faculty.department})
-                                </span>
                               </div>
                               <button
                                 onClick={() =>
-                                  handleRemoveFaculty(external.id, faculty.id)
+                                  handleRemoveFaculty(external.id, faculty._id)
                                 }
                                 className="text-red-600 hover:text-red-800"
                                 title="Remove assignment"
@@ -343,20 +450,18 @@ const AssignFacultyToExternal = () => {
                     Allocated Faculties
                   </h4>
                   <div className="flex flex-wrap gap-2">
-                    {(assignments[selectedExternal.id] || []).length > 0 ? (
-                      assignments[selectedExternal.id].map((facultyId) => {
-                        const faculty = internalFacultyList.find(
-                          (f) => f.id === facultyId
-                        );
-                        return (
+                    {assignments[selectedExternal.id]?.assigned_faculty
+                      ?.length > 0 ? (
+                      assignments[selectedExternal.id].assigned_faculty.map(
+                        (faculty) => (
                           <span
-                            key={facultyId}
+                            key={faculty._id}
                             className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                           >
-                            {faculty?.name} ({faculty?.department})
+                            {faculty.name}
                           </span>
-                        );
-                      })
+                        )
+                      )
                     ) : (
                       <span className="text-gray-500 text-sm italic">
                         No faculties allocated yet
@@ -392,9 +497,15 @@ const AssignFacultyToExternal = () => {
                       </thead>
                       <tbody>
                         {filteredInternalFaculty.map((faculty) => {
-                          const isAssigned = (
-                            assignments[selectedExternal.id] || []
-                          ).includes(faculty.id);
+                          // Check if faculty is assigned to current external
+                          const isAssigned = assignments[
+                            selectedExternal.id
+                          ]?.assigned_faculty?.some(
+                            (assignedFaculty) =>
+                              assignedFaculty._id === faculty.id
+                          );
+
+                          // Check if faculty is assigned to any other external
                           const isAssignedToOther =
                             !isAssigned &&
                             isFacultyAssignedToAnyExternal(faculty.id);
@@ -420,8 +531,10 @@ const AssignFacultyToExternal = () => {
                                 />
                               </td>
                               <td className="px-6 py-4">
-                                {faculty.employeeId || faculty.empId || faculty.id || "N/A"}{" "}
-                                {/* Add fallback options */}
+                                {faculty.employeeId ||
+                                  faculty.empId ||
+                                  faculty.id ||
+                                  "N/A"}
                               </td>
                               <td className="px-6 py-4 font-medium">
                                 {faculty.name}

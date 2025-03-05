@@ -12,9 +12,9 @@ import {
 
 const AddExternalFaculty = () => {
   const [formData, setFormData] = useState({
-    name: "",
+    full_name: "",
     email: "",
-    mobile: "",
+    mobile_no: "",
     designation: "",
     specialization: "",
     organization: "",
@@ -23,23 +23,43 @@ const AddExternalFaculty = () => {
 
   const [loading, setLoading] = useState(false);
   const [facultyList, setFacultyList] = useState([]);
+  const [userDept, setUserDept] = useState("");
 
-  // Load faculty list from localStorage on component mount
+  // Get user department from localStorage
   useEffect(() => {
-    const savedFaculty = localStorage.getItem("externalFaculty");
-    if (savedFaculty) {
-      try {
-        setFacultyList(JSON.parse(savedFaculty));
-      } catch (error) {
-        console.error("Error parsing saved faculty data:", error);
-      }
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    if (userData?.dept) {
+      setUserDept(userData.dept);
     }
   }, []);
 
-  // Save faculty list to localStorage whenever it changes
+  // Update the useEffect for fetching faculty list
   useEffect(() => {
-    localStorage.setItem("externalFaculty", JSON.stringify(facultyList));
-  }, [facultyList]);
+    const fetchExternalFaculty = async () => {
+      if (!userDept) return;
+
+      try {
+        const response = await fetch(
+          `http://localhost:5000/${userDept}/get-externals`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch external faculty");
+        }
+
+        const data = await response.json();
+        console.log("Fetched external faculty:", data);
+
+        // Update faculty list with data from backend
+        setFacultyList(data.data || []);
+      } catch (error) {
+        console.error("Error fetching external faculty:", error);
+        toast.error("Failed to load external faculty list");
+      }
+    };
+
+    fetchExternalFaculty();
+  }, [userDept]); // Depend on userDept to refetch when it changes
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -49,63 +69,78 @@ const AddExternalFaculty = () => {
     }));
   };
 
+  // Update the handleSubmit function
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Validate form
-      if (
-        !formData.name ||
-        !formData.email ||
-        !formData.mobile ||
-        !formData.designation
-      ) {
-        toast.error("Please fill all required fields");
+      // Validate required fields
+      const requiredFields = [
+        "full_name",
+        "email",
+        "mobile_no",
+        "designation",
+        "specialization",
+        "organization",
+      ];
+
+      const missingFields = requiredFields.filter((field) => !formData[field]);
+
+      if (missingFields.length > 0) {
+        toast.error(`Missing required fields: ${missingFields.join(", ")}`);
         setLoading(false);
         return;
       }
 
-      // Email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        toast.error("Please enter a valid email address");
-        setLoading(false);
-        return;
-      }
-
-      // Mobile validation
-      if (!/^\d{10}$/.test(formData.mobile)) {
-        toast.error("Mobile number should be 10 digits");
-        setLoading(false);
-        return;
-      }
-
-      // Check for duplicate email
-      if (facultyList.some((faculty) => faculty.email === formData.email)) {
-        toast.error("A faculty with this email already exists");
-        setLoading(false);
-        return;
-      }
-
-      // Add timestamp and id to the new faculty record
-      const newFaculty = {
-        ...formData,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
+      // Format data to match backend expectations
+      const requestData = {
+        full_name: formData.full_name.trim(),
+        email: formData.email.trim(),
+        mobile_no: formData.mobile_no.trim(),
+        designation: formData.designation.trim(),
+        specialization: formData.specialization.trim(),
+        organization: formData.organization.trim(),
+        address: formData.address.trim() || "", // Optional field
       };
 
-      // Simulating API call with timeout
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Debug log
+      console.log("Sending data:", requestData);
+      console.log("Department:", userDept);
 
-      // Add to the list
-      setFacultyList((prev) => [newFaculty, ...prev]);
+      const response = await fetch(
+        `http://localhost:5000/${userDept}/create-external`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(requestData),
+          credentials: "include", // Include cookies if needed
+        }
+      );
+
+      // Debug log
+      console.log("Response status:", response.status);
+
+      const data = await response.json();
+      console.log("Response data:", data);
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to add external faculty");
+      }
 
       toast.success("External faculty added successfully!");
+
+      // Add the new faculty to the list
+      setFacultyList((prev) => [...prev, data.data]);
+
+      // Reset form
       setFormData({
-        name: "",
+        full_name: "",
         email: "",
-        mobile: "",
+        mobile_no: "",
         designation: "",
         specialization: "",
         organization: "",
@@ -113,7 +148,7 @@ const AddExternalFaculty = () => {
       });
     } catch (error) {
       console.error("Error adding external faculty:", error);
-      toast.error("Failed to add external faculty");
+      toast.error(error.message || "Failed to add external faculty");
     } finally {
       setLoading(false);
     }
@@ -160,8 +195,8 @@ const AddExternalFaculty = () => {
               </label>
               <input
                 type="text"
-                name="name"
-                value={formData.name}
+                name="full_name"
+                value={formData.full_name}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 placeholder="Enter full name"
@@ -194,8 +229,8 @@ const AddExternalFaculty = () => {
               </label>
               <input
                 type="text"
-                name="mobile"
-                value={formData.mobile}
+                name="mobile_no"
+                value={formData.mobile_no}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 placeholder="Enter 10-digit mobile number"
@@ -362,10 +397,10 @@ const AddExternalFaculty = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {facultyList.map((faculty) => (
-                    <tr key={faculty.id} className="hover:bg-gray-50">
+                    <tr key={faculty._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="font-medium text-gray-900">
-                          {faculty.name}
+                          {faculty.full_name}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -373,7 +408,7 @@ const AddExternalFaculty = () => {
                           {faculty.email}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {faculty.mobile}
+                          {faculty.mobile_no}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -391,7 +426,7 @@ const AddExternalFaculty = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
-                          onClick={() => handleDelete(faculty.id)}
+                          onClick={() => handleDelete(faculty._id)}
                           className="text-red-600 hover:text-red-900 focus:outline-none"
                         >
                           <Trash2 size={18} />
