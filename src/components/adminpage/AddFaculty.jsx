@@ -180,7 +180,7 @@ const AddFaculty = () => {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">
-                      Designation
+                      Role
                     </label>
                     <select
                       name="desg"
@@ -200,7 +200,7 @@ const AddFaculty = () => {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">
-                      Role
+                      Designatin
                     </label>
                     <select
                       name="role"

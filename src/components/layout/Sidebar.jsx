@@ -45,7 +45,7 @@ const hodPrivilegeItems = [
     label: "Department Faculty Forms",
     path: "/hod/faculty-forms-list", // Changed path here
   },
-  { icon: Users, label: "Verification Panal", path: "/hod/department-review" },
+  { icon: Users, label: "Verification Panel", path: "/hod/department-review" },
 ];
 
 const directorPrivilegeItems = [
