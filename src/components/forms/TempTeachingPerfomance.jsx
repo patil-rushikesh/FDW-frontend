@@ -184,10 +184,17 @@ const ScoreCard = ({ label, score, total, isManual, onManualScoreChange, manualS
         <input
           type="number"
           value={manualScore}
-          onChange={(e) => onManualScoreChange(e.target.value)}
+          onChange={(e) => {
+            // Ensure the value doesn't exceed the total maximum marks
+            const value = Math.min(Number(e.target.value), Number(total));
+            onManualScoreChange(value >= 0 ? value : 0);
+          }}
           className="w-20 px-2 py-1 border rounded"
           min="0"
           max={total}
+          onKeyDown={(e) => {
+            if (e.key === "-") e.preventDefault();
+          }}
         />
         <span className="text-lg font-bold text-blue-600">/ {total}</span>
       </div>
@@ -627,23 +634,35 @@ const TeachingPerformance = () => {
       ])
     );
   
+    // Ensure all manual scores are within their respective limits
+    const validatedManualScores = {
+      resultAnalysis: Math.min(Number(manualScores.resultAnalysis) || 0, 50),
+      courseOutcome: Math.min(Number(manualScores.courseOutcome) || 0, 50),
+      elearning: Math.min(Number(manualScores.elearning) || 0, 50),
+      academicEngagement: Math.min(Number(manualScores.academicEngagement) || 0, 50),
+      teachingLoad: Math.min(Number(manualScores.teachingLoad) || 0, 50),
+      projects: Math.min(Number(manualScores.projects) || 0, 40),
+      feedback: Math.min(Number(manualScores.feedback) || 0, 100),
+      ptgMeetings: Math.min(Number(manualScores.ptgMeetings) || 0, 50),
+    };
+    
     const scores = manualScoring ? {
-      resultScore: Number(manualScores.resultAnalysis),
-      coScore: Number(manualScores.courseOutcome),
-      elearningScore: Number(manualScores.elearning),
-      academicEngagementScore: Number(manualScores.academicEngagement),
-      teachingLoadScore: Number(manualScores.teachingLoad),
-      projectScore: Number(manualScores.projects),
-      feedbackScore: Number(manualScores.feedback),
-      ptgScore: Number(manualScores.ptgMeetings),
-      finalScore: Object.values(manualScores).reduce((a, b) => Number(a) + Number(b), 0)
+      resultScore: validatedManualScores.resultAnalysis,
+      coScore: validatedManualScores.courseOutcome,
+      elearningScore: validatedManualScores.elearning,
+      academicEngagementScore: validatedManualScores.academicEngagement,
+      teachingLoadScore: validatedManualScores.teachingLoad,
+      projectScore: validatedManualScores.projects,
+      feedbackScore: validatedManualScores.feedback,
+      ptgScore: validatedManualScores.ptgMeetings,
+      finalScore: Object.values(validatedManualScores).reduce((a, b) => Number(a) + Number(b), 0)
     } : calculateScores();
   
     const payload = {
       isManualScoring: manualScoring,
       1: {
         courses: resultAnalysisCourses,
-        total_marks: manualScoring ? Number(manualScores.resultAnalysis) : scores.resultScore,
+        total_marks: manualScoring ? validatedManualScores.resultAnalysis : scores.resultScore,
       },
       2: {
         courses: Object.fromEntries(
@@ -663,11 +682,11 @@ const TeachingPerformance = () => {
           "Sem I": scores.sem1COScore,
           "Sem II": scores.sem2COScore,
         },
-        total_marks: manualScoring ? Number(manualScores.courseOutcome) : scores.coScore,
+        total_marks: manualScoring ? validatedManualScores.courseOutcome : scores.coScore,
       },
       3: {
         elearningInstances: Number(formData.elearningInstances),
-        total_marks: manualScoring ? Number(manualScores.elearning) : scores.elearningScore,
+        total_marks: manualScoring ? validatedManualScores.elearning : scores.elearningScore,
       },
       4: {
         courses: Object.fromEntries(
@@ -680,18 +699,18 @@ const TeachingPerformance = () => {
             },
           ])
         ),
-        total_marks: manualScoring ? Number(manualScores.academicEngagement) : scores.academicEngagementScore,
+        total_marks: manualScoring ? validatedManualScores.academicEngagement : scores.academicEngagementScore,
       },
       5: {
         weeklyLoadSem1: Number(formData.weeklyLoadSem1),
         weeklyLoadSem2: Number(formData.weeklyLoadSem2),
         adminResponsibility: formData.adminResponsibility ? 1 : 0,
         cadre: userData.role,
-        total_marks: manualScoring ? Number(manualScores.teachingLoad) : scores.teachingLoadScore,
+        total_marks: manualScoring ? validatedManualScores.teachingLoad : scores.teachingLoadScore,
       },
       6: {
         projectsGuided: Number(formData.projectsGuided),
-        total_marks: manualScoring ? Number(manualScores.projects) : scores.projectScore,
+        total_marks: manualScoring ? validatedManualScores.projects : scores.projectScore,
       },
       7: {
         courses: Object.fromEntries(
@@ -703,17 +722,18 @@ const TeachingPerformance = () => {
             },
           ])
         ),
-        total_marks: manualScoring ? Number(manualScores.feedback) : scores.feedbackScore,
+        total_marks: manualScoring ? validatedManualScores.feedback : scores.feedbackScore,
       },
       8: {
         ptgMeetings: Number(formData.ptgMeetings),
-        total_marks: manualScoring ? Number(manualScores.ptgMeetings) : scores.ptgScore,
+        total_marks: manualScoring ? validatedManualScores.ptgMeetings : scores.ptgScore,
       },
-        total_marks: manualScoring 
-    ? Object.values(manualScores).reduce((a, b) => Number(a) + Number(b), 0)
-    : scores.finalScore,
+      total_marks: manualScoring 
+      ? Math.ceil(Object.values(validatedManualScores).reduce((a, b) => Number(a) + Number(b), 0) * 
+        (userData.role === "Professor" ? 0.68 : 
+         userData.role === "Associate Professor" ? 0.818 : 1))
+      : Math.ceil(scores.finalScore),
     };
-  
   
     try {
       const response = await fetch(
@@ -737,6 +757,7 @@ const TeachingPerformance = () => {
           },
         });
       } else {
+        const errorData = await response.json();
         throw new Error(errorData.error || "Failed to submit data");
       }
     } catch (error) {
@@ -749,8 +770,6 @@ const TeachingPerformance = () => {
       });
     }
   };
-  
-
   const scores = calculateScores();
 
   return (
@@ -964,41 +983,63 @@ const TeachingPerformance = () => {
   />
 </SectionCard>
 
-{/* Total Score Section */}
-<SectionCard title="Total Academic Performance Score" icon="📑" borderColor="border-red-500">
+<SectionCard title="Final Score Calculation" icon="🧮" borderColor="border-orange-500">
   <div className="overflow-x-auto">
     <table className="min-w-full divide-y divide-gray-200">
       <thead className="bg-gray-50">
         <tr>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Cadre
+            Component
           </th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Maximum Marks
+            Score
           </th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Your Score
+            Maximum
           </th>
         </tr>
       </thead>
       <tbody className="bg-white divide-y divide-gray-200">
         <tr>
-          <td className="px-6 py-4 whitespace-nowrap">{userData.role}</td>
-          <td className="px-6 py-4 whitespace-nowrap">
-            {userData.role === "Professor" ? "300" : 
-             userData.role === "Associate Professor" ? "360" : "440"}
-          </td>
+          <td className="px-6 py-4 whitespace-nowrap">Raw Sum of All Sections</td>
           <td className="px-6 py-4 whitespace-nowrap">
             {manualScoring 
               ? Object.values(manualScores).reduce((a, b) => Number(a) + Number(b), 0).toFixed(2)
-              : scores.finalScore.toFixed(2)}
+              : scores.rawTotal.toFixed(2)}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap">440</td>
+        </tr>
+        <tr>
+          <td className="px-6 py-4 whitespace-nowrap">
+            Role Adjustment Factor ({userData.role})
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap">
+            {userData.role === "Professor" ? "0.68" : 
+             userData.role === "Associate Professor" ? "0.818" : "1.00"}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap">-</td>
+        </tr>
+        <tr className="bg-blue-50">
+          <td className="px-6 py-4 whitespace-nowrap font-bold">Final Adjusted Score</td>
+          <td className="px-6 py-4 whitespace-nowrap font-bold">
+            {manualScoring 
+              ? Math.ceil(Object.values(manualScores).reduce((a, b) => Number(a) + Number(b), 0) * 
+                 (userData.role === "Professor" ? 0.68 : 
+                  userData.role === "Associate Professor" ? 0.818 : 1))
+              : Math.ceil(scores.finalScore)}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap font-bold">
+            {userData.role === "Professor" 
+              ? Math.ceil(440 * 0.68) 
+              : userData.role === "Associate Professor" 
+                ? Math.ceil(440 * 0.818) 
+                : 440}
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 </SectionCard>
-
       {/* Submit Button */}
       <div className="flex justify-end mt-8">
         <button
