@@ -87,6 +87,24 @@ const FacultyFormsList = () => {
     "Dean",
   ];
 
+  // Helper function to get numeric marks value regardless of format
+  const getNumericMarks = (faculty) => {
+    if (!faculty) return 0;
+    if (faculty.status === "pending") return 0;
+
+    if (typeof faculty.grand_marks === "object" && faculty.grand_marks) {
+      return Number(faculty.grand_marks.grand_total || 0);
+    } else if (typeof faculty.grand_marks === "number") {
+      return faculty.grand_marks;
+    } else if (
+      typeof faculty.grand_marks === "string" &&
+      !isNaN(faculty.grand_marks)
+    ) {
+      return Number(faculty.grand_marks);
+    }
+    return 0;
+  };
+
   // Update the filteredData useMemo function
   const filteredData = useMemo(() => {
     return facultyData
@@ -102,11 +120,16 @@ const FacultyFormsList = () => {
           faculty._id.toLowerCase().includes(filters.search.toLowerCase()) ||
           faculty.name?.toLowerCase().includes(filters.search.toLowerCase());
         const roleMatch = !filters.role || faculty.role === filters.role;
+
+        const facultyMarks = getNumericMarks(faculty);
+
         const marksMatch =
           (!filters.minMarks ||
-            faculty.grand_marks >= Number(filters.minMarks)) &&
+            filters.minMarks === "" ||
+            facultyMarks >= Number(filters.minMarks)) &&
           (!filters.maxMarks ||
-            faculty.grand_marks <= Number(filters.maxMarks));
+            filters.maxMarks === "" ||
+            facultyMarks <= Number(filters.maxMarks));
 
         return searchMatch && roleMatch && marksMatch;
       })
@@ -114,9 +137,12 @@ const FacultyFormsList = () => {
         if (!sortConfig.key) return 0;
 
         if (sortConfig.key === "marks") {
+          const marksA = getNumericMarks(a);
+          const marksB = getNumericMarks(b);
+
           return sortConfig.direction === "asc"
-            ? a.grand_marks - b.grand_marks
-            : b.grand_marks - a.grand_marks;
+            ? marksA - marksB
+            : marksB - marksA;
         }
         return 0;
       });
@@ -305,14 +331,29 @@ const FacultyFormsList = () => {
                   </div>
                   <button
                     onClick={toggleSort}
-                    className="flex items-center gap-2 p-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+                    className="flex items-center gap-2 p-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                    aria-label={`Sort by marks ${sortConfig.direction === "asc" ? "ascending" : "descending"}`}
+                    title={`Sort by marks ${sortConfig.direction === "asc" ? "low to high" : "high to low"}`}
                   >
                     {sortConfig.direction === "asc" ? (
-                      <SortAsc size={16} />
+                      <SortAsc size={16} className="text-blue-600" />
                     ) : (
-                      <SortDesc size={16} />
+                      <SortDesc size={16} className="text-blue-600" />
                     )}
-                    Sort by Marks
+                    <span
+                      className={
+                        sortConfig.key === "marks"
+                          ? "font-medium text-blue-700"
+                          : ""
+                      }
+                    >
+                      Sort by Marks{" "}
+                      {sortConfig.key === "marks"
+                        ? sortConfig.direction === "asc"
+                          ? "(Low to High)"
+                          : "(High to Low)"
+                        : ""}
+                    </span>
                   </button>
                 </div>
               </div>
