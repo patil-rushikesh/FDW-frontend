@@ -3,6 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ClipLoader } from "react-spinners";
 
+
+
+
+
+
 const SectionCard = ({ title, icon, borderColor, children }) => (
   <div
     className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${borderColor} hover:shadow-lg transition-all duration-300 mb-8`}
@@ -14,6 +19,7 @@ const SectionCard = ({ title, icon, borderColor, children }) => (
     {children}
   </div>
 );
+
 
 const ScoreCard = ({ label, score, total, verifiedScore }) => (
   <div className="space-y-2">
@@ -47,6 +53,7 @@ const InputFieldWithProof = ({
   onProofChange,
   verifiedScore,
   disabled = false,
+  formStatus // Add this prop
 }) => (
   <div className="mb-4">
     <div className="flex items-center gap-4 mb-1">
@@ -62,6 +69,7 @@ const InputFieldWithProof = ({
       </label>
     </div>
     <div className="flex items-center gap-2">
+      {/* For the first input (count/amount input) */}
       <input
         type={type}
         name={name}
@@ -78,7 +86,6 @@ const InputFieldWithProof = ({
           });
         }}
         placeholder={placeholder}
-        disabled={disabled}
         min="0"
         onKeyDown={(e) => {
           if (e.key === "-") {
@@ -88,6 +95,8 @@ const InputFieldWithProof = ({
         onWheel={(e) => e.target.blur()}
         className="w-1/6 px-4 py-2 bg-blue-50 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       />
+
+      {/* For the proof document input */}
       <input
         type="url"
         value={proofValue}
@@ -110,6 +119,8 @@ const Research = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const userData = JSON.parse(localStorage.getItem("userData"));
+  const [formStatus, setFormStatus] = useState("pending");
+  const [showStatusModal, setShowStatusModal] = useState(false);
 
   const initialState = {
     // 1. Papers Published in Quality Journal
@@ -578,6 +589,8 @@ const Research = () => {
         newVerifiedScores.final_verified_marks = data.final_verified_marks;
       }
 
+
+
       return { newFormData, newVerifiedScores };
     };
 
@@ -610,7 +623,39 @@ const Research = () => {
     };
 
     fetchExistingData();
+    fetchFormStatus(); 
   }, []);
+
+        // Add this new function to fetch the form status
+const fetchFormStatus = async () => {
+  try {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    if (!userData?.dept || !userData?._id) return;
+
+    const response = await fetch(
+      `http://127.0.0.1:5000/${userData.dept}/${userData._id}/get-status`
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      setFormStatus(data.status);
+    } else {
+      throw new Error("Failed to fetch status");
+    }
+  } catch (error) {
+    console.error("Error fetching form status:", error);
+  }
+};
+
+
+// Add this function to handle submit button click
+const handleSubmitClick = () => {
+  if (formStatus !== "pending") {
+    setShowStatusModal(true);
+  } else {
+    handleSubmit();
+  }
+};
 
   const handleInputChange = (field, subfield, value) => {
     setFormData((prev) => ({
@@ -2464,22 +2509,49 @@ const Research = () => {
         </div>
       </SectionCard>
       {/* Submit Button */}
-      <div className="flex justify-end mt-8">
+{/* Submit Button */}
+<div className="flex justify-end mt-8">
+  <button
+    onClick={handleSubmitClick} // Changed from handleSubmit to handleSubmitClick
+    disabled={isSubmitting}
+    className={`px-6 py-3 rounded-lg focus:ring-4 focus:ring-blue-300 transition-colors duration-300
+      ${formStatus !== "pending" 
+        ? 'bg-gray-400 cursor-not-allowed text-white'
+        : isSubmitting
+          ? 'bg-blue-400 cursor-not-allowed text-white'
+          : 'bg-blue-600 hover:bg-blue-700 text-white'
+      }`}
+  >
+    {isSubmitting ? (
+      <span className="flex items-center gap-2">
+        <ClipLoader color="#ffffff" size={20} />
+        Submitting...
+      </span>
+    ) : (
+      "Save Research Details"
+    )}
+  </button>
+</div>
+{/* Add this Status Modal */}
+{showStatusModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+      <h3 className="text-xl font-bold text-red-600 mb-4">Form Locked</h3>
+      <p className="mb-6">
+        This form cannot be edited because its current status is "{formStatus}".
+        Only forms with "pending" status can be modified.
+      </p>
+      <div className="flex justify-end">
         <button
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+          onClick={() => setShowStatusModal(false)}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
-          {isSubmitting ? (
-            <>
-              <ClipLoader color="#ffffff" size={20} />
-              Submitting...
-            </>
-          ) : (
-            "Submit Research Details"
-          )}
+          Close
         </button>
       </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

@@ -305,7 +305,6 @@ const TeachingPerformance = () => {
 
   const [manualScoring, setManualScoring] = useState(false);
   const [manualScores, setManualScores] = useState({
-
     resultAnalysis: 0,
     courseOutcome: 0,
     elearning: 0,
@@ -317,6 +316,10 @@ const TeachingPerformance = () => {
   });
 
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Add these state declarations here - at the top with other state hooks
+  const [formStatus, setFormStatus] = useState("pending");
+  const [showStatusModal, setShowStatusModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -403,6 +406,31 @@ const TeachingPerformance = () => {
     fetchData();
   }, []);
 
+  // Add this useEffect to fetch the form status
+  useEffect(() => {
+    const fetchStatus = async () => {
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      if (!userData?.dept || !userData?._id) return;
+
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:5000/${userData.dept}/${userData._id}/get-status`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch status");
+        }
+
+        const data = await response.json();
+        setFormStatus(data.status);
+      } catch (error) {
+        console.error("Error fetching form status:", error);
+      }
+    };
+
+    fetchStatus();
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -410,6 +438,15 @@ const TeachingPerformance = () => {
       </div>
     );
   }
+
+  // Add this function to handle submit button click
+  const handleSubmitClick = () => {
+    if (formStatus !== "pending") {
+      setShowStatusModal(true);
+    } else {
+      handleSubmit();
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -1041,14 +1078,40 @@ const TeachingPerformance = () => {
   </div>
 </SectionCard>
       {/* Submit Button */}
-      <div className="flex justify-end mt-8">
+{/* Submit Button */}
+<div className="flex justify-end mt-8">
+  <button
+    onClick={handleSubmitClick}
+    className={`px-6 py-3 ${
+      formStatus === "pending"
+        ? "bg-blue-600 text-white hover:bg-blue-700"
+        : "bg-gray-300 text-gray-600 cursor-not-allowed"
+    } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out`}
+  >
+    Save Teaching Performance Data
+  </button>
+</div>
+
+{/* Status Modal */}
+{showStatusModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+      <h3 className="text-xl font-bold text-red-600 mb-4">Form Locked</h3>
+      <p className="mb-6">
+        This form cannot be edited because its current status is "{formStatus}".
+        Only forms with "pending" status can be modified.
+      </p>
+      <div className="flex justify-end">
         <button
-          onClick={handleSubmit}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out"
+          onClick={() => setShowStatusModal(false)}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
-          Submit Teaching Performance Data
+          Close
         </button>
       </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

@@ -31,10 +31,35 @@ const Extra = () => {
   const [userData, setUserData] = useState(null);
   const [extraData, setExtraData] = useState(null);
 
+  // Add these new state variables for form status handling
+  const [formStatus, setFormStatus] = useState("pending");
+  const [showStatusModal, setShowStatusModal] = useState(false);
+
   const [formData, setFormData] = useState({
     contributions: "",
     selfAwardedMarks: 0,
   });
+
+  // Add this new function to fetch the form status
+  const fetchFormStatus = async () => {
+    try {
+      const storedUserData = JSON.parse(localStorage.getItem("userData"));
+      if (!storedUserData?.dept || !storedUserData?._id) return;
+
+      const response = await fetch(
+        `http://127.0.0.1:5000/${storedUserData.dept}/${storedUserData._id}/get-status`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormStatus(data.status);
+      } else {
+        throw new Error("Failed to fetch status");
+      }
+    } catch (error) {
+      console.error("Error fetching form status:", error);
+    }
+  };
 
   // Modified fetchExtraData function to match API response structure
   const fetchExtraData = async () => {
@@ -84,11 +109,21 @@ const Extra = () => {
     if (storedUserData) {
       setUserData(storedUserData);
       fetchExtraData();
+      fetchFormStatus(); // Add this to get form status
     } else {
       setLoading(false);
       navigate("/login");
     }
   }, [navigate]);
+
+  // Add this function to handle submit button click
+  const handleSubmitClick = () => {
+    if (formStatus !== "pending") {
+      setShowStatusModal(true);
+    } else {
+      handleSubmit();
+    }
+  };
 
   // Modified handleSubmit function to match API request structure
   const handleSubmit = async () => {
@@ -172,6 +207,7 @@ const Extra = () => {
                   contributions: e.target.value,
                 }))
               }
+              disabled={formStatus !== "pending"}
             />
           </div>
 
@@ -191,6 +227,7 @@ const Extra = () => {
                   selfAwardedMarks: value,
                 }));
               }}
+              disabled={formStatus !== "pending"}
               onWheel={(e) => e.target.blur()}
               className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
@@ -211,24 +248,47 @@ const Extra = () => {
       {/* Submit Button */}
       <div className="flex justify-end mt-8">
         <button
-          onClick={handleSubmit}
+          onClick={handleSubmitClick} // Changed to use handleSubmitClick
           disabled={submitting}
-          className={`px-6 py-3 ${
-            submitting
-              ? "bg-blue-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700"
-          } text-white rounded-lg focus:ring-4 focus:ring-blue-300 transition-colors duration-300 flex items-center`}
+          className={`px-6 py-3 rounded-lg focus:ring-4 focus:ring-blue-300 transition-colors duration-300
+            ${formStatus !== "pending" 
+              ? 'bg-gray-400 cursor-not-allowed text-white'
+              : submitting
+                ? 'bg-blue-400 cursor-not-allowed text-white'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
         >
           {submitting ? (
-            <>
-              <ClipLoader size={20} color="#ffffff" className="mr-2" />
+            <span className="flex items-center gap-2">
+              <ClipLoader color="#ffffff" size={20} />
               Submitting...
-            </>
+            </span>
           ) : (
-            "Submit Extra Contributions"
+            "Save Extra Contributions"
           )}
         </button>
       </div>
+
+      {/* Add this Status Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+            <h3 className="text-xl font-bold text-red-600 mb-4">Form Locked</h3>
+            <p className="mb-6">
+              This form cannot be edited because its current status is "{formStatus}".
+              Only forms with "pending" status can be modified.
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowStatusModal(false)}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
