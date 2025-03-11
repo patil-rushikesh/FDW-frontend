@@ -54,14 +54,14 @@ const Portfolio = () => {
   // Form data state
   const [formData, setFormData] = useState({
     portfolioType: "both",
-    selfAwardedMarks: 30,
+    selfAwardedMarks: 0,
     deanMarks: 0,
     hodMarks: 0,
     isMarkHOD: false,
     isMarkDean: false,
     isAdministrativeRole: false,
     administrativeRole: "",
-    adminSelfAwardedMarks: 30,
+    adminSelfAwardedMarks: 0,
     directorMarks: 0,
     adminDeanMarks: 0,
   });
@@ -94,14 +94,14 @@ const Portfolio = () => {
           // Update form data with existing values
           setFormData({
             portfolioType: response.data.portfolioType || "both",
-            selfAwardedMarks: response.data.selfAwardedMarks || 30,
+            selfAwardedMarks: response.data.selfAwardedMarks || 0,
             deanMarks: response.data.deanMarks || 0,
             hodMarks: response.data.hodMarks || 0,
             isMarkHOD: response.data.isMarkHOD || false,
             isMarkDean: response.data.isMarkDean || false,
             isAdministrativeRole: response.data.isAdministrativeRole || false,
             administrativeRole: response.data.administrativeRole || "",
-            adminSelfAwardedMarks: response.data.adminSelfAwardedMarks || 30,
+            adminSelfAwardedMarks: response.data.adminSelfAwardedMarks || 0,
             directorMarks: response.data.directorMarks || 0,
             adminDeanMarks: response.data.adminDeanMarks || 0,
           });
@@ -119,14 +119,14 @@ const Portfolio = () => {
           // If data doesn't exist (first time), initialize with default values
           setFormData({
             portfolioType: "both",
-            selfAwardedMarks: 30,
+            selfAwardedMarks: 0,
             deanMarks: 0,
             hodMarks: 0,
             isMarkHOD: false,
             isMarkDean: false,
             isAdministrativeRole: false,
             administrativeRole: "",
-            adminSelfAwardedMarks: 30,
+            adminSelfAwardedMarks: 0,
             directorMarks: 0,
             adminDeanMarks: 0,
           });
