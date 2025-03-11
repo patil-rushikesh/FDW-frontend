@@ -574,6 +574,10 @@ const Research = () => {
         };
       }
 
+      if (data.final_verified_marks) {
+        newVerifiedScores.final_verified_marks = data.final_verified_marks;
+      }
+
       return { newFormData, newVerifiedScores };
     };
 
@@ -2434,6 +2438,7 @@ const Research = () => {
       </SectionCard>
 
       {/* Total Scores */}
+      {/* Total Scores */}
       <SectionCard title="Total Scores" icon="📊" borderColor="border-blue-500">
         <div className="space-y-4">
           <div className="bg-blue-50 p-4 rounded-lg">
@@ -2443,14 +2448,21 @@ const Research = () => {
             <p className="text-lg font-semibold text-blue-800 mt-2">
               Final Score (after cadre limit): {scores.totalScore}
             </p>
-            <p className="text-sm text-blue-600 mt-1">
-              Maximum score limits: Professor - 370, Associate Professor - 300,
-              Assistant Professor - 210
-            </p>
+          </div>
+          
+          {/* Add Total Marks After Verification */}
+          <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border-2 border-green-200">
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-gray-700">
+                Total Marks After Verification:
+              </span>
+              <span className="text-lg font-bold text-green-600">
+                {verifiedScores.final_verified_marks ? verifiedScores.final_verified_marks : "Pending"}
+              </span>
+            </div>
           </div>
         </div>
       </SectionCard>
-
       {/* Submit Button */}
       <div className="flex justify-end mt-8">
         <button

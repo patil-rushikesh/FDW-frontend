@@ -7,6 +7,8 @@ const Review = () => {
   const [loading, setLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [showFreezeModal, setShowFreezeModal] = useState(false);
+  const [isFormFrozen, setIsFormFrozen] = useState(false);
+  const [formStatus, setFormStatus] = useState('pending'); // Default status
   const userData = JSON.parse(localStorage.getItem("userData"));
   
   const generatePDF = useCallback(async (forceUpdate = false) => {
@@ -60,14 +62,39 @@ const Review = () => {
     }
   }, [userData.dept, userData._id]);
 
+  // Fetch form status from API
+  const fetchFormStatus = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5000/${userData.dept}/${userData._id}/get-status`,
+        {
+          method: 'GET',
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to fetch status');
+
+      const data = await response.json();
+      setFormStatus(data.status);
+      
+      // If status is not pending, the form is considered frozen
+      if (data.status !== 'pending') {
+        setIsFormFrozen(true);
+      }
+    } catch (error) {
+      console.error('Error fetching form status:', error);
+    }
+  }, [userData.dept, userData._id]);
+
   useEffect(() => {
     generatePDF();
-  }, [generatePDF]);
+    fetchFormStatus();
+  }, [generatePDF, fetchFormStatus]);
 
   const handleSubmit = async () => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/${userData.dept}/${userData._id}/submit-form`,  // Updated endpoint
+        `http://127.0.0.1:5000/${userData.dept}/${userData._id}/submit-form`,
         {
           method: 'POST',
           headers: {
@@ -83,9 +110,44 @@ const Review = () => {
       const result = await response.json();
       alert('Form submitted successfully!');
       
+      // Refresh status after submission
+      fetchFormStatus();
+      
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('Failed to submit form. Please try again.');
+    }
+  };
+
+  const handleFreezeForm = async () => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5000/${userData.dept}/${userData._id}/submit-form`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to freeze form');
+      }
+
+      const result = await response.json();
+      alert('Form frozen successfully! It can no longer be edited without permission.');
+      
+      setIsFormFrozen(true);
+      setShowFreezeModal(false);
+      
+      // Refresh status after freezing
+      fetchFormStatus();
+      
+    } catch (error) {
+      console.error('Error freezing form:', error);
+      alert('Failed to freeze form. Please try again.');
+      setShowFreezeModal(false);
     }
   };
 
@@ -141,46 +203,34 @@ const Review = () => {
         )}
       </div>
 
-      {/* Submit button moved outside the PDF container */}
-      {pdfUrl && !loading && (
+      {/* Status Indicator if Form is Frozen */}
+      {isFormFrozen && (
         <div className="flex justify-center mt-6">
+          <div className="flex items-center gap-2 bg-gray-600 text-white px-8 py-3 rounded-lg text-lg font-semibold">
+            <ShieldAlert size={24} />
+            Form is {formStatus.charAt(0).toUpperCase() + formStatus.slice(1)} - Editing Locked
+          </div>
+        </div>
+      )}
+
+      {/* Floating Freeze Button - only visible when status is pending */}
+      {formStatus === 'pending' && (
+        <div className="fixed bottom-12 right-12 z-50">
           <button
-            onClick={handleSubmit}
-            className="flex items-center gap-2 bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors text-lg font-semibold"
+            onClick={() => setShowFreezeModal(true)}
+            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full 
+            hover:bg-red-700 transition-all duration-300 shadow-xl transform hover:scale-110
+            animate-pulse hover:animate-none text-lg font-semibold border-2 border-white"
           >
-            Submit Form
+            <ShieldAlert size={24} className="stroke-2" />
+            Freeze Form
           </button>
         </div>
       )}
 
-      {/* Floating Freeze Button */}
-      <div className="fixed bottom-12 right-12 z-50">
-        <button
-          onClick={() => setShowFreezeModal(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full 
-          hover:bg-red-700 transition-all duration-300 shadow-xl transform hover:scale-110
-          animate-pulse hover:animate-none text-lg font-semibold border-2 border-white"
-        >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="24" 
-            height="24" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-          >
-           <ShieldAlert size={24} className="stroke-2" />
-          </svg>
-          Freeze Form
-        </button>
-      </div>
-
       {/* Freeze Confirmation Modal */}
       {showFreezeModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
           <div className="relative bg-white rounded-lg shadow-xl p-8 max-w-md w-full m-4 animate-modal-appear">
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
@@ -198,10 +248,7 @@ const Review = () => {
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-
-                    setShowFreezeModal(false);
-                  }}
+                  onClick={handleFreezeForm}
                   className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   Confirm Freeze
