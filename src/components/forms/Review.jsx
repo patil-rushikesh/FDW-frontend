@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Download, RefreshCw } from 'lucide-react';
+import { Download, RefreshCw, ShieldAlert, AlertTriangle } from 'lucide-react';
 import Cookies from 'js-cookie';
 
 const Review = () => {
   const [pdfUrl, setPdfUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [showFreezeModal, setShowFreezeModal] = useState(false);
   const userData = JSON.parse(localStorage.getItem("userData"));
   
   const generatePDF = useCallback(async (forceUpdate = false) => {
@@ -149,6 +150,65 @@ const Review = () => {
           >
             Submit Form
           </button>
+        </div>
+      )}
+
+      {/* Floating Freeze Button */}
+      <div className="fixed bottom-12 right-12 z-50">
+        <button
+          onClick={() => setShowFreezeModal(true)}
+          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full 
+          hover:bg-red-700 transition-all duration-300 shadow-xl transform hover:scale-110
+          animate-pulse hover:animate-none text-lg font-semibold border-2 border-white"
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+           <ShieldAlert size={24} className="stroke-2" />
+          </svg>
+          Freeze Form
+        </button>
+      </div>
+
+      {/* Freeze Confirmation Modal */}
+      {showFreezeModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+          <div className="relative bg-white rounded-lg shadow-xl p-8 max-w-md w-full m-4 animate-modal-appear">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                <AlertTriangle className="h-8 w-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Confirm Freeze Action</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Once frozen, this form cannot be edited until permission is granted by higher authority. Are you sure you want to proceed?
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => setShowFreezeModal(false)}
+                  className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+
+                    setShowFreezeModal(false);
+                  }}
+                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Confirm Freeze
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
