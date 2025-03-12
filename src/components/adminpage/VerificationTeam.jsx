@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Users, Plus, Check, Trash2 } from "lucide-react";
+import { Users, Plus, Check, Trash2, RefreshCw, Edit2 } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
 
 const VerificationTeam = () => {
@@ -14,6 +14,10 @@ const VerificationTeam = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [activeInputIndex, setActiveInputIndex] = useState(null);
+  const [verificationTeams, setVerificationTeams] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState(null);
+  const [deletedVerifiers, setDeletedVerifiers] = useState([]);
 
   const departments = [
     "Computer",
@@ -29,6 +33,7 @@ const VerificationTeam = () => {
   // Fetch all faculty data when component mounts
   useEffect(() => {
     fetchFacultyData();
+    fetchAllVerificationTeams();
   }, []);
 
   const fetchFacultyData = async () => {
@@ -39,6 +44,33 @@ const VerificationTeam = () => {
       setAllFaculty(data);
     } catch (err) {
       setError('Error loading faculty data: ' + err.message);
+    }
+  };
+
+  const fetchAllVerificationTeams = async () => {
+    setIsLoading(true);
+    try {
+      const teamsData = {};
+      
+      // Fetch verification committee for each department
+      const promises = departments.map(async (department) => {
+        try {
+          const response = await fetch(`http://localhost:5000/${department}/verification-committee`);
+          if (response.ok) {
+            const data = await response.json();
+            teamsData[department] = data;
+          }
+        } catch (error) {
+          console.error(`Error fetching ${department} verification team:`, error);
+        }
+      });
+      
+      await Promise.all(promises);
+      setVerificationTeams(teamsData);
+    } catch (err) {
+      setError('Error loading verification teams: ' + err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -88,51 +120,123 @@ const VerificationTeam = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!selectedDepartment) {
-      setError("Please select a department");
-      return;
-    }
-
-    if (committeeIds.some(id => !id.trim())) {
-      setError("Please fill all committee head IDs");
-      return;
-    }
-
-    // Validate that all IDs exist in the database
-    const validIds = committeeIds.every(id => 
-      allFaculty.some(faculty => faculty._id === id)
-    );
-
-    if (!validIds) {
-      setError("One or more faculty IDs are invalid");
-      return;
-    }
-
+  
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/${selectedDepartment}/verification-committee`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          committee_ids: committeeIds.filter(id => id.trim())
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to allocate verification committee');
+      setError(null);
+  
+      // Fix: Remove the process.env access and use a direct URL instead
+      // Replace with your actual API base URL
+      const baseUrl = 'http://localhost:5000'; // or your production API URL
+      const url = `${baseUrl}/${selectedDepartment}/verification-committee`;
+      
+      // Add a force=true parameter when editing to ensure changes are detected
+      const queryParams = editingDepartment ? '?force=true' : '';
+      
+      console.log("Submitting committee IDs:", committeeIds);
+      if (deletedVerifiers.length > 0) {
+        console.log("Deleted verifiers:", deletedVerifiers);
       }
       
-      setSuccessMessage('Verification committee allocated successfully');
+      const response = await fetch(`${url}${queryParams}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          committee_ids: committeeIds,
+          deleted_verifiers: deletedVerifiers // Send the list of deleted verifiers
+        }),
+        credentials: 'include'
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create verification committee');
+      }
+  
+      setSuccessMessage(`Verification committee ${editingDepartment ? 'updated' : 'created'} successfully!`);
       setShowSuccessDialog(true);
-      setSelectedDepartment("");
-      setCommitteeIds([""]);
-    } catch (err) {
-      setError(err.message);
+      
+      // Clean up state
+      if (!editingDepartment) {
+        setSelectedDepartment('');
+      }
+      setCommitteeIds(['']);
+      setDeletedVerifiers([]);  // Clear deleted verifiers after successful submission
+      fetchAllVerificationTeams(); // Refresh teams after submit
+  
+    } catch (error) {
+      console.error('Error creating verification committee:', error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
+  };
+  // Helper function to get faculty name by ID
+  const getFacultyName = (id) => {
+    const faculty = allFaculty.find(f => f._id === id);
+    return faculty ? faculty.name : id;
+  };
+
+// Function to start editing a department's committee
+const handleEditTeam = (department) => {
+  const teamData = verificationTeams[department];
+  if (teamData && teamData.committees) {
+    try {
+      // Extract just the faculty IDs from the verifier keys
+      const committeeIdsToEdit = Object.keys(teamData.committees).map(key => {
+        // The key format is usually "23TAIML0173 (Aditya Mashere)"
+        // We need to extract only the ID part (before the space or parenthesis)
+        const idPart = key.split(' ')[0];
+        return idPart;
+      });
+      
+      setSelectedDepartment(department);
+      setCommitteeIds(committeeIdsToEdit.length > 0 ? committeeIdsToEdit : [""]);
+      setEditingDepartment(department);
+      setDeletedVerifiers([]); // Reset the deleted verifiers list when starting edit
+      
+      // Scroll to the form section
+      const formElement = document.querySelector('.allocate-committee-form');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    } catch (error) {
+      console.error("Error preparing team for editing:", error);
+      setError("Failed to load committee data for editing.");
+    }
+  }
+};
+
+// Handle verifier deletion by tracking the deleted IDs
+// Handle verifier deletion by tracking the deleted IDs
+const handleDeleteVerifier = (indexToDelete) => {
+  const deletedId = committeeIds[indexToDelete];
+  
+  // Only add to deletedVerifiers if it's a non-empty ID
+  if (deletedId && deletedId.trim() !== "") {
+    setDeletedVerifiers(prev => {
+      // Check if ID is already in deleted list to avoid duplicates
+      if (!prev.includes(deletedId)) {
+        return [...prev, deletedId];
+      }
+      return prev;
+    });
+    
+    console.log(`Deleted verifier at index ${indexToDelete}, ID: ${deletedId}`);
+  }
+  
+  // Remove from the current IDs list
+  setCommitteeIds(committeeIds.filter((_, index) => index !== indexToDelete));
+};
+  // Add cancel editing function
+  const handleCancelEdit = () => {
+    setEditingDepartment(null);
+    setSelectedDepartment("");
+    setCommitteeIds([""]);
+    setError(null);
   };
 
   return (
@@ -141,12 +245,23 @@ const VerificationTeam = () => {
       <div className="lg:ml-72">
         <main className="p-4 lg:p-6 mt-16">
           <div className="max-w-7xl mx-auto space-y-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              <div className="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 flex items-center">
-                <Users className="mr-2 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Allocate Verification Committee
-                </h2>
+            {/* Form to allocate verification committee */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 allocate-committee-form">
+              <div className="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 flex items-center justify-between">
+                <div className="flex items-center">
+                  <Users className="mr-2 text-blue-600" />
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    {editingDepartment ? `Edit ${editingDepartment} Verification Committee` : "Allocate Verification Committee"}
+                  </h2>
+                </div>
+                {editingDepartment && (
+                  <button
+                    onClick={handleCancelEdit}
+                    className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                  >
+                    Cancel Editing
+                  </button>
+                )}
               </div>
 
               <form onSubmit={handleSubmit} className="p-6">
@@ -163,7 +278,8 @@ const VerificationTeam = () => {
                         setSuggestions([]);
                       }}
                       required
-                      className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      disabled={editingDepartment !== null}
+                      className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
                     >
                       <option value="">Select Department</option>
                       {departments.map((dept) => (
@@ -192,10 +308,10 @@ const VerificationTeam = () => {
                             required
                             className="flex-1 p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
-                          {committeeIds.length > 1 && (
+                          {(committeeIds.length > 1 || editingDepartment) && (
                             <button
                               type="button"
-                              onClick={() => handleRemoveFaculty(index)}
+                              onClick={() => editingDepartment ? handleDeleteVerifier(index) : handleRemoveFaculty(index)}
                               className="p-2.5 text-red-600 hover:text-red-700"
                               title="Remove committee head"
                             >
@@ -246,11 +362,122 @@ const VerificationTeam = () => {
                       disabled={loading}
                       className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center text-sm font-medium disabled:opacity-50"
                     >
-                      {loading ? "Processing..." : "Save Committee"}
+                      {loading ? "Processing..." : editingDepartment ? "Update Committee" : "Save Committee"}
                     </button>
                   </div>
                 </div>
               </form>
+            </div>
+
+            {/* Display Verification Teams */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+              <div className="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 flex items-center justify-between">
+                <div className="flex items-center">
+                  <Users className="mr-2 text-blue-600" />
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    Current Verification Committees
+                  </h2>
+                </div>
+                <button 
+                  onClick={fetchAllVerificationTeams}
+                  className="flex items-center px-3 py-1.5 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200"
+                >
+                  <RefreshCw size={16} className="mr-1" />
+                  <span className="text-sm">Refresh</span>
+                </button>
+              </div>
+
+              <div className="p-6">
+                {isLoading ? (
+                  <div className="flex justify-center items-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {departments.map(department => {
+                      const teamData = verificationTeams[department];
+                      return (
+                        <div key={department} className="border border-gray-200 rounded-lg">
+                          <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                            <h3 className="text-md font-medium text-gray-800">{department}</h3>
+                            {teamData && teamData.committees && Object.keys(teamData.committees).length > 0 && (
+                              <button 
+                                onClick={() => handleEditTeam(department)}
+                                className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md"
+                                title="Edit committee"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                            )}
+                          </div>
+                          <div className="p-4">
+                            {!teamData ? (
+                              <p className="text-gray-600 text-sm italic">No verification committee assigned</p>
+                            ) : teamData.committees && Object.keys(teamData.committees).length > 0 ? (
+                              <ul className="space-y-4">
+                                {Object.entries(teamData.committees).map(([verifier, verifiees], index) => {
+                                  // Split verifier into ID and name parts
+                                  // Handle format "23TAIML0173 (Aditya Mashere)"
+                                  let verifierId = verifier;
+                                  let verifierName = "";
+                                  
+                                  // Check if the verifier string contains parentheses
+                                  const parenthesesMatch = verifier.match(/^(.*?)\s*\((.*?)\)$/);
+                                  if (parenthesesMatch) {
+                                    verifierId = parenthesesMatch[1].trim();
+                                    verifierName = parenthesesMatch[2].trim();
+                                  }
+                                  
+                                  return (
+                                    <li key={index} className="pb-3 border-b border-gray-100 last:border-0">
+                                      <div className="flex items-center gap-2 text-sm mb-1">
+                                        <span className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs">
+                                          {index + 1}
+                                        </span>
+                                        <div>
+                                          {verifierName ? (
+                                            <>
+                                              <span className="font-medium">{verifierName}</span>
+                                              <span className="text-gray-500 text-xs ml-2">({verifierId})</span>
+                                            </>
+                                          ) : (
+                                            <span className="font-medium">{verifierId}</span>
+                                          )}
+                                        </div>
+                                      </div>
+                                      {Array.isArray(verifiees) && verifiees.length > 0 ? (
+                                        <div className="ml-8 mt-2">
+                                          <span className="text-xs font-medium text-gray-500 block mb-1">Assigned Faculty:</span>
+                                          <ul className="space-y-1">
+                                            {verifiees.map((faculty, idx) => (
+                                              <li key={idx} className="text-xs text-gray-600 flex items-center">
+                                                <span className="w-4 h-4 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs mr-2">
+                                                  {idx + 1}
+                                                </span>
+                                                {faculty}
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      ) : (
+                                        <div className="ml-8 mt-1">
+                                          <span className="text-xs text-gray-500 italic">No faculty assigned yet</span>
+                                        </div>
+                                      )}
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            ) : (
+                              <p className="text-gray-600 text-sm italic">No verification committee assigned</p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Success Dialog */}
