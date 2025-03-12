@@ -251,9 +251,9 @@ const FacultyFormsList = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div>
-        <main className="lg: mt-16">
-          <div className="max-w-7xl mx-auto space-y-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <main className="lg:mt-16">
+          <div className="max-w-full mx-auto px-4 space-y-8">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               {/* Header Section */}
               <div className="border-b border-gray-200 px-4 lg:px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
@@ -359,8 +359,8 @@ const FacultyFormsList = () => {
               </div>
 
               {/* Table Section */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
+              <div className="overflow-x-auto w-full">
+                <table className="min-w-full text-sm text-left">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-gray-600">ID</th>

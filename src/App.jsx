@@ -88,7 +88,7 @@ function AppContent() {
           )}
           <main className={isAuthenticated ? "p-4 lg:p-6 mt-16" : ""}>
             {isAuthenticated ? (
-              <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-4 lg:p-6">
+              <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-sm p-4 lg:p-6">
                 <Routes>
                   <Route path="/login" element={<Navigate to="/dashboard" />} />
                   <Route
