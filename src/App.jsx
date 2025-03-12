@@ -43,6 +43,7 @@ import AssignFacultyToExternal from "./components/HOD/AssignFacultyToExternal";
 import ExternalDashboard from "./components/External/ExternalDashboard";
 import Extra from "./components/forms/Extra";
 import EvaluateFacultyPage from "./components/External/EvaluateFacultyPage";
+import AssignFacultyToVerificationTeam from "./components/adminpage/AssignFacultyToVerificationTeam";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -255,6 +256,7 @@ function AppContent() {
                       </ProtectedRoute>
                     }
                   />
+                  
                   <Route path="/" element={<Navigate to="/profile" />} />
                 </Routes>
               </div>
@@ -266,6 +268,10 @@ function AppContent() {
                 <Route
                   path="/admin/verification-team"
                   element={<VerificationTeam />}
+                />
+                <Route
+                  path="/admin/assign-faculty-to-verification-team"
+                  element={<AssignFacultyToVerificationTeam />}
                 />
                 <Route
                   path="/admin"

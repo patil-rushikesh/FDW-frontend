@@ -19,6 +19,11 @@ const AdminSidebar = ({ isOpen, onClose }) => {
       path: "/admin/verification-team",
       icon: <UserCheck className="w-6 h-6" />,
     },
+    {
+      name: "Assign Faculty to Verification Team",
+      path: "/admin/assign-faculty-to-verification-team",
+      icon: <UserCheck className="w-6 h-6" />,
+    },
   ];
 
   return (
