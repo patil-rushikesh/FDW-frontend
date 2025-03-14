@@ -241,7 +241,7 @@ function AppContent() {
                     }
                   />
                   <Route
-                    path="/external/dashboard"
+                    path="/external/give-marks"
                     element={
                       <ProtectedRoute>
                         <ExternalDashboard />

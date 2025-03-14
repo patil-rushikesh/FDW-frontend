@@ -183,7 +183,7 @@ const EvaluateFacultyPage = () => {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Back Button */}
       <button
-        onClick={() => navigate("/external-dashboard")}
+        onClick={() => navigate("/external/give-marks")}
         className="mb-4 inline-flex items-center text-indigo-600 hover:text-indigo-800"
       >
         <ArrowLeft size={16} className="mr-1" /> Back to Dashboard
