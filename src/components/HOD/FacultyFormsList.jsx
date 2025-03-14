@@ -36,13 +36,17 @@ const FacultyFormsList = () => {
   }, []);
 
   // Add this to where you process the faculty data (in the useEffect where you fetch faculty data)
+  // Modified processVerificationStatus to maintain authority_verification_pending status
   const processVerificationStatus = (facultyList) => {
     const verifiedFaculty = JSON.parse(
       localStorage.getItem("verifiedFaculty") || "{}"
     );
     return facultyList.map((faculty) => ({
       ...faculty,
-      status: verifiedFaculty[faculty._id] ? "verified" : faculty.status,
+      // Only change status if it's not "authority_verification_pending"
+      status: faculty.status === "authority_verification_pending" 
+        ? "authority_verification_pending"
+        : verifiedFaculty[faculty._id] ? "authority_verification_pending" : faculty.status,
     }));
   };
 
@@ -162,7 +166,7 @@ const FacultyFormsList = () => {
       // Update the faculty's status in the local state
       setFacultyData((prevData) =>
         prevData.map((faculty) =>
-          faculty._id === id ? { ...faculty, status: "verified" } : faculty
+          faculty._id === id ? { ...faculty, status: "authority_verification_pending" } : faculty
         )
       );
 
@@ -187,6 +191,32 @@ const FacultyFormsList = () => {
         <button
           type="button"
           className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+          onClick={() => {
+            // Ensure we don't modify status here
+            navigate("/hodcnfverify", {
+              state: {
+                faculty: {
+                  name: faculty.name,
+                  id: faculty._id,
+                  role: faculty.role,
+                  department: department,
+                  status: "authority_verification_pending", // Explicitly pass current status
+                },
+                portfolioData: {}, 
+                verifiedMarks: {} 
+              },
+            });
+          }}
+        >
+          <CheckCircle2 className="h-4 w-4 text-green-600" />
+          <span className="font-semibold text-green-700">Verify</span>
+        </button>
+      );
+    } else if (faculty.status === "Portfolio_Mark_pending") {
+      return (
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
           onClick={() =>
             navigate("/hodverify", {
               state: {
@@ -194,15 +224,14 @@ const FacultyFormsList = () => {
                   name: faculty.name,
                   id: faculty._id,
                   role: faculty.role,
-                  department: department, // Changed this line to use HOD's department from state
-                  // Add any other relevant faculty data you want to pass
+                  department: department,
+                  // Include any additional data needed for the form
                 },
               },
             })
           }
         >
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <span className="font-semibold text-green-700">Verify</span>
+          <span className="font-semibold text-blue-700">Give Marks</span>
         </button>
       );
     } else {
@@ -386,28 +415,34 @@ const FacultyFormsList = () => {
                         <td className="px-6 py-4">{faculty.role}</td>
                         <td className="px-6 py-4">{displayMarks(faculty)}</td>
                         <td className="px-6 py-4">
-                          <span
-                            className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-xs font-semibold ${
-                              faculty.status === "verified"
-                                ? "bg-green-100 text-green-800"
-                                : faculty.status ===
-                                    "authority_verification_pending"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : faculty.status === "verification_pending"
-                                    ? "bg-orange-100 text-orange-800"
-                                    : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {faculty.status === "verified"
-                              ? "Verified"
-                              : faculty.status ===
-                                  "authority_verification_pending"
-                                ? "Authority Verification Pending"
-                                : faculty.status === "verification_pending"
-                                  ? "Verification Pending"
-                                  : "Pending"}
-                          </span>
-                        </td>
+                        <span
+  className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold ${
+    faculty.status === "Done"
+      ? "bg-green-100 text-green-800"
+      : faculty.status === "Interaction_pending"
+      ? "bg-purple-100 text-purple-800"
+      : faculty.status === "authority_verification_pending"
+        ? "bg-yellow-100 text-yellow-800"
+        : faculty.status === "verification_pending"
+          ? "bg-orange-100 text-orange-800"
+          : faculty.status === "Portfolio_Mark_pending"
+            ? "bg-blue-100 text-blue-800"
+            : "bg-gray-100 text-gray-800"
+  }`}
+>
+    {faculty.status === "Done"
+      ? "Done"
+      : faculty.status === "Interaction_pending"
+      ? "Interaction Pending"
+      : faculty.status === "authority_verification_pending"
+        ? "Authority Verification Pending"
+        : faculty.status === "verification_pending"
+          ? "Verification Pending"
+          : faculty.status === "Portfolio_Mark_pending"
+            ? "Portfolio Mark Pending"
+            : "Pending"}
+  </span>
+</td>
                         <td className="px-6 py-4">
                           {renderActionButton(faculty)}
                         </td>

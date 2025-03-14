@@ -106,43 +106,52 @@ const FacultyEvaluationForm = () => {
     setIsModalOpen(true);
   };
 
-  const handleConfirmSubmit = async () => {
-    try {
-      const department = faculty?.department;
-      const userId = faculty?.id;
+// ...existing code...
+const handleConfirmSubmit = async () => {
+  try {
+    const department = faculty?.department;
+    const userId = faculty?.id;
 
-      if (!department || !userId) {
-        console.error("Department or User ID is missing");
-        return;
-      }
-
-      // Only update specific fields while keeping existing data
-      const payload = {
-        D: {
-          ...portfolioData,  // Keep all existing data
-          hodMarks: Number(hodMarks),  // Update HOD marks
-          isMarkHOD: true,  // Update HOD verification status
-          total_marks: calculateTotalScore()  // Update total score
-        }
-      };
-
-      await axios.post(
-        `http://localhost:5000/${department}/${userId}/D`,
-        payload
-      );
-
-      setIsModalOpen(false);
-      navigate("/hodcnfverify", {
-        state: {
-          faculty,
-          portfolioData: payload.D
-        }
-      });
-    } catch (error) {
-      console.error("Error saving marks:", error);
-      setIsModalOpen(false);
+    if (!department || !userId) {
+      console.error("Department or User ID is missing");
+      return;
     }
-  };
+
+    // Only update specific fields while keeping existing data
+    const payload = {
+      D: {
+        ...portfolioData,  // Keep all existing data
+        hodMarks: Number(hodMarks),  // Update HOD marks
+        isMarkHOD: true,  // Update HOD verification status
+        total_marks: calculateTotalScore()  // Update total score
+      }
+    };
+
+    // First, update the portfolio data with HOD marks
+    await axios.post(
+      `http://localhost:5000/${department}/${userId}/D`,
+      payload
+    );
+
+    // Then, update the portfolio status from 'Portfolio_Mark_pending' to 'verification_pending'
+    await axios.post(
+      `http://localhost:5000/${department}/${userId}/portfolio-given`
+    );
+
+    setIsModalOpen(false);
+    navigate("/hodcnfverify", {
+      state: {
+        faculty,
+        portfolioData: payload.D
+      }
+    });
+  } catch (error) {
+    console.error("Error saving marks:", error);
+    setIsModalOpen(false);
+    // Show error notification to the user
+    alert("Failed to submit evaluation. Please try again.");
+  }
+};
 
   // Update the JSX to show portfolio details
   return (

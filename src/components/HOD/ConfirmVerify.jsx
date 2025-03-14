@@ -215,21 +215,31 @@ const ConfirmVerify = () => {
           "E": { "verified_marks": parseFloat(marksData.obtained.extraOrd) || 0 }
         };
 
-        const response = await axios.post(
+        // First submit the verified marks
+        const markResponse = await axios.post(
           `http://127.0.0.1:5000/total_marks/${department}/${facultyId}`,
           formattedData
         );
 
-        if (response.status === 200) {
-          alert("Verification submitted successfully!");
-          // Redirect to the faculty forms list page
-          navigate("/hod/faculty-forms-list");
+        if (markResponse.status === 200) {
+          // Then update the status to Interaction_pending
+          const statusResponse = await axios.post(
+            `http://127.0.0.1:5000/${department}/${facultyId}/verify-authority`
+          );
+
+          if (statusResponse.status === 200) {
+            alert("Verification submitted successfully!");
+            // Redirect to the faculty forms list page
+            navigate("/hod/faculty-forms-list");
+          } else {
+            alert("Failed to update verification status. Please try again.");
+          }
         } else {
-          alert("Failed to submit verification. Please try again.");
+          alert("Failed to submit verification marks. Please try again.");
         }
       } catch (error) {
         console.error("Error submitting verification:", error);
-        alert("Error submitting verification. Please try again.");
+        alert(`Error: ${error.response?.data?.error || error.message}. Please try again.`);
       }
     }
   };
