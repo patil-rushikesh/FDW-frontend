@@ -10,6 +10,7 @@ import {
   Users,
   CheckCircle,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
 
 const ALLOWED_ROLES = [
@@ -27,6 +28,8 @@ const AssignFacultyToExternal = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [userDept, setUserDept] = useState("");
+  // Add this to your state declarations at the top of the component
+  const [pendingAssignments, setPendingAssignments] = useState({});
 
   // Load data from localStorage on component mount
   useEffect(() => {
@@ -166,6 +169,10 @@ const AssignFacultyToExternal = () => {
 
   const openAssignModal = (externalFaculty) => {
     setSelectedExternal(externalFaculty);
+    // Initialize pending assignments with current assignments for this external
+    setPendingAssignments({
+      [externalFaculty.id]: assignments[externalFaculty.id]?.assigned_faculty?.map(faculty => faculty._id) || []
+    });
     setModalOpen(true);
   };
 
@@ -176,60 +183,25 @@ const AssignFacultyToExternal = () => {
   };
 
   // Update the handleAssignFaculty function
-  const handleAssignFaculty = async (internalFacultyId) => {
+  const handleAssignFaculty = (internalFacultyId) => {
     if (!selectedExternal) return;
-
     const externalId = selectedExternal.id;
-    setLoading(true);
-
-    try {
-      // Get current assignments
-      const currentAssignments =
-        assignments[externalId]?.assigned_faculty || [];
-
-      // Check if already assigned
-      if (
-        currentAssignments.some((faculty) => faculty._id === internalFacultyId)
-      ) {
-        toast.error("This faculty is already assigned");
-        return;
-      }
-
-      // Prepare the assignments data structure
-      const external_assignments = {
-        [externalId]: [
-          ...(assignments[externalId]?.assigned_faculty?.map((f) => f._id) ||
-            []),
-          internalFacultyId,
-        ],
-      };
-
-      // Make API call
-      const response = await fetch(
-        `http://localhost:5000/${userDept}/assign-externals`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ external_assignments }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to assign faculty");
-      }
-
-      // Update local state with the response data
-      setAssignments(data.assignments);
-      toast.success("Faculty assigned successfully");
-    } catch (error) {
-      console.error("Error assigning faculty:", error);
-      toast.error(error.message || "Failed to assign faculty");
-    } finally {
-      setLoading(false);
+    
+    // Get current pending assignments for this external
+    const currentPendingAssignments = pendingAssignments[externalId] || [];
+    
+    // If already in pending assignments, remove it
+    if (currentPendingAssignments.includes(internalFacultyId)) {
+      setPendingAssignments({
+        ...pendingAssignments,
+        [externalId]: currentPendingAssignments.filter(id => id !== internalFacultyId)
+      });
+    } else {
+      // Otherwise add it
+      setPendingAssignments({
+        ...pendingAssignments,
+        [externalId]: [...currentPendingAssignments, internalFacultyId]
+      });
     }
   };
 
@@ -237,19 +209,19 @@ const AssignFacultyToExternal = () => {
   const handleRemoveFaculty = async (externalId, internalFacultyId) => {
     try {
       setLoading(true);
-
+  
       // Get current assignments excluding the faculty to remove
       const currentAssignments =
         assignments[externalId]?.assigned_faculty || [];
       const updatedFacultyIds = currentAssignments
         .filter((faculty) => faculty._id !== internalFacultyId)
         .map((faculty) => faculty._id);
-
+  
       // Prepare the assignments data structure
       const external_assignments = {
         [externalId]: updatedFacultyIds,
       };
-
+  
       // Make API call
       const response = await fetch(
         `http://localhost:5000/${userDept}/assign-externals`,
@@ -261,15 +233,27 @@ const AssignFacultyToExternal = () => {
           body: JSON.stringify({ external_assignments }),
         }
       );
-
+  
       const data = await response.json();
-
+  
       if (!response.ok) {
         throw new Error(data.error || "Failed to remove faculty");
       }
-
-      // Update local state with the response data
-      setAssignments(data.assignments);
+  
+      // Fetch the latest assignment data to update the UI completely
+      const refreshResponse = await fetch(
+        `http://localhost:5000/${userDept}/external-assignments`
+      );
+      
+      if (!refreshResponse.ok) {
+        throw new Error("Failed to refresh assignment data");
+      }
+      
+      const refreshData = await refreshResponse.json();
+      
+      // Update local state with the complete refreshed data
+      setAssignments(refreshData.data || {});
+      
       toast.success("Faculty removed successfully");
     } catch (error) {
       console.error("Error removing faculty:", error);
@@ -278,7 +262,7 @@ const AssignFacultyToExternal = () => {
       setLoading(false);
     }
   };
-
+  
   // Filter internal faculty based on search query
   const filteredInternalFaculty = internalFacultyList.filter(
     (faculty) =>
@@ -296,6 +280,53 @@ const AssignFacultyToExternal = () => {
     return Object.values(assignments).some((assignment) =>
       assignment?.assigned_faculty?.some((faculty) => faculty._id === facultyId)
     );
+  };
+
+  const submitAssignments = async () => {
+    if (!selectedExternal) return;
+    
+    setLoading(true);
+    try {
+      // Make API call with the pending assignments
+      const response = await fetch(
+        `http://localhost:5000/${userDept}/assign-externals`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ external_assignments: pendingAssignments }),
+        }
+      );
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to assign faculty");
+      }
+      
+      // Fetch the latest assignment data to update the UI completely
+      const refreshResponse = await fetch(
+        `http://localhost:5000/${userDept}/external-assignments`
+      );
+      
+      if (!refreshResponse.ok) {
+        throw new Error("Failed to refresh assignment data");
+      }
+      
+      const refreshData = await refreshResponse.json();
+      
+      // Update local state with the complete refreshed data
+      setAssignments(refreshData.data || {});
+      
+      toast.success("Faculty assignments updated successfully");
+      closeModal();
+    } catch (error) {
+      console.error("Error assigning faculty:", error);
+      toast.error(error.message || "Failed to update assignments");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -386,7 +417,7 @@ const AssignFacultyToExternal = () => {
                                 className="text-red-600 hover:text-red-800"
                                 title="Remove assignment"
                               >
-                                <X size={16} />
+                                <Trash2 size={16} />
                               </button>
                             </li>
                           ))}
@@ -441,6 +472,38 @@ const AssignFacultyToExternal = () => {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                     />
+                  </div>
+                </div>
+
+                {/* Selected Faculties Section */}
+                <div className="mb-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">
+                    Pending Assignments
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {pendingAssignments[selectedExternal.id]?.length > 0 ? (
+                      internalFacultyList
+                        .filter(faculty => 
+                          pendingAssignments[selectedExternal.id].includes(faculty.id)
+                        )
+                        .map((faculty) => (
+                          <span
+                            key={faculty.id}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                          >
+                            {faculty.name}
+                            <X 
+                              size={14} 
+                              className="ml-1 cursor-pointer" 
+                              onClick={() => handleAssignFaculty(faculty.id)} 
+                            />
+                          </span>
+                        ))
+                    ) : (
+                      <span className="text-gray-500 text-sm italic">
+                        No faculties selected
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -520,15 +583,14 @@ const AssignFacultyToExternal = () => {
                               }`}
                             >
                               <td className="px-6 py-4">
-                                <input
-                                  type="checkbox"
-                                  checked={isAssigned}
-                                  onChange={() =>
-                                    handleAssignFaculty(faculty.id)
-                                  }
-                                  disabled={loading || isAssignedToOther}
-                                  className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 disabled:opacity-50"
-                                />
+{/* Update the checkbox checked state and onChange handler */}
+<input
+  type="checkbox"
+  checked={pendingAssignments[selectedExternal.id]?.includes(faculty.id)}
+  onChange={() => handleAssignFaculty(faculty.id)}
+  disabled={loading || isAssignedToOther}
+  className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 disabled:opacity-50"
+/>
                               </td>
                               <td className="px-6 py-4">
                                 {faculty.employeeId ||
@@ -573,10 +635,12 @@ const AssignFacultyToExternal = () => {
                 Cancel
               </button>
               <button
-                onClick={closeModal}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                onClick={submitAssignments}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                disabled={loading}
               >
-                Done
+                {loading ? <RefreshCw size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                <span>Save Assignments</span>
               </button>
             </div>
           </div>
