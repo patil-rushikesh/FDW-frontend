@@ -56,14 +56,19 @@ const hodPrivilegeItems = [
 
 const directorPrivilegeItems = [
   {
-    icon: ClipboardCheck,
-    label: "All Faculty Forms",
-    path: "/director/faculty-forms",
+    icon: Users,
+    label: "HOD Forms",
+    path: "/director/hod-forms",
   },
   {
-    icon: CheckSquare,
-    label: "Final Approval",
-    path: "/director/final-approval",
+    icon: Award,
+    label: "Dean Forms",
+    path: "/director/dean-forms",
+  },
+  {
+    icon: ClipboardCheck,
+    label: "Faculty Forms",
+    path: "/director/faculty-forms",
   },
 ];
 
@@ -111,11 +116,11 @@ export default function Sidebar({ isOpen, onClose }) {
   const userRole = userData.desg?.toLowerCase() || "faculty";
   const isInVerificationPanel = userData.isInVerificationPanel || false;
   const isExternal = userData.isExternal || false;
-  
+
   // Add externalFacultyItems for external faculty members
   const externalFacultyItems = [
     { icon: User, label: "Dashboard", path: "/dashboard" },
-    { icon: CheckSquare, label: "Give Marks", path: "/external/give-marks" }
+    { icon: CheckSquare, label: "Give Marks", path: "/external/give-marks" },
   ];
 
   const toggleParts = () => setIsPartsOpen(!isPartsOpen);
@@ -357,7 +362,8 @@ export default function Sidebar({ isOpen, onClose }) {
               </h2>
               {userRole !== "faculty" && (
                 <p className="text-sm text-indigo-200 mt-1">
-                  {isExternal ? "EXTERNAL FACULTY" : userRole.toUpperCase()} Dashboard
+                  {isExternal ? "EXTERNAL FACULTY" : userRole.toUpperCase()}{" "}
+                  Dashboard
                 </p>
               )}
             </div>
@@ -389,50 +395,54 @@ export default function Sidebar({ isOpen, onClose }) {
                   />
                 ))}
 
-                {/* Parts Dropdown */}
-                <div className="mb-3">
-                  <button
-                    onClick={toggleParts}
-                    className="w-full flex items-center justify-between p-4 rounded-lg text-indigo-100 hover:bg-indigo-700/70"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <FileText size={24} strokeWidth={2} />
-                      <span className="text-base font-medium">Appraisal Form</span>
-                    </div>
-                    {isPartsOpen ? (
-                      <ChevronDown size={20} />
-                    ) : (
-                      <ChevronRight size={20} />
-                    )}
-                  </button>
-
-                  {isPartsOpen && (
-                    <div
-                      className={`
-                      relative pl-4 mt-2
-                      before:content-[""]
-                      before:absolute
-                      before:left-0
-                      before:top-0
-                      before:bottom-4
-                      before:w-[2px]
-                      before:bg-indigo-500
-                      space-y-2
-                      transition-all
-                      duration-200
-                    `}
+                {/* Parts Dropdown - Hide for director */}
+                {userRole !== "director" && (
+                  <div className="mb-3">
+                    <button
+                      onClick={toggleParts}
+                      className="w-full flex items-center justify-between p-4 rounded-lg text-indigo-100 hover:bg-indigo-700/70"
                     >
-                      {partsNavItems.map((item) => (
-                        <NavLink
-                          key={item.path}
-                          item={item}
-                          isActive={location.pathname === item.path}
-                          isDropdownItem={true}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
+                      <div className="flex items-center space-x-4">
+                        <FileText size={24} strokeWidth={2} />
+                        <span className="text-base font-medium">
+                          Appraisal Form
+                        </span>
+                      </div>
+                      {isPartsOpen ? (
+                        <ChevronDown size={20} />
+                      ) : (
+                        <ChevronRight size={20} />
+                      )}
+                    </button>
+
+                    {isPartsOpen && (
+                      <div
+                        className={`
+                        relative pl-4 mt-2
+                        before:content-[""]
+                        before:absolute
+                        before:left-0
+                        before:top-0
+                        before:bottom-4
+                        before:w-[2px]
+                        before:bg-indigo-500
+                        space-y-2
+                        transition-all
+                        duration-200
+                      `}
+                      >
+                        {partsNavItems.map((item) => (
+                          <NavLink
+                            key={item.path}
+                            item={item}
+                            isActive={location.pathname === item.path}
+                            isDropdownItem={true}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Privilege Section for HOD/Director */}
                 {renderPrivilegeSection()}
@@ -443,14 +453,15 @@ export default function Sidebar({ isOpen, onClose }) {
                 {/* Paper Verification Section */}
                 {renderPaperVerificationSection()}
 
-                {/* Final Review */}
-                {finalNavItems.map((item) => (
-                  <NavLink
-                    key={item.path}
-                    item={item}
-                    isActive={location.pathname === item.path}
-                  />
-                ))}
+                {/* Final Review - Hide for director */}
+                {userRole !== "director" &&
+                  finalNavItems.map((item) => (
+                    <NavLink
+                      key={item.path}
+                      item={item}
+                      isActive={location.pathname === item.path}
+                    />
+                  ))}
               </>
             )}
           </nav>
