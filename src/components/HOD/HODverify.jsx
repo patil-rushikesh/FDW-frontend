@@ -132,14 +132,21 @@ const handleConfirmSubmit = async () => {
       `http://localhost:5000/${department}/${userId}/D`,
       payload
     );
-
-    // Then, update the portfolio status from 'Portfolio_Mark_pending' to 'verification_pending'
-    await axios.post(
-      `http://localhost:5000/${department}/${userId}/portfolio-given`
-    );
+    // Check portfolio type to determine which status update API to call
+    if (portfolioData.portfolioType === "both") {
+      // For 'both' type, set status to Portfolio_Mark_Dean_pending
+      await axios.post(
+        `http://localhost:5000/${department}/${userId}/hod-mark-given`
+      );
+    } else {
+      // For other types (department or institute), status to verification_pending
+      await axios.post(
+        `http://localhost:5000/${department}/${userId}/portfolio-given`
+      );
+    }
 
     setIsModalOpen(false);
-    navigate("/hodcnfverify", {
+    navigate("/hod/faculty-forms-list", {
       state: {
         faculty,
         portfolioData: payload.D

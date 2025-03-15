@@ -84,11 +84,6 @@ const hodInteractionItems = [
     label: "Assign Faculty to External",
     path: "/hod/assign-faculty-external",
   },
-  {
-    icon: Users,
-    label: "Assign Interaction Panel",
-    path: "/hod/assign-interaction-panel",
-  },
 ];
 
 // Add this after directorPrivilegeItems

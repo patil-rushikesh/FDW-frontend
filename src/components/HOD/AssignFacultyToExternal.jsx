@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import {
   User,
   X,
@@ -12,6 +13,8 @@ import {
   RefreshCw,
   Trash2,
   Crown,
+  FileText,
+  ArrowRight,
 } from "lucide-react";
 
 const ALLOWED_ROLES = [
@@ -35,6 +38,7 @@ const AssignFacultyToExternal = () => {
   const [deanEligibleFaculty, setDeanEligibleFaculty] = useState([]); // New state for dean-eligible faculty
   const [deanExternalMappings, setDeanExternalMappings] = useState([]);
   const [showMappingsSection, setShowMappingsSection] = useState(true);
+  const navigate = useNavigate();
 
   // Load data from localStorage on component mount
   useEffect(() => {
@@ -709,31 +713,70 @@ const AssignFacultyToExternal = () => {
                         </p>
                       ) : (
                         <ul className="space-y-2">
-                          {assignedFaculty && assignedFaculty.map((faculty) => (
-                            <li
-                              key={faculty._id}
-                              className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-md"
-                            >
-                              <div className="flex items-center">
-                                <User
-                                  size={16}
-                                  className="text-gray-500 mr-2"
-                                />
-                                <span className="text-gray-800">
-                                  {faculty.name}
-                                </span>
-                              </div>
-                              <button
-                                onClick={() =>
-                                  handleRemoveFaculty(external.id, faculty._id)
-                                }
-                                className="text-red-600 hover:text-red-800"
-                                title="Remove assignment"
+                          {assignedFaculty && assignedFaculty.map((faculty) => {
+                            // Check if a dean is assigned to this external
+                            const hasDeanAssigned = !!getAssignedDeanDetails(external.id);
+                            
+                            return (
+                              <li
+                                key={faculty._id}
+                                className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-md"
                               >
-                                <Trash2 size={16} />
-                              </button>
-                            </li>
-                          ))}
+                                <div className="flex items-center">
+                                  <User
+                                    size={16}
+                                    className="text-gray-500 mr-2"
+                                  />
+                                  <span className="text-gray-800">
+                                    {faculty.name}
+                                  </span>
+                                </div>
+                                {hasDeanAssigned ? (
+                                  // Check if isHodMarksGiven exists and is true
+                                  faculty.isHodMarksGiven ? (
+                                    <div className="flex items-center">
+                                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-md text-sm font-medium flex items-center">
+                                        <CheckCircle size={14} className="mr-1" />
+                                        Marks: {faculty.hod_total_marks}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => {
+                                        navigate(`/hod-evaluate/${faculty._id}`, { 
+                                          state: { 
+                                            faculty: faculty,
+                                            external: {
+                                              id: external.id,
+                                              name: external.name,
+                                              organization: external.organization
+                                            }
+                                          } 
+                                        });
+                                      }}
+                                      className="text-white hover:text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded-md text-sm font-medium flex items-center gap-1 shadow-sm transition-colors duration-200"
+                                      title="Evaluate faculty"
+                                    >
+                                      <FileText size={14} className="mr-1" />
+                                      Evaluate
+                                      <ArrowRight size={14} className="ml-1" />
+                                    </button>
+                                  )
+                                ) : (
+                                  // Show delete button when no dean is assigned
+                                  <button
+                                    onClick={() =>
+                                      handleRemoveFaculty(external.id, faculty._id)
+                                    }
+                                    className="text-red-600 hover:text-red-800"
+                                    title="Remove assignment"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                )}
+                              </li>
+                            );
+                          })}
                         </ul>
                       )}
                     </div>

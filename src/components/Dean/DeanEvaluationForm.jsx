@@ -111,22 +111,28 @@ const DeanEvaluationForm = () => {
         return;
       }
 
-      const updatedPortfolioData = {
-        ...portfolioData,
-        deanMarks: Number(deanMarks),
-        isMarkDean: true,
-        status: "Done", // Update status to Done after dean verification
-        total_marks: calculateTotalScore()
+      // Only update specific fields while keeping existing data
+      const payload = {
+        D: {
+          ...portfolioData,  // Keep all existing data
+          deanMarks: Number(deanMarks),  // Update Dean marks
+          isMarkDean: true,  // Update Dean verification status
+          total_marks: calculateTotalScore()  // Update total score
+        }
       };
 
+      // Update the portfolio data with Dean marks
       await axios.post(
         `http://localhost:5000/${department}/${userId}/D`,
-        updatedPortfolioData
+        payload
+      );
+      
+      await axios.post(
+        `http://localhost:5000/${department}/${userId}/portfolio-given`
       );
 
       setIsModalOpen(false);
-      alert("Marks saved successfully!");
-      navigate("/associate-deans-list"); // Navigate back to the list
+      navigate("/dean/associate-dean-list");
     } catch (error) {
       console.error("Error saving marks:", error);
       alert("Error saving marks. Please try again.");

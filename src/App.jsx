@@ -47,6 +47,7 @@ import AssignFacultyToVerificationTeam from "./components/adminpage/AssignFacult
 import AssignDeanToDepartment from "./components/adminpage/AssignDeanToDepartment";
 import Interactionmarks from "./components/Dean/Interactionmarks";
 import Interactionevaluation from "./components/Dean/Interactionevaluation";
+import HODInteractionEvaluation from "./components/HOD/HODInteractionEvaluation";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -218,6 +219,14 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <Interactionevaluation/>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/hod-evaluate/:facultyId"
+                    element={
+                      <ProtectedRoute>
+                        <HODInteractionEvaluation/>
                       </ProtectedRoute>
                     }
                   />

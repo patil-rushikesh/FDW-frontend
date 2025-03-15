@@ -89,7 +89,7 @@ const AssociateDeansList = () => {
 
   // Function to determine what to display in the action column
   const renderActionButton = (associate) => {
-    if (associate.status === "verified") {
+    if (associate.status === "Portfolio_Mark_Dean_pending") {
       return (
         <button
           type="button"
@@ -232,7 +232,7 @@ const AssociateDeansList = () => {
                         <td className="px-6 py-4">
                           <span
                             className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-xs font-semibold ${
-                              associate.status === "verified"
+                              associate.status === "Portfolio_Mark_Dean_pending"
                                 ? "bg-green-100 text-green-800"
                                 : associate.status === "pending"
                                   ? "bg-yellow-100 text-yellow-800"
