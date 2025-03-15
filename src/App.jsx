@@ -48,6 +48,7 @@ import AssignDeanToDepartment from "./components/adminpage/AssignDeanToDepartmen
 import Interactionmarks from "./components/Dean/Interactionmarks";
 import Interactionevaluation from "./components/Dean/Interactionevaluation";
 import HODInteractionEvaluation from "./components/HOD/HODInteractionEvaluation";
+import FinalMarks from "./components/HOD/FinalMarks";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -93,7 +94,7 @@ function AppContent() {
           )}
           <main className={isAuthenticated ? "p-4 lg:p-6 mt-16" : ""}>
             {isAuthenticated ? (
-              <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-sm p-4 lg:p-6">
+              <div className="max-w-8xl mx-auto bg-white rounded-lg shadow-sm p-4 lg:p-6">
                 <Routes>
                   <Route path="/login" element={<Navigate to="/dashboard" />} />
                   <Route
@@ -185,6 +186,14 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <HODcnfverify />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/hod/final-marks"
+                    element={
+                      <ProtectedRoute>
+                        <FinalMarks/>
                       </ProtectedRoute>
                     }
                   />
