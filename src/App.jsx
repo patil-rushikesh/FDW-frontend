@@ -44,6 +44,9 @@ import ExternalDashboard from "./components/External/ExternalDashboard";
 import Extra from "./components/forms/Extra";
 import EvaluateFacultyPage from "./components/External/EvaluateFacultyPage";
 import AssignFacultyToVerificationTeam from "./components/adminpage/AssignFacultyToVerificationTeam";
+import HODForms from "./components/Director/HODForms";
+import DeanForms from "./components/Director/DeanForms";
+import FacultyForms from "./components/Director/FacultyForms";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -256,7 +259,31 @@ function AppContent() {
                       </ProtectedRoute>
                     }
                   />
-                  
+                  <Route
+                    path="/director/hod-forms"
+                    element={
+                      <ProtectedRoute>
+                        <HODForms />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/director/dean-forms"
+                    element={
+                      <ProtectedRoute>
+                        <DeanForms />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/director/faculty-forms"
+                    element={
+                      <ProtectedRoute>
+                        <FacultyForms />
+                      </ProtectedRoute>
+                    }
+                  />
+
                   <Route path="/" element={<Navigate to="/profile" />} />
                 </Routes>
               </div>
