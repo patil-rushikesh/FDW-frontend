@@ -44,6 +44,7 @@ import ExternalDashboard from "./components/External/ExternalDashboard";
 import Extra from "./components/forms/Extra";
 import EvaluateFacultyPage from "./components/External/EvaluateFacultyPage";
 import AssignFacultyToVerificationTeam from "./components/adminpage/AssignFacultyToVerificationTeam";
+import AssignDeanToDepartment from "./components/adminpage/AssignDeanToDepartment";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -272,6 +273,10 @@ function AppContent() {
                 <Route
                   path="/admin/assign-faculty-to-verification-team"
                   element={<AssignFacultyToVerificationTeam />}
+                />
+                <Route
+                  path="/admin/assign-dean-to-department"
+                  element={<AssignDeanToDepartment/>}
                 />
                 <Route
                   path="/admin"

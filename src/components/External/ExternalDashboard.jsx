@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
+import axios from "axios";
 import {
   User,
   ArrowRight,
@@ -8,66 +9,46 @@ import {
   Info,
   FileText,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ExternalDashboard = () => {
+  const navigate = useNavigate();
   const [assignedFaculty, setAssignedFaculty] = useState([]);
-  const [internalFacultyList, setInternalFacultyList] = useState([]);
   const [evaluations, setEvaluations] = useState({});
-  const [currentExternalId, setCurrentExternalId] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [showExternalSelector, setShowExternalSelector] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [externalInfo, setExternalInfo] = useState({});
+  
+  // Get user data from localStorage, similar to Profile component
+  const [externalId, setExternalId] = useState("");
+  const [department, setDepartment] = useState("");
 
-  // Mock external faculty list - in a real app, this would come from API
-  const [externalFacultyList, setExternalFacultyList] = useState([
-    {
-      id: "ext1",
-      name: "Dr. Rajiv Kapoor",
-      department: "Computer Science",
-      institution: "Delhi University",
-    },
-    {
-      id: "ext2",
-      name: "Prof. Meera Sharma",
-      department: "Information Technology",
-      institution: "IIT Bombay",
-    },
-    {
-      id: "ext3",
-      name: "Dr. Anand Kumar",
-      department: "Electronics",
-      institution: "NIT Trichy",
-    },
-  ]);
+  // Initialize user data from localStorage
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    if (userData) {
+      setExternalId(userData._id);
+      setDepartment(userData.dept);
+      // You can also update externalInfo here if needed
+      setExternalInfo({
+        full_name: userData.name,
+        organization: userData.organization || "",
+        dept: userData.dept,
+        desg: userData.desg
+      });
+    } else {
+      // Handle case when user is not logged in
+      setError("User not logged in or session expired");
+      toast.error("Please log in again");
+    }
+  }, []);
 
   useEffect(() => {
-    // Load mock internal faculty data
-    const mockInternalFaculty = [
-      { id: "1", name: "Dr. Amit Sharma", department: "Computer Science" },
-      { id: "2", name: "Dr. Priya Patel", department: "Electronics" },
-      { id: "3", name: "Prof. Rajesh Kumar", department: "Mechanical" },
-      {
-        id: "4",
-        name: "Dr. Sunita Verma",
-        department: "Information Technology",
-      },
-      { id: "5", name: "Prof. Dinesh Gupta", department: "Electrical" },
-      { id: "6", name: "Dr. Kavita Singh", department: "Civil" },
-    ];
-    setInternalFacultyList(mockInternalFaculty);
-
-    // Set default external faculty
-    if (externalFacultyList.length > 0 && !currentExternalId) {
-      setCurrentExternalId(externalFacultyList[0].id);
+    // Only fetch assignments if we have the required data
+    if (externalId && department) {
+      fetchAssignments();
     }
-
-    // // Setup mock faculty assignments
-    const mockAssignments = {
-      ext1: ["1", "2", "3"],
-      ext2: ["4", "5"],
-      ext3: ["2", "6"],
-    };
-    localStorage.setItem("facultyAssignments", JSON.stringify(mockAssignments));
-
+    
     // Load saved evaluations or initialize empty
     const savedEvaluations = localStorage.getItem("externalEvaluations");
     if (savedEvaluations) {
@@ -77,86 +58,53 @@ const ExternalDashboard = () => {
         console.error("Error parsing evaluations data:", error);
       }
     }
-  }, []);
+  }, [externalId, department]);
 
-  // Load assignments whenever currentExternalId changes
-  useEffect(() => {
-    if (currentExternalId) {
-      loadAssignedFaculty();
+  // Fetch external reviewer assignments from API
+  const fetchAssignments = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`http://localhost:5000/${department}/external-assignments/${externalId}`);
+      
+      if (response.data && response.data.data) {
+        // Set assigned faculty
+        setAssignedFaculty(response.data.data.assigned_faculty || []);
+        // Update external reviewer info if not already set
+        if (Object.keys(externalInfo).length === 0) {
+          setExternalInfo(response.data.data.reviewer_info || {});
+        }
+      } else {
+        setError("No data found");
+      }
+    } catch (err) {
+      setError(err.message || "Failed to load assignments");
+      toast.error("Error loading assignments");
+      console.error("Error fetching assignments:", err);
+    } finally {
+      setLoading(false);
     }
-  }, [currentExternalId]);
+  };
 
   // Save evaluations to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem("externalEvaluations", JSON.stringify(evaluations));
   }, [evaluations]);
 
-  const loadAssignedFaculty = () => {
-    const savedAssignments = localStorage.getItem("facultyAssignments");
-    if (savedAssignments && currentExternalId) {
-      try {
-        const parsedAssignments = JSON.parse(savedAssignments);
-        const currentAssignments = parsedAssignments[currentExternalId] || [];
-
-        // Get full details of assigned internal faculty
-        const assignedFacultyWithDetails = internalFacultyList.filter(
-          (faculty) => currentAssignments.includes(faculty.id)
-        );
-
-        setAssignedFaculty(assignedFacultyWithDetails);
-      } catch (error) {
-        console.error("Error loading assigned faculty:", error);
-      }
-    }
-  };
-
   const getEvaluationStatus = (facultyId) => {
-    const facultyEval = evaluations[currentExternalId]?.[facultyId];
+    const facultyEval = evaluations[externalId]?.[facultyId];
+    
+    // Check if this faculty member is marked as reviewed in the API response
+    const facultyData = assignedFaculty.find(faculty => faculty._id === facultyId);
+    if (facultyData?.isReviewed) return "Submitted";
+    
+    // Fall back to local storage data
     if (!facultyEval) return "Not Started";
     if (facultyEval.submittedAt) return "Submitted";
     return "In Progress";
   };
 
-  const getCurrentExternalFaculty = () => {
-    return (
-      externalFacultyList.find((faculty) => faculty.id === currentExternalId) ||
-      {}
-    );
-  };
-
-  const handleExternalChange = (extId) => {
-    setCurrentExternalId(extId);
-    setShowExternalSelector(false);
-  };
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {/* External Faculty Selector */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden mb-4">
-          <div className="relative">
-
-            {showExternalSelector && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-10">
-                <div className="p-2 border-b text-xs font-medium text-gray-500">
-                  Select External Faculty
-                </div>
-                <div className="max-h-60 overflow-y-auto">
-                  {externalFacultyList.map(external => (
-                    <button
-                      key={external.id}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 ${external.id === currentExternalId ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-700'}`}
-                      onClick={() => handleExternalChange(external.id)}
-                    >
-                      <div className="font-medium">{external.name}</div>
-                      <div className="text-xs text-gray-500">{external.institution}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-      </div>
-      
       {/* Dashboard Header */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
         <div className="bg-indigo-700 px-6 py-4">
@@ -164,21 +112,25 @@ const ExternalDashboard = () => {
             External Faculty Dashboard
           </h1>
           <p className="text-indigo-100 text-sm">
-            {getCurrentExternalFaculty().name
-              ? `Welcome, ${getCurrentExternalFaculty().name}`
+            {externalInfo.full_name
+              ? `Welcome, ${externalInfo.full_name}`
               : "Faculty Evaluation Portal"}
           </p>
-          {getCurrentExternalFaculty().institution && (
+          {externalInfo.organization && (
             <p className="text-indigo-200 text-xs mt-1">
-              {getCurrentExternalFaculty().institution} • {getCurrentExternalFaculty().department}
+              {externalInfo.organization} • {externalInfo.dept} • {externalInfo.desg}
             </p>
           )}
         </div>
 
         <div className="p-6">
-          {!currentExternalId ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>Please select an external faculty to view their dashboard</p>
+          {loading ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Loading assignments...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-500">
+              <p>{error}</p>
             </div>
           ) : assignedFaculty.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
@@ -197,57 +149,62 @@ const ExternalDashboard = () => {
 
               {/* Faculty List */}
               <div className="grid gap-4">
-                {assignedFaculty.map((faculty) => {
-                  const status = getEvaluationStatus(faculty.id);
-                  return (
-                    <div 
-                      key={faculty.id} 
-                      id={`faculty-${faculty.id}`}
-                      className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                {assignedFaculty.map((faculty) => (
+                  <div 
+                    key={faculty._id} 
+                    id={`faculty-${faculty._id}`}
+                    className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                  >
+                    <div className={`p-4 flex justify-between items-center ${
+                      faculty.isReviewed ? "bg-green-50 border-green-200" :
+                      getEvaluationStatus(faculty._id) === "In Progress" ? "bg-yellow-50 border-yellow-200" :
+                      "bg-white border-gray-200"
+                    }`}
                     >
-                      <div className={`p-4 flex justify-between items-center ${
-                        status === "Submitted" ? "bg-green-50 border-green-200" :
-                        status === "In Progress" ? "bg-yellow-50 border-yellow-200" :
-                        "bg-white border-gray-200"
-                      }`}
-                      >
-                        <div className="flex items-center">
-                          <div className="bg-indigo-100 rounded-full w-12 h-12 flex items-center justify-center mr-4 text-indigo-700">
-                            <User size={20} />
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold">{faculty.name}</h3>
-                            <p className="text-sm text-gray-600">{faculty.department}</p>
-                          </div>
+                      <div className="flex items-center">
+                        <div className="bg-indigo-100 rounded-full w-12 h-12 flex items-center justify-center mr-4 text-indigo-700">
+                          <User size={20} />
                         </div>
-
-                        <div className="flex items-center">
-                          {status === "Submitted" ? (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                              <CheckCircle size={16} className="mr-1" /> Evaluated
-                            </span>
-                          ) : status === "In Progress" ? (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                              <AlertCircle size={16} className="mr-1" /> In Progress
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                              <Info size={16} className="mr-1" /> Not Started
-                            </span>
-                          )}
-
-                          <a 
-                            href={`/evaluate-faculty/${faculty.id}`} 
-                            className="ml-4 inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
-                          >
-                            <FileText size={16} className="mr-1" /> {status === "Submitted" ? "View" : "Evaluate"} 
-                            <ArrowRight size={16} className="ml-1" />
-                          </a>
+                        <div>
+                          <h3 className="text-lg font-semibold">{faculty.name}</h3>
+                          <p className="text-sm text-gray-600">{faculty._id}</p>
                         </div>
                       </div>
+
+                      <div className="flex items-center">
+                        {faculty.isReviewed ? (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                            <CheckCircle size={16} className="mr-1" /> Evaluated
+                          </span>
+                        ) : getEvaluationStatus(faculty._id) === "In Progress" ? (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                            <AlertCircle size={16} className="mr-1" /> In Progress
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                            <Info size={16} className="mr-1" /> Not Started
+                          </span>
+                        )}
+
+                        {faculty.isReviewed ? (
+                          <div className="ml-4 inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-green-100 text-green-700">
+                            <CheckCircle size={16} className="mr-1" /> 
+                            Score: {faculty.total_marks}/100
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={() => navigate(`/evaluate-faculty/${faculty._id}`, { state: { faculty } })}
+                            className="ml-4 inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
+                          >
+                            <FileText size={16} className="mr-1" /> 
+                            Evaluate
+                            <ArrowRight size={16} className="ml-1" />
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
           )}
