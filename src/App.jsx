@@ -45,6 +45,8 @@ import Extra from "./components/forms/Extra";
 import EvaluateFacultyPage from "./components/External/EvaluateFacultyPage";
 import AssignFacultyToVerificationTeam from "./components/adminpage/AssignFacultyToVerificationTeam";
 import AssignDeanToDepartment from "./components/adminpage/AssignDeanToDepartment";
+import Interactionmarks from "./components/Dean/Interactionmarks";
+import Interactionevaluation from "./components/Dean/Interactionevaluation";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -193,11 +195,29 @@ function AppContent() {
                       </ProtectedRoute>
                     }
                   />
+                  
                   <Route
                     path="/dean-evaluation/:department/:facultyId"
                     element={
                       <ProtectedRoute>
                         <DeanEvaluationForm />
+                      </ProtectedRoute>
+                    }
+                  />
+                    <Route
+                      path="/dean/give-interaction-marks"
+                      element={
+                        <ProtectedRoute>
+                          <Interactionmarks/>
+                        </ProtectedRoute>
+                      }
+                    />
+
+                  <Route
+                    path="/dean-evaluate/:facultyId"
+                    element={
+                      <ProtectedRoute>
+                        <Interactionevaluation/>
                       </ProtectedRoute>
                     }
                   />
