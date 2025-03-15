@@ -417,7 +417,7 @@ const FacultyFormsList = () => {
                         <td className="px-6 py-4">
                         <span
   className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold ${
-    faculty.status === "Done"
+    faculty.status === "done"
       ? "bg-green-100 text-green-800"
       : faculty.status === "Interaction_pending"
       ? "bg-purple-100 text-purple-800"
@@ -432,7 +432,7 @@ const FacultyFormsList = () => {
               : "bg-gray-100 text-gray-800"
   }`}
 >
-    {faculty.status === "Done"
+    {faculty.status === "done"
       ? "Done"
       : faculty.status === "Interaction_pending"
       ? "Interaction Pending"

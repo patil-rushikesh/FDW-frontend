@@ -66,11 +66,31 @@ const Interactionmarks = () => {
       const response = await axios.get(`http://localhost:5000/${department}/dean-assignments/${deanId}`);
       
       if (response.data && response.data.data) {
-        // Set assigned faculty
-        setAssignedFaculty(response.data.data.assigned_faculty || []);
+        // The response now has a different structure with external IDs as keys
+        // Convert the grouped data into a flat array with external ID information
+        const flattenedFaculty = [];
+        const externalIds = Object.keys(response.data.data).filter(key => key !== "reviewer_info");
+        
+        externalIds.forEach(externalId => {
+          const facultyList = response.data.data[externalId] || [];
+          facultyList.forEach(faculty => {
+            flattenedFaculty.push({
+              ...faculty,
+              externalId // Add externalId to each faculty object for grouping
+            });
+          });
+        });
+        
+        setAssignedFaculty(flattenedFaculty);
+        
         // Update dean info if needed
-        if (Object.keys(deanInfo).length === 0) {
-          setDeanInfo(response.data.data.dean_info || {});
+        if (Object.keys(deanInfo).length === 0 && response.data.data.reviewer_info) {
+          setDeanInfo({
+            full_name: response.data.data.reviewer_info.full_name,
+            organization: response.data.data.reviewer_info.organization || "",
+            dept: department,
+            desg: "Dean"
+          });
         }
       } else {
         setError("No data found");
@@ -146,61 +166,83 @@ const Interactionmarks = () => {
                 </p>
               </div>
 
-              {/* Faculty List */}
-              <div className="grid gap-4">
-                {assignedFaculty.map((faculty) => (
-                  <div 
-                    key={faculty._id} 
-                    id={`faculty-${faculty._id}`}
-                    className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
-                  >
-                    <div className={`p-4 flex justify-between items-center ${
-                      faculty.isReviewed ? "bg-green-50 border-green-200" :
-                      getEvaluationStatus(faculty._id) === "In Progress" ? "bg-yellow-50 border-yellow-200" :
-                      "bg-white border-gray-200"
-                    }`}
-                    >
-                      <div className="flex items-center">
-                        <div className="bg-indigo-100 rounded-full w-12 h-12 flex items-center justify-center mr-4 text-indigo-700">
-                          <User size={20} />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold">{faculty.name}</h3>
-                          <p className="text-sm text-gray-600">{faculty._id}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center">
-                        {faculty.isReviewed ? (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                            <CheckCircle size={16} className="mr-1" /> Evaluated
-                          </span>
-                        ) : getEvaluationStatus(faculty._id) === "In Progress" ? (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                            <AlertCircle size={16} className="mr-1" /> In Progress
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                            <Info size={16} className="mr-1" /> Not Started
-                          </span>
-                        )}
-
-                        {faculty.isReviewed ? (
-                          <div className="ml-4 inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-green-100 text-green-700">
-                            <CheckCircle size={16} className="mr-1" /> 
-                            Score: {faculty.total_marks}/100
-                          </div>
-                        ) : (
-                          <button 
-                            onClick={() => navigate(`/dean-evaluate/${faculty._id}`, { state: { faculty } })}
-                            className="ml-4 inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
+              {/* Faculty List grouped by External ID */}
+              <div className="grid gap-6">
+                {/* Group faculty by external ID */}
+                {Object.entries(
+                  assignedFaculty.reduce((grouped, faculty) => {
+                    const externalId = faculty.externalId;
+                    if (!grouped[externalId]) {
+                      grouped[externalId] = [];
+                    }
+                    grouped[externalId].push(faculty);
+                    return grouped;
+                  }, {})
+                ).map(([externalId, facultyList]) => (
+                  <div key={externalId} className="mb-6">
+                    <div className="bg-gray-100 p-3 rounded-lg mb-3">
+                      <h3 className="font-medium text-gray-800">
+                        External Evaluator ID: {externalId}
+                      </h3>
+                    </div>
+                    
+                    <div className="grid gap-4">
+                      {facultyList.map((faculty) => (
+                        <div 
+                          key={faculty._id} 
+                          id={`faculty-${faculty._id}`}
+                          className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                        >
+                          <div className={`p-4 flex justify-between items-center ${
+                            faculty.isReviewed ? "bg-green-50 border-green-200" :
+                            getEvaluationStatus(faculty._id) === "In Progress" ? "bg-yellow-50 border-yellow-200" :
+                            "bg-white border-gray-200"
+                          }`}
                           >
-                            <FileText size={16} className="mr-1" /> 
-                            Evaluate
-                            <ArrowRight size={16} className="ml-1" />
-                          </button>
-                        )}
-                      </div>
+                            <div className="flex items-center">
+                              <div className="bg-indigo-100 rounded-full w-12 h-12 flex items-center justify-center mr-4 text-indigo-700">
+                                <User size={20} />
+                              </div>
+                              <div>
+                                <h3 className="text-lg font-semibold">{faculty.name}</h3>
+                                <p className="text-sm text-gray-600">{faculty._id}</p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center">
+                              {faculty.isReviewed ? (
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                  <CheckCircle size={16} className="mr-1" /> Evaluated
+                                </span>
+                              ) : getEvaluationStatus(faculty._id) === "In Progress" ? (
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                  <AlertCircle size={16} className="mr-1" /> In Progress
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                  <Info size={16} className="mr-1" /> Not Started
+                                </span>
+                              )}
+
+                              {faculty.isReviewed ? (
+                                <div className="ml-4 inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-green-100 text-green-700">
+                                  <CheckCircle size={16} className="mr-1" /> 
+                                  Score: {faculty.total_marks}/100
+                                </div>
+                              ) : (
+                                <button 
+                                  onClick={() => navigate(`/dean-evaluate/${faculty._id}`, { state: { faculty } })}
+                                  className="ml-4 inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
+                                >
+                                  <FileText size={16} className="mr-1" /> 
+                                  Evaluate
+                                  <ArrowRight size={16} className="ml-1" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}

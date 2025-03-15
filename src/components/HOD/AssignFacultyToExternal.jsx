@@ -276,6 +276,27 @@ const AssignFacultyToExternal = () => {
     }
   }, [deanExternalMappings, externalFacultyList]);
 
+  // Add this useEffect after fetching both externals and assignments
+  useEffect(() => {
+    // This will filter out assignments for externals that no longer exist in the externalFacultyList
+    if (externalFacultyList.length > 0 && Object.keys(assignments).length > 0) {
+      const validExternalIds = externalFacultyList.map(external => external.id);
+      const filteredAssignments = {};
+      
+      Object.keys(assignments).forEach(externalId => {
+        // Only keep assignments for externals that exist in our list
+        if (validExternalIds.includes(externalId)) {
+          filteredAssignments[externalId] = assignments[externalId];
+        }
+      });
+      
+      // Only update if there's a difference to avoid an infinite loop
+      if (Object.keys(filteredAssignments).length !== Object.keys(assignments).length) {
+        setAssignments(filteredAssignments);
+      }
+    }
+  }, [externalFacultyList, assignments]);
+
   const openAssignModal = (externalFaculty) => {
     setSelectedExternal(externalFaculty);
     // Initialize pending assignments with current assignments for this external
