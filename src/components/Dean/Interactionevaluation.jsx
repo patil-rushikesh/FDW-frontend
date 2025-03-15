@@ -3,14 +3,14 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { User, Save, ArrowLeft, Check, AlertCircle, Briefcase, Mail, Book } from "lucide-react";
 
-const EvaluateFacultyPage = () => {
+const Interactionevaluation = () => {
   const { facultyId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [faculty, setFaculty] = useState(null);
-  const [externalId, setExternalId] = useState(null);
+  const [deanId, setDeanId] = useState(null);
   const [userDepartment, setUserDepartment] = useState("");
 
   // Evaluation form data
@@ -25,37 +25,34 @@ const EvaluateFacultyPage = () => {
   });
 
   useEffect(() => {
-    // Get current external faculty ID and department from localStorage
+    // Get current dean ID and department from localStorage
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    const currentExternalId = userData._id || null;
+    const currentDeanId = userData._id || null;
     
-    if (!currentExternalId) {
+    if (!currentDeanId) {
       toast.error("User session not found. Please log in again.");
       navigate("/login");
       return;
     }
     
-    setExternalId(currentExternalId);
+    setDeanId(currentDeanId);
     setUserDepartment(userData.dept || "");
     
-    // Get faculty data from location state (passed from ExternalDashboard)
+    // Get faculty data from location state (passed from Interactionmarks)
     if (location.state?.faculty) {
       setFaculty(location.state.faculty);
     } else {
-      // Fallback if no state was passed - could fetch faculty data from API here
-      // Instead of using mock data, you would make an API call like:
-      // fetchFacultyById(facultyId).then(data => setFaculty(data));
       toast.error("Faculty information not available");
-      navigate("/external/give-marks");
+      navigate("/dean/give-interaction-marks");
     }
 
     // Load any existing evaluation data from localStorage
-    if (currentExternalId) {
+    if (currentDeanId) {
       const savedEvaluations = JSON.parse(
-        localStorage.getItem("externalEvaluations") || "{}"
+        localStorage.getItem("deanEvaluations") || "{}"
       );
-      if (savedEvaluations[currentExternalId]?.[facultyId]) {
-        setEvaluation(savedEvaluations[currentExternalId][facultyId]);
+      if (savedEvaluations[currentDeanId]?.[facultyId]) {
+        setEvaluation(savedEvaluations[currentDeanId][facultyId]);
       }
     }
 
@@ -97,7 +94,7 @@ const EvaluateFacultyPage = () => {
   };
 
   const handleSave = async (isSubmitted = false) => {
-    if (!externalId || !facultyId) {
+    if (!deanId || !facultyId) {
       toast.error("Missing required information");
       return;
     }
@@ -128,12 +125,12 @@ const EvaluateFacultyPage = () => {
     try {
       // Get existing evaluations
       const savedEvaluations = JSON.parse(
-        localStorage.getItem("externalEvaluations") || "{}"
+        localStorage.getItem("deanEvaluations") || "{}"
       );
 
       // Create structure if it doesn't exist
-      if (!savedEvaluations[externalId]) {
-        savedEvaluations[externalId] = {};
+      if (!savedEvaluations[deanId]) {
+        savedEvaluations[deanId] = {};
       }
 
       // Calculate total score
@@ -146,7 +143,7 @@ const EvaluateFacultyPage = () => {
         (parseInt(evaluation.teamPerformance) || 0);
 
       // Update with new evaluation
-      savedEvaluations[externalId][facultyId] = {
+      savedEvaluations[deanId][facultyId] = {
         ...evaluation,
         totalScore,
         updatedAt: new Date().toISOString(),
@@ -155,7 +152,7 @@ const EvaluateFacultyPage = () => {
 
       // Save to localStorage (for progress tracking)
       localStorage.setItem(
-        "externalEvaluations",
+        "deanEvaluations",
         JSON.stringify(savedEvaluations)
       );
 
@@ -164,7 +161,7 @@ const EvaluateFacultyPage = () => {
         const userData = JSON.parse(localStorage.getItem("userData") || "{}");
         const department = userData.dept || "";
         
-        const apiResponse = await fetch(`http://127.0.0.1:5000/${department}/external_interaction_marks/${externalId}/${facultyId}`, {
+        const apiResponse = await fetch(`http://127.0.0.1:5000/${department}/dean_interaction_marks/${deanId}/${facultyId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -181,7 +178,7 @@ const EvaluateFacultyPage = () => {
         }
         
         toast.success("Evaluation submitted successfully!");
-        navigate("/external/give-marks");
+        navigate("/dean/give-interaction-marks");
       } else {
         toast.success("Progress saved successfully!");
       }
@@ -215,7 +212,7 @@ const EvaluateFacultyPage = () => {
               The faculty member you're trying to evaluate could not be found.
             </p>
             <button
-              onClick={() => navigate("/external/give-marks")}
+              onClick={() => navigate("/dean/give-interaction-marks")}
               className="inline-flex items-center px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
             >
               <ArrowLeft size={16} className="mr-2" /> Return to Dashboard
@@ -230,7 +227,7 @@ const EvaluateFacultyPage = () => {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Back Button */}
       <button
-        onClick={() => navigate("/external/give-marks")}
+        onClick={() => navigate("/dean/give-interaction-marks")}
         className="mb-4 inline-flex items-center text-indigo-600 hover:text-indigo-800"
       >
         <ArrowLeft size={16} className="mr-1" /> Back to Dashboard
@@ -239,7 +236,7 @@ const EvaluateFacultyPage = () => {
       {/* Faculty Info Card */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
         <div className="bg-indigo-700 px-6 py-4">
-          <h1 className="text-xl font-bold text-white">Evaluate Faculty</h1>
+          <h1 className="text-xl font-bold text-white">Dean Interaction Evaluation</h1>
         </div>
 
         <div className="p-6">
@@ -264,18 +261,16 @@ const EvaluateFacultyPage = () => {
                   <div className="flex items-center">
                     <Briefcase size={18} className="text-indigo-600 mr-2" />
                     <span className="text-gray-700">
-                      <span className="font-medium">Department:</span> {userDepartment|| "Not specified"}
+                      <span className="font-medium">Department:</span> {userDepartment || "Not specified"}
                     </span>
                   </div>
 
-                  
                   {faculty.email && (
                     <div className="flex items-center">
                       <Mail size={18} className="text-indigo-600 mr-2" />
                       <span className="text-gray-700">{faculty.email}</span>
                     </div>
                   )}
-                  
                 </div>
                 
                 {faculty.expertise && (
@@ -297,7 +292,7 @@ const EvaluateFacultyPage = () => {
 
           <div className="mb-8">
             <p className="text-gray-600">
-              Please evaluate this faculty member on the following parameters.
+              Please evaluate this faculty member based on your interactions.
               Your assessment will be used as part of their overall performance
               appraisal.
             </p>
@@ -329,7 +324,6 @@ const EvaluateFacultyPage = () => {
               </div>
             </div>
 
-            {/* Rest of the form remains the same */}
             {/* Skills */}
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-blue-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -509,4 +503,4 @@ const EvaluateFacultyPage = () => {
   );
 };
 
-export default EvaluateFacultyPage;
+export default Interactionevaluation;

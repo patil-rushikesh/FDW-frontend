@@ -11,26 +11,25 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const ExternalDashboard = () => {
+const Interactionmarks = () => {
   const navigate = useNavigate();
   const [assignedFaculty, setAssignedFaculty] = useState([]);
   const [evaluations, setEvaluations] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [externalInfo, setExternalInfo] = useState({});
+  const [deanInfo, setDeanInfo] = useState({});
   
   // Get user data from localStorage, similar to Profile component
-  const [externalId, setExternalId] = useState("");
+  const [deanId, setDeanId] = useState("");
   const [department, setDepartment] = useState("");
 
   // Initialize user data from localStorage
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('userData'));
     if (userData) {
-      setExternalId(userData._id);
+      setDeanId(userData._id);
       setDepartment(userData.dept);
-      // You can also update externalInfo here if needed
-      setExternalInfo({
+      setDeanInfo({
         full_name: userData.name,
         organization: userData.organization || "",
         dept: userData.dept,
@@ -45,12 +44,12 @@ const ExternalDashboard = () => {
 
   useEffect(() => {
     // Only fetch assignments if we have the required data
-    if (externalId && department) {
+    if (deanId && department) {
       fetchAssignments();
     }
     
     // Load saved evaluations or initialize empty
-    const savedEvaluations = localStorage.getItem("externalEvaluations");
+    const savedEvaluations = localStorage.getItem("deanEvaluations");
     if (savedEvaluations) {
       try {
         setEvaluations(JSON.parse(savedEvaluations));
@@ -58,20 +57,20 @@ const ExternalDashboard = () => {
         console.error("Error parsing evaluations data:", error);
       }
     }
-  }, [externalId, department]);
+  }, [deanId, department]);
 
-  // Fetch external reviewer assignments from API
+  // Fetch dean assignments from API
   const fetchAssignments = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:5000/${department}/external-assignments/${externalId}`);
+      const response = await axios.get(`http://localhost:5000/${department}/dean-assignments/${deanId}`);
       
       if (response.data && response.data.data) {
         // Set assigned faculty
         setAssignedFaculty(response.data.data.assigned_faculty || []);
-        // Update external reviewer info if not already set
-        if (Object.keys(externalInfo).length === 0) {
-          setExternalInfo(response.data.data.reviewer_info || {});
+        // Update dean info if needed
+        if (Object.keys(deanInfo).length === 0) {
+          setDeanInfo(response.data.data.dean_info || {});
         }
       } else {
         setError("No data found");
@@ -87,11 +86,11 @@ const ExternalDashboard = () => {
 
   // Save evaluations to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem("externalEvaluations", JSON.stringify(evaluations));
+    localStorage.setItem("deanEvaluations", JSON.stringify(evaluations));
   }, [evaluations]);
 
   const getEvaluationStatus = (facultyId) => {
-    const facultyEval = evaluations[externalId]?.[facultyId];
+    const facultyEval = evaluations[deanId]?.[facultyId];
     
     // Check if this faculty member is marked as reviewed in the API response
     const facultyData = assignedFaculty.find(faculty => faculty._id === facultyId);
@@ -109,16 +108,16 @@ const ExternalDashboard = () => {
       <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
         <div className="bg-indigo-700 px-6 py-4">
           <h1 className="text-xl font-bold text-white">
-            External Faculty Dashboard
+            Dean Interaction Assessment
           </h1>
           <p className="text-indigo-100 text-sm">
-            {externalInfo.full_name
-              ? `Welcome, ${externalInfo.full_name}`
+            {deanInfo.full_name
+              ? `Welcome, ${deanInfo.full_name}`
               : "Faculty Evaluation Portal"}
           </p>
-          {externalInfo.organization && (
+          {deanInfo.organization && (
             <p className="text-indigo-200 text-xs mt-1">
-              {externalInfo.organization} • {externalInfo.dept} • {externalInfo.desg}
+              {deanInfo.organization} • {deanInfo.dept} • {deanInfo.desg}
             </p>
           )}
         </div>
@@ -134,16 +133,16 @@ const ExternalDashboard = () => {
             </div>
           ) : assignedFaculty.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <p>No faculty members have been assigned to you yet.</p>
+              <p>No faculty members have been assigned to you for interaction assessment yet.</p>
             </div>
           ) : (
             <div>
               <div className="mb-6">
                 <h2 className="text-lg font-medium text-gray-900 mb-2">
-                  Your Assigned Faculty Members
+                  Faculty Assigned for Interaction Assessment
                 </h2>
                 <p className="text-gray-600 text-sm">
-                  Please evaluate each faculty member on the required parameters
+                  Please evaluate each faculty member based on your interactions
                 </p>
               </div>
 
@@ -193,7 +192,7 @@ const ExternalDashboard = () => {
                           </div>
                         ) : (
                           <button 
-                            onClick={() => navigate(`/evaluate-faculty/${faculty._id}`, { state: { faculty } })}
+                            onClick={() => navigate(`/dean-evaluate/${faculty._id}`, { state: { faculty } })}
                             className="ml-4 inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
                           >
                             <FileText size={16} className="mr-1" /> 
@@ -214,4 +213,4 @@ const ExternalDashboard = () => {
   );
 };
 
-export default ExternalDashboard;
+export default Interactionmarks;

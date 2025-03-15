@@ -17,6 +17,7 @@ const DeanForms = () => {
   const [filters, setFilters] = useState({
     search: "",
     department: "",
+    designation: "",
     minMarks: "",
     maxMarks: "",
   });
@@ -25,6 +26,7 @@ const DeanForms = () => {
     direction: "asc",
   });
   const [departments, setDepartments] = useState([]);
+  const [designations, setDesignations] = useState([]);
 
   // Process verification status
   const processVerificationStatus = (facultyList) => {
@@ -42,41 +44,35 @@ const DeanForms = () => {
     }));
   };
 
-  // Fetch all departments
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/departments");
-        if (!response.ok) throw new Error("Failed to fetch departments");
-        const data = await response.json();
-        if (data.status === "success") {
-          setDepartments(data.data);
-        } else {
-          throw new Error("API returned an error");
-        }
-      } catch (err) {
-        setError("Error loading departments: " + err.message);
-      }
-    };
-
-    fetchDepartments();
-  }, []);
-
-  // Fetch faculty data
+  // Fetch faculty data using the new all-faculties endpoint
   useEffect(() => {
     const fetchFaculties = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:5000/faculty/Computer");
+        const response = await fetch("http://localhost:5000/all-faculties");
         if (!response.ok) throw new Error("Failed to fetch faculty data");
         const responseData = await response.json();
+
         if (responseData.status === "success") {
-          // Filter HODs only
-          console.log(responseData.data);
-          const hodFaculty = responseData.data.filter(
-            (faculty) => faculty.role === "Dean" || faculty.designation === "Dean"
+          // Filter Deans only
+          const deanFaculty = responseData.data.filter(
+            (faculty) =>
+              faculty.role === "Dean" || faculty.designation === "Dean"
           );
-          setFacultyData(processVerificationStatus(hodFaculty));
+
+          // Extract unique departments from the faculty data
+          const uniqueDepartments = [
+            ...new Set(responseData.data.map((f) => f.department)),
+          ].filter(Boolean);
+          setDepartments(uniqueDepartments);
+
+          // Extract unique designations for filter options
+          const uniqueDesignations = [
+            ...new Set(responseData.data.map((f) => f.designation)),
+          ].filter(Boolean);
+          setDesignations(uniqueDesignations);
+
+          setFacultyData(processVerificationStatus(deanFaculty));
         } else {
           throw new Error("API returned an error");
         }
@@ -118,7 +114,10 @@ const DeanForms = () => {
             faculty.name.toLowerCase().includes(filters.search.toLowerCase()));
 
         const departmentMatch =
-          !filters.department || faculty.dept === filters.department;
+          !filters.department || faculty.department === filters.department;
+
+        const designationMatch =
+          !filters.designation || faculty.designation === filters.designation;
 
         const facultyMarks = getNumericMarks(faculty);
 
@@ -130,7 +129,7 @@ const DeanForms = () => {
             filters.maxMarks === "" ||
             facultyMarks <= Number(filters.maxMarks));
 
-        return searchMatch && departmentMatch && marksMatch;
+        return searchMatch && departmentMatch && designationMatch && marksMatch;
       })
       .sort((a, b) => {
         if (!sortConfig.key) return 0;
@@ -194,7 +193,7 @@ const DeanForms = () => {
                   name: faculty.name,
                   id: faculty._id,
                   role: faculty.role,
-                  department: faculty.dept,
+                  department: faculty.department,
                   status: "authority_verification_pending",
                 },
                 portfolioData: {},
@@ -219,7 +218,7 @@ const DeanForms = () => {
                   name: faculty.name,
                   id: faculty._id,
                   role: faculty.role,
-                  department: faculty.dept,
+                  department: faculty.department,
                 },
               },
             })
@@ -238,7 +237,7 @@ const DeanForms = () => {
     if (faculty.status === "pending") {
       return "0";
     } else if (typeof faculty.grand_marks === "object") {
-      return faculty.grand_marks.grand_total || "N/A";
+      return faculty.grand_marks?.grand_total || "N/A";
     } else {
       return faculty.grand_marks || "N/A";
     }
@@ -249,7 +248,7 @@ const DeanForms = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading HOD data...</p>
+          <p className="text-gray-600">Loading Dean data...</p>
         </div>
       </div>
     );
@@ -281,7 +280,7 @@ const DeanForms = () => {
                   <div className="flex items-center">
                     <Users className="mr-2 text-blue-600" />
                     <h2 className="text-xl font-semibold text-gray-800">
-                      HOD Forms
+                      Dean Forms
                     </h2>
                   </div>
 
@@ -314,6 +313,24 @@ const DeanForms = () => {
                         {departments.map((dept) => (
                           <option key={dept} value={dept}>
                             {dept}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={filters.designation}
+                        onChange={(e) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            designation: e.target.value,
+                          }))
+                        }
+                        className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-full sm:w-auto"
+                      >
+                        <option value="">All Designations</option>
+                        {designations.map((desg) => (
+                          <option key={desg} value={desg}>
+                            {desg}
                           </option>
                         ))}
                       </select>
@@ -387,6 +404,7 @@ const DeanForms = () => {
                       <th className="px-6 py-3 text-gray-600">ID</th>
                       <th className="px-6 py-3 text-gray-600">Name</th>
                       <th className="px-6 py-3 text-gray-600">Department</th>
+                      <th className="px-6 py-3 text-gray-600">Designation</th>
                       <th className="px-6 py-3 text-gray-600">Role</th>
                       <th className="px-6 py-3 text-gray-600">Total Marks</th>
                       <th className="px-6 py-3 text-gray-600">Status</th>
@@ -404,7 +422,8 @@ const DeanForms = () => {
                           <td className="px-6 py-4 font-medium">
                             {faculty.name}
                           </td>
-                          <td className="px-6 py-4">{faculty.dept}</td>
+                          <td className="px-6 py-4">{faculty.department}</td>
+                          <td className="px-6 py-4">{faculty.designation}</td>
                           <td className="px-6 py-4">{faculty.role}</td>
                           <td className="px-6 py-4">{displayMarks(faculty)}</td>
                           <td className="px-6 py-4">
@@ -449,10 +468,10 @@ const DeanForms = () => {
                     ) : (
                       <tr>
                         <td
-                          colSpan="7"
+                          colSpan="8"
                           className="px-6 py-8 text-center text-gray-500"
                         >
-                          No HOD data available. Try adjusting your filters.
+                          No Dean data available. Try adjusting your filters.
                         </td>
                       </tr>
                     )}

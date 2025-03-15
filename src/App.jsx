@@ -47,6 +47,10 @@ import AssignFacultyToVerificationTeam from "./components/adminpage/AssignFacult
 import HODForms from "./components/Director/HODForms";
 import DeanForms from "./components/Director/DeanForms";
 import FacultyForms from "./components/Director/FacultyForms";
+import AssignDeanToDepartment from "./components/adminpage/AssignDeanToDepartment";
+import Interactionmarks from "./components/Dean/Interactionmarks";
+import Interactionevaluation from "./components/Dean/Interactionevaluation";
+import HODInteractionEvaluation from "./components/HOD/HODInteractionEvaluation";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -195,11 +199,37 @@ function AppContent() {
                       </ProtectedRoute>
                     }
                   />
+                  
                   <Route
                     path="/dean-evaluation/:department/:facultyId"
                     element={
                       <ProtectedRoute>
                         <DeanEvaluationForm />
+                      </ProtectedRoute>
+                    }
+                  />
+                    <Route
+                      path="/dean/give-interaction-marks"
+                      element={
+                        <ProtectedRoute>
+                          <Interactionmarks/>
+                        </ProtectedRoute>
+                      }
+                    />
+
+                  <Route
+                    path="/dean-evaluate/:facultyId"
+                    element={
+                      <ProtectedRoute>
+                        <Interactionevaluation/>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/hod-evaluate/:facultyId"
+                    element={
+                      <ProtectedRoute>
+                        <HODInteractionEvaluation/>
                       </ProtectedRoute>
                     }
                   />
@@ -299,6 +329,10 @@ function AppContent() {
                 <Route
                   path="/admin/assign-faculty-to-verification-team"
                   element={<AssignFacultyToVerificationTeam />}
+                />
+                <Route
+                  path="/admin/assign-dean-to-department"
+                  element={<AssignDeanToDepartment/>}
                 />
                 <Route
                   path="/admin"

@@ -17,6 +17,7 @@ const FacultyForms = () => {
   const [filters, setFilters] = useState({
     search: "",
     department: "",
+    designation: "",
     role: "",
     minMarks: "",
     maxMarks: "",
@@ -26,12 +27,8 @@ const FacultyForms = () => {
     direction: "asc",
   });
   const [departments, setDepartments] = useState([]);
-  const roles = [
-    "Professor",
-    "Associate Professor",
-    "Assistant Professor",
-    "Faculty",
-  ];
+  const [designations, setDesignations] = useState([]);
+  const [roles, setRoles] = useState([]);
 
   // Process verification status
   const processVerificationStatus = (facultyList) => {
@@ -49,34 +46,15 @@ const FacultyForms = () => {
     }));
   };
 
-  // Fetch all departments
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/departments");
-        if (!response.ok) throw new Error("Failed to fetch departments");
-        const data = await response.json();
-        if (data.status === "success") {
-          setDepartments(data.data);
-        } else {
-          throw new Error("API returned an error");
-        }
-      } catch (err) {
-        setError("Error loading departments: " + err.message);
-      }
-    };
-
-    fetchDepartments();
-  }, []);
-
-  // Fetch faculty data
+  // Fetch faculty data using the new all-faculties endpoint
   useEffect(() => {
     const fetchFaculties = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:5000/faculty/Computer");
+        const response = await fetch("http://localhost:5000/all-faculties");
         if (!response.ok) throw new Error("Failed to fetch faculty data");
         const responseData = await response.json();
+
         if (responseData.status === "success") {
           // Filter regular faculty only (not HODs)
           const regularFaculty = responseData.data.filter(
@@ -86,6 +64,25 @@ const FacultyForms = () => {
               (faculty.designation === "Faculty" ||
                 faculty.designation === "Associate Dean")
           );
+
+          // Extract unique departments from the faculty data
+          const uniqueDepartments = [
+            ...new Set(responseData.data.map((f) => f.department)),
+          ].filter(Boolean);
+          setDepartments(uniqueDepartments);
+
+          // Extract unique designations for filter options
+          const uniqueDesignations = [
+            ...new Set(responseData.data.map((f) => f.designation)),
+          ].filter(Boolean);
+          setDesignations(uniqueDesignations);
+
+          // Extract unique roles for filter options
+          const uniqueRoles = [...new Set(responseData.data.map((f) => f.role))]
+            .filter(Boolean)
+            .filter((role) => role !== "HOD");
+          setRoles(uniqueRoles);
+
           setFacultyData(processVerificationStatus(regularFaculty));
         } else {
           throw new Error("API returned an error");
@@ -128,7 +125,10 @@ const FacultyForms = () => {
             faculty.name.toLowerCase().includes(filters.search.toLowerCase()));
 
         const departmentMatch =
-          !filters.department || faculty.dept === filters.department;
+          !filters.department || faculty.department === filters.department;
+
+        const designationMatch =
+          !filters.designation || faculty.designation === filters.designation;
 
         const roleMatch = !filters.role || faculty.role === filters.role;
 
@@ -142,7 +142,13 @@ const FacultyForms = () => {
             filters.maxMarks === "" ||
             facultyMarks <= Number(filters.maxMarks));
 
-        return searchMatch && departmentMatch && roleMatch && marksMatch;
+        return (
+          searchMatch &&
+          departmentMatch &&
+          designationMatch &&
+          roleMatch &&
+          marksMatch
+        );
       })
       .sort((a, b) => {
         if (!sortConfig.key) return 0;
@@ -206,7 +212,7 @@ const FacultyForms = () => {
                   name: faculty.name,
                   id: faculty._id,
                   role: faculty.role,
-                  department: faculty.dept,
+                  department: faculty.department,
                   status: "authority_verification_pending",
                 },
                 portfolioData: {},
@@ -231,7 +237,7 @@ const FacultyForms = () => {
                   name: faculty.name,
                   id: faculty._id,
                   role: faculty.role,
-                  department: faculty.dept,
+                  department: faculty.department,
                 },
               },
             })
@@ -250,7 +256,7 @@ const FacultyForms = () => {
     if (faculty.status === "pending") {
       return "0";
     } else if (typeof faculty.grand_marks === "object") {
-      return faculty.grand_marks.grand_total || "N/A";
+      return faculty.grand_marks?.grand_total || "N/A";
     } else {
       return faculty.grand_marks || "N/A";
     }
@@ -326,6 +332,24 @@ const FacultyForms = () => {
                         {departments.map((dept) => (
                           <option key={dept} value={dept}>
                             {dept}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={filters.designation}
+                        onChange={(e) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            designation: e.target.value,
+                          }))
+                        }
+                        className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-full sm:w-auto"
+                      >
+                        <option value="">All Designations</option>
+                        {designations.map((desg) => (
+                          <option key={desg} value={desg}>
+                            {desg}
                           </option>
                         ))}
                       </select>
@@ -417,6 +441,7 @@ const FacultyForms = () => {
                       <th className="px-6 py-3 text-gray-600">ID</th>
                       <th className="px-6 py-3 text-gray-600">Name</th>
                       <th className="px-6 py-3 text-gray-600">Department</th>
+                      <th className="px-6 py-3 text-gray-600">Designation</th>
                       <th className="px-6 py-3 text-gray-600">Role</th>
                       <th className="px-6 py-3 text-gray-600">Total Marks</th>
                       <th className="px-6 py-3 text-gray-600">Status</th>
@@ -434,7 +459,8 @@ const FacultyForms = () => {
                           <td className="px-6 py-4 font-medium">
                             {faculty.name}
                           </td>
-                          <td className="px-6 py-4">{faculty.dept}</td>
+                          <td className="px-6 py-4">{faculty.department}</td>
+                          <td className="px-6 py-4">{faculty.designation}</td>
                           <td className="px-6 py-4">{faculty.role}</td>
                           <td className="px-6 py-4">{displayMarks(faculty)}</td>
                           <td className="px-6 py-4">
@@ -479,7 +505,7 @@ const FacultyForms = () => {
                     ) : (
                       <tr>
                         <td
-                          colSpan="7"
+                          colSpan="8" // Updated to account for the new designation column
                           className="px-6 py-8 text-center text-gray-500"
                         >
                           No faculty data available. Try adjusting your filters.

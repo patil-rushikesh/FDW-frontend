@@ -9,13 +9,15 @@ import {
   MapPin,
   Trash2,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 
 const AddExternalFaculty = () => {
   const [formData, setFormData] = useState({
     full_name: "",
-    email: "",
-    mobile_no: "",
-    designation: "",
+    mail: "",
+    mob: "",
+    desg: "",
     specialization: "",
     organization: "",
     address: "",
@@ -24,6 +26,7 @@ const AddExternalFaculty = () => {
   const [loading, setLoading] = useState(false);
   const [facultyList, setFacultyList] = useState([]);
   const [userDept, setUserDept] = useState("");
+  const navigate = useNavigate();
 
   // Get user department from localStorage
   useEffect(() => {
@@ -78,9 +81,9 @@ const AddExternalFaculty = () => {
       // Validate required fields
       const requiredFields = [
         "full_name",
-        "email",
-        "mobile_no",
-        "designation",
+        "mail",
+        "mob",
+        "desg",
         "specialization",
         "organization",
       ];
@@ -96,9 +99,9 @@ const AddExternalFaculty = () => {
       // Format data to match backend expectations
       const requestData = {
         full_name: formData.full_name.trim(),
-        email: formData.email.trim(),
-        mobile_no: formData.mobile_no.trim(),
-        designation: formData.designation.trim(),
+        mail: formData.mail.trim(),
+        mob: formData.mob.trim(),
+        desg: formData.desg.trim(),
         specialization: formData.specialization.trim(),
         organization: formData.organization.trim(),
         address: formData.address.trim() || "", // Optional field
@@ -131,28 +134,46 @@ const AddExternalFaculty = () => {
         throw new Error(data.error || "Failed to add external faculty");
       }
 
-      toast.success("External faculty added successfully!");
-
       // Add the new faculty to the list
       setFacultyList((prev) => [...prev, data.data]);
 
       // Reset form
       setFormData({
         full_name: "",
-        email: "",
-        mobile_no: "",
-        designation: "",
+        mail: "",
+        mob: "",
+        desg: "",
         specialization: "",
         organization: "",
         address: "",
       });
+      
+      // Redirect to success page
+      navigate("/submission-status", {
+        state: {
+          status: "success",
+          formName: "External Faculty",
+          message: `${requestData.full_name} has been successfully added to your external faculty list!`,
+        }
+      });
+      
     } catch (error) {
       console.error("Error adding external faculty:", error);
       toast.error(error.message || "Failed to add external faculty");
+      
+      // For severe errors, also redirect to error status page
+      navigate("/submission-status", {
+        state: {
+          status: "error",
+          formName: "External Faculty",
+          message: "Failed to add external faculty. Please try again.",
+          error: error.message
+        }
+      });
     } finally {
       setLoading(false);
     }
-  };
+};
 
   const handleDelete = async (id) => {
     try {
@@ -204,19 +225,19 @@ const AddExternalFaculty = () => {
               />
             </div>
 
-            {/* Email */}
+            {/* mail */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <Mail size={16} /> Email Address{" "}
                 <span className="text-red-500">*</span>
               </label>
               <input
-                type="email"
-                name="email"
-                value={formData.email}
+                type="mail"
+                name="mail"
+                value={formData.mail}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                placeholder="Enter email address"
+                placeholder="Enter mail address"
                 required
               />
             </div>
@@ -229,8 +250,8 @@ const AddExternalFaculty = () => {
               </label>
               <input
                 type="text"
-                name="mobile_no"
-                value={formData.mobile_no}
+                name="mob"
+                value={formData.mob}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 placeholder="Enter 10-digit mobile number"
@@ -238,7 +259,7 @@ const AddExternalFaculty = () => {
               />
             </div>
 
-            {/* Designation */}
+            {/* desg */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <Briefcase size={16} /> Designation{" "}
@@ -246,11 +267,11 @@ const AddExternalFaculty = () => {
               </label>
               <input
                 type="text"
-                name="designation"
-                value={formData.designation}
+                name="desg"
+                value={formData.desg}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                placeholder="Enter designation"
+                placeholder="Enter desg"
                 required
               />
             </div>
@@ -405,15 +426,15 @@ const AddExternalFaculty = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">
-                          {faculty.email}
+                          {faculty.mail}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {faculty.mobile_no}
+                          {faculty.mob}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">
-                          {faculty.designation}
+                          {faculty.desg}
                         </div>
                         {faculty.specialization && (
                           <div className="text-sm text-gray-500">

@@ -23,6 +23,9 @@ const Profile = () => {
     }
   }, []);
 
+
+  console.log(facultyData);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFacultyData((prevData) => ({

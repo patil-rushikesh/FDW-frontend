@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { UserPlus, Users, UserCheck, X } from "lucide-react";
+import { UserPlus, Users, UserCheck, X, Building } from "lucide-react";
 
 const AdminSidebar = ({ isOpen, onClose }) => {
   const navLinks = [
@@ -23,6 +23,11 @@ const AdminSidebar = ({ isOpen, onClose }) => {
       name: "Assign Faculty to Verification Team",
       path: "/admin/assign-faculty-to-verification-team",
       icon: <UserCheck className="w-6 h-6" />,
+    },
+    {
+      name: "Assign Dean To Department",
+      path: "/admin/assign-dean-to-department",
+      icon: <Building className="w-6 h-6" />,
     },
   ];
 

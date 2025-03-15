@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { User, Save, ArrowLeft, Check, AlertCircle, Briefcase, Mail, Book } from "lucide-react";
+import { User, Save, ArrowLeft, Check, Briefcase, Mail, Book } from "lucide-react";
 
-const EvaluateFacultyPage = () => {
+const HODInteractionEvaluation = () => {
   const { facultyId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [faculty, setFaculty] = useState(null);
-  const [externalId, setExternalId] = useState(null);
+  const [hodId, setHodId] = useState(null);
   const [userDepartment, setUserDepartment] = useState("");
+  const [externalReviewer, setExternalReviewer] = useState(null);
 
   // Evaluation form data
   const [evaluation, setEvaluation] = useState({
@@ -25,37 +26,35 @@ const EvaluateFacultyPage = () => {
   });
 
   useEffect(() => {
-    // Get current external faculty ID and department from localStorage
+    // Get current HOD ID and department from localStorage
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    const currentExternalId = userData._id || null;
+    const currentHodId = userData._id || null;
     
-    if (!currentExternalId) {
+    if (!currentHodId) {
       toast.error("User session not found. Please log in again.");
       navigate("/login");
       return;
     }
     
-    setExternalId(currentExternalId);
+    setHodId(currentHodId);
     setUserDepartment(userData.dept || "");
     
-    // Get faculty data from location state (passed from ExternalDashboard)
+    // Get faculty data and external reviewer info from location state
     if (location.state?.faculty) {
       setFaculty(location.state.faculty);
+      setExternalReviewer(location.state.external || null);
     } else {
-      // Fallback if no state was passed - could fetch faculty data from API here
-      // Instead of using mock data, you would make an API call like:
-      // fetchFacultyById(facultyId).then(data => setFaculty(data));
       toast.error("Faculty information not available");
-      navigate("/external/give-marks");
+      navigate("/hod/assign-faculty-external");
     }
 
     // Load any existing evaluation data from localStorage
-    if (currentExternalId) {
+    if (currentHodId) {
       const savedEvaluations = JSON.parse(
-        localStorage.getItem("externalEvaluations") || "{}"
+        localStorage.getItem("hodEvaluations") || "{}"
       );
-      if (savedEvaluations[currentExternalId]?.[facultyId]) {
-        setEvaluation(savedEvaluations[currentExternalId][facultyId]);
+      if (savedEvaluations[currentHodId]?.[facultyId]) {
+        setEvaluation(savedEvaluations[currentHodId][facultyId]);
       }
     }
 
@@ -97,7 +96,7 @@ const EvaluateFacultyPage = () => {
   };
 
   const handleSave = async (isSubmitted = false) => {
-    if (!externalId || !facultyId) {
+    if (!hodId || !facultyId) {
       toast.error("Missing required information");
       return;
     }
@@ -128,12 +127,12 @@ const EvaluateFacultyPage = () => {
     try {
       // Get existing evaluations
       const savedEvaluations = JSON.parse(
-        localStorage.getItem("externalEvaluations") || "{}"
+        localStorage.getItem("hodEvaluations") || "{}"
       );
 
       // Create structure if it doesn't exist
-      if (!savedEvaluations[externalId]) {
-        savedEvaluations[externalId] = {};
+      if (!savedEvaluations[hodId]) {
+        savedEvaluations[hodId] = {};
       }
 
       // Calculate total score
@@ -146,7 +145,7 @@ const EvaluateFacultyPage = () => {
         (parseInt(evaluation.teamPerformance) || 0);
 
       // Update with new evaluation
-      savedEvaluations[externalId][facultyId] = {
+      savedEvaluations[hodId][facultyId] = {
         ...evaluation,
         totalScore,
         updatedAt: new Date().toISOString(),
@@ -155,7 +154,7 @@ const EvaluateFacultyPage = () => {
 
       // Save to localStorage (for progress tracking)
       localStorage.setItem(
-        "externalEvaluations",
+        "hodEvaluations",
         JSON.stringify(savedEvaluations)
       );
 
@@ -163,8 +162,9 @@ const EvaluateFacultyPage = () => {
       if (isSubmitted) {
         const userData = JSON.parse(localStorage.getItem("userData") || "{}");
         const department = userData.dept || "";
+        const external_id = externalReviewer.id; 
         
-        const apiResponse = await fetch(`http://127.0.0.1:5000/${department}/external_interaction_marks/${externalId}/${facultyId}`, {
+        const apiResponse = await fetch(`http://127.0.0.1:5000/${department}/hod_interaction_marks/${external_id}/${facultyId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -181,7 +181,7 @@ const EvaluateFacultyPage = () => {
         }
         
         toast.success("Evaluation submitted successfully!");
-        navigate("/external/give-marks");
+        navigate("/hod/assign-faculty-external");
       } else {
         toast.success("Progress saved successfully!");
       }
@@ -215,7 +215,7 @@ const EvaluateFacultyPage = () => {
               The faculty member you're trying to evaluate could not be found.
             </p>
             <button
-              onClick={() => navigate("/external/give-marks")}
+              onClick={() => navigate("/hod/assign-faculty-external")}
               className="inline-flex items-center px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
             >
               <ArrowLeft size={16} className="mr-2" /> Return to Dashboard
@@ -230,7 +230,7 @@ const EvaluateFacultyPage = () => {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Back Button */}
       <button
-        onClick={() => navigate("/external/give-marks")}
+        onClick={() => navigate("/hod/assign-faculty-external")}
         className="mb-4 inline-flex items-center text-indigo-600 hover:text-indigo-800"
       >
         <ArrowLeft size={16} className="mr-1" /> Back to Dashboard
@@ -239,7 +239,7 @@ const EvaluateFacultyPage = () => {
       {/* Faculty Info Card */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
         <div className="bg-indigo-700 px-6 py-4">
-          <h1 className="text-xl font-bold text-white">Evaluate Faculty</h1>
+          <h1 className="text-xl font-bold text-white">HOD Interaction Evaluation</h1>
         </div>
 
         <div className="p-6">
@@ -264,31 +264,32 @@ const EvaluateFacultyPage = () => {
                   <div className="flex items-center">
                     <Briefcase size={18} className="text-indigo-600 mr-2" />
                     <span className="text-gray-700">
-                      <span className="font-medium">Department:</span> {userDepartment|| "Not specified"}
+                      <span className="font-medium">Department:</span> {userDepartment || "Not specified"}
                     </span>
                   </div>
 
-                  
                   {faculty.email && (
                     <div className="flex items-center">
                       <Mail size={18} className="text-indigo-600 mr-2" />
                       <span className="text-gray-700">{faculty.email}</span>
                     </div>
                   )}
-                  
                 </div>
+                
+                {externalReviewer && (
+                  <div className="mt-4 p-3 bg-blue-50 rounded-md border border-blue-100">
+                    <h3 className="font-medium text-gray-800 mb-1">External Reviewer:</h3>
+                    <div className="text-gray-700">
+                      <p><span className="font-medium">Name:</span> {externalReviewer.name}</p>
+                      <p><span className="font-medium">Organization:</span> {externalReviewer.organization || "Not specified"}</p>
+                    </div>
+                  </div>
+                )}
                 
                 {faculty.expertise && (
                   <div className="mt-4">
                     <h3 className="font-medium text-gray-800 mb-1">Areas of Expertise:</h3>
                     <p className="text-gray-700">{faculty.expertise}</p>
-                  </div>
-                )}
-                
-                {faculty.achievements && (
-                  <div className="mt-3">
-                    <h3 className="font-medium text-gray-800 mb-1">Notable Achievements:</h3>
-                    <p className="text-gray-700">{faculty.achievements}</p>
                   </div>
                 )}
               </div>
@@ -297,7 +298,7 @@ const EvaluateFacultyPage = () => {
 
           <div className="mb-8">
             <p className="text-gray-600">
-              Please evaluate this faculty member on the following parameters.
+              Please evaluate this faculty member based on your interactions.
               Your assessment will be used as part of their overall performance
               appraisal.
             </p>
@@ -329,7 +330,6 @@ const EvaluateFacultyPage = () => {
               </div>
             </div>
 
-            {/* Rest of the form remains the same */}
             {/* Skills */}
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-blue-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -509,4 +509,4 @@ const EvaluateFacultyPage = () => {
   );
 };
 
-export default EvaluateFacultyPage;
+export default HODInteractionEvaluation;

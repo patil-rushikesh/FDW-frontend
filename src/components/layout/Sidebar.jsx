@@ -84,11 +84,6 @@ const hodInteractionItems = [
     label: "Assign Faculty to External",
     path: "/hod/assign-faculty-external",
   },
-  {
-    icon: Users,
-    label: "Assign Interaction Panel",
-    path: "/hod/assign-interaction-panel",
-  },
 ];
 
 // Add this after directorPrivilegeItems
@@ -99,6 +94,21 @@ const deanPrivilegeItems = [
     path: "/dean/associate-dean-list",
   },
 ];
+
+// Add conditional rendering for the Dean interaction marks item
+const getDeanPrivilegeItems = (isAddedForInteraction) => {
+  const items = [...deanPrivilegeItems];
+  
+  if (isAddedForInteraction) {
+    items.push({
+      icon: Award,
+      label: "Give Interaction Marks",
+      path: "/dean/give-interaction-marks",
+    });
+  }
+  
+  return items;
+};
 
 const paperVerificationItems = [
   { icon: ClipboardCheck, label: "Verify", path: "/paper-verification/verify" },
@@ -116,6 +126,7 @@ export default function Sidebar({ isOpen, onClose }) {
   const userRole = userData.desg?.toLowerCase() || "faculty";
   const isInVerificationPanel = userData.isInVerificationPanel || false;
   const isExternal = userData.isExternal || false;
+  const isAddedForInteraction = userData.isAddedForInteraction || false;
 
   // Add externalFacultyItems for external faculty members
   const externalFacultyItems = [
@@ -183,7 +194,8 @@ export default function Sidebar({ isOpen, onClose }) {
         sectionTitle = "Director Privileges";
         break;
       case "dean":
-        privilegeItems = deanPrivilegeItems;
+        // Use the function to get the dean items based on isAddedForInteraction
+        privilegeItems = getDeanPrivilegeItems(userData.isAddedForInteraction || false);
         sectionTitle = "Dean Privileges";
         break;
       default:

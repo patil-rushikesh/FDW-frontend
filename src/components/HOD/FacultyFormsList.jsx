@@ -427,7 +427,9 @@ const FacultyFormsList = () => {
           ? "bg-orange-100 text-orange-800"
           : faculty.status === "Portfolio_Mark_pending"
             ? "bg-blue-100 text-blue-800"
-            : "bg-gray-100 text-gray-800"
+            : faculty.status === "Portfolio_Mark_Dean_pending"
+              ? "bg-blue-100 text-blue-800"
+              : "bg-gray-100 text-gray-800"
   }`}
 >
     {faculty.status === "Done"
@@ -440,7 +442,9 @@ const FacultyFormsList = () => {
           ? "Verification Pending"
           : faculty.status === "Portfolio_Mark_pending"
             ? "Portfolio Mark Pending"
-            : "Pending"}
+            : faculty.status === "Portfolio_Mark_Dean_pending"
+              ? "Portfolio Dean Mark Pending"
+              : "Pending"}
   </span>
 </td>
                         <td className="px-6 py-4">
