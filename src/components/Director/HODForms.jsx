@@ -20,6 +20,7 @@ const HODForms = () => {
     designation: "",
     minMarks: "",
     maxMarks: "",
+    status: "", // Add this new status filter
   });
   const [sortConfig, setSortConfig] = useState({
     key: null,
@@ -27,6 +28,15 @@ const HODForms = () => {
   });
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
+  const [statusSummary, setStatusSummary] = useState({
+    done: 0,
+    verification_pending: 0,
+    interaction_pending: 0,
+    authority_verification_pending: 0,
+    portfolio_mark_pending: 0,
+    pending: 0,
+    total: 0,
+  });
 
   // Process verification status
   const processVerificationStatus = (facultyList) => {
@@ -58,6 +68,40 @@ const HODForms = () => {
           const hodFaculty = responseData.data.filter(
             (faculty) => faculty.role === "HOD" || faculty.designation === "HOD"
           );
+
+          // Calculate status counts for summary
+          const summary = {
+            done: 0,
+            verification_pending: 0,
+            interaction_pending: 0,
+            authority_verification_pending: 0,
+            portfolio_mark_pending: 0,
+            pending: 0,
+            total: hodFaculty.length,
+          };
+
+          hodFaculty.forEach((faculty) => {
+            const status = faculty.status?.toLowerCase() || "pending";
+
+            if (status.includes("done")) {
+              summary.done++;
+            } else if (
+              status.includes("verification_pending") &&
+              !status.includes("authority_verification_pending")
+            ) {
+              summary.verification_pending++;
+            } else if (status.includes("authority_verification_pending")) {
+              summary.authority_verification_pending++;
+            } else if (status.includes("interaction_pending")) {
+              summary.interaction_pending++;
+            } else if (status.includes("portfolio_mark_pending")) {
+              summary.portfolio_mark_pending++;
+            } else {
+              summary.pending++;
+            }
+          });
+
+          setStatusSummary(summary);
 
           // Extract unique departments from the faculty data
           const uniqueDepartments = [
@@ -128,7 +172,34 @@ const HODForms = () => {
             filters.maxMarks === "" ||
             facultyMarks <= Number(filters.maxMarks));
 
-        return searchMatch && departmentMatch && designationMatch && marksMatch;
+        // Add status filtering
+        const statusMatch =
+          !filters.status ||
+          (filters.status === "done" &&
+            faculty.status?.toLowerCase() === "done") ||
+          (filters.status === "verification_pending" &&
+            faculty.status?.toLowerCase().includes("verification_pending") &&
+            !faculty.status
+              ?.toLowerCase()
+              .includes("authority_verification_pending")) ||
+          (filters.status === "authority_verification_pending" &&
+            faculty.status
+              ?.toLowerCase()
+              .includes("authority_verification_pending")) ||
+          (filters.status === "interaction_pending" &&
+            faculty.status?.toLowerCase().includes("interaction_pending")) ||
+          (filters.status === "portfolio_mark_pending" &&
+            faculty.status?.toLowerCase().includes("portfolio_mark_pending")) ||
+          (filters.status === "pending" &&
+            (!faculty.status || faculty.status.toLowerCase() === "pending"));
+
+        return (
+          searchMatch &&
+          departmentMatch &&
+          designationMatch &&
+          marksMatch &&
+          statusMatch
+        );
       })
       .sort((a, b) => {
         if (!sortConfig.key) return 0;
@@ -240,6 +311,14 @@ const HODForms = () => {
     } else {
       return faculty.grand_marks || "N/A";
     }
+  };
+
+  // Now add a function to handle status card clicks
+  const handleStatusFilter = (status) => {
+    setFilters((prev) => ({
+      ...prev,
+      status: prev.status === status ? "" : status,
+    }));
   };
 
   if (loading)
@@ -393,6 +472,112 @@ const HODForms = () => {
                     </span>
                   </button>
                 </div>
+
+                {/* Summary Section - Add this */}
+                <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                  <div
+                    className={`bg-blue-50 p-3 rounded-lg border ${filters.status === "" ? "border-blue-400 shadow-md" : "border-blue-200"} cursor-pointer hover:shadow-md transition-shadow`}
+                    onClick={() => handleStatusFilter("")}
+                  >
+                    <p className="text-sm text-blue-600">Total HODs</p>
+                    <p className="text-2xl font-bold text-blue-800">
+                      {statusSummary.total}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`bg-green-50 p-3 rounded-lg border ${filters.status === "done" ? "border-green-400 shadow-md" : "border-green-200"} cursor-pointer hover:shadow-md transition-shadow`}
+                    onClick={() => handleStatusFilter("done")}
+                  >
+                    <p className="text-sm text-green-600">Completed</p>
+                    <p className="text-2xl font-bold text-green-800">
+                      {statusSummary.done}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`bg-yellow-50 p-3 rounded-lg border ${filters.status === "authority_verification_pending" ? "border-yellow-400 shadow-md" : "border-yellow-200"} cursor-pointer hover:shadow-md transition-shadow`}
+                    onClick={() =>
+                      handleStatusFilter("authority_verification_pending")
+                    }
+                  >
+                    <p className="text-sm text-yellow-600">
+                      Authority Verification
+                    </p>
+                    <p className="text-2xl font-bold text-yellow-800">
+                      {statusSummary.authority_verification_pending}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`bg-purple-50 p-3 rounded-lg border ${filters.status === "interaction_pending" ? "border-purple-400 shadow-md" : "border-purple-200"} cursor-pointer hover:shadow-md transition-shadow`}
+                    onClick={() => handleStatusFilter("interaction_pending")}
+                  >
+                    <p className="text-sm text-purple-600">
+                      Interaction Pending
+                    </p>
+                    <p className="text-2xl font-bold text-purple-800">
+                      {statusSummary.interaction_pending}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`bg-orange-50 p-3 rounded-lg border ${filters.status === "verification_pending" ? "border-orange-400 shadow-md" : "border-orange-200"} cursor-pointer hover:shadow-md transition-shadow`}
+                    onClick={() => handleStatusFilter("verification_pending")}
+                  >
+                    <p className="text-sm text-orange-600">
+                      Verification Pending
+                    </p>
+                    <p className="text-2xl font-bold text-orange-800">
+                      {statusSummary.verification_pending}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`bg-blue-50 p-3 rounded-lg border ${filters.status === "portfolio_mark_pending" ? "border-blue-400 shadow-md" : "border-blue-200"} cursor-pointer hover:shadow-md transition-shadow`}
+                    onClick={() => handleStatusFilter("portfolio_mark_pending")}
+                  >
+                    <p className="text-sm text-blue-600">
+                      Portfolio Mark Pending
+                    </p>
+                    <p className="text-2xl font-bold text-blue-800">
+                      {statusSummary.portfolio_mark_pending}
+                    </p>
+                  </div>
+
+                  {/* Add the new Pending status card */}
+                  <div
+                    className={`bg-gray-50 p-3 rounded-lg border ${filters.status === "pending" ? "border-gray-400 shadow-md" : "border-gray-200"} cursor-pointer hover:shadow-md transition-shadow`}
+                    onClick={() => handleStatusFilter("pending")}
+                  >
+                    <p className="text-sm text-gray-600">Pending</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                      {statusSummary.pending}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Add an indicator if any filter is active */}
+                {filters.status && (
+                  <div className="mt-2 flex items-center">
+                    <span className="text-sm text-gray-600 mr-2">
+                      Filtered by status:
+                    </span>
+                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                      {filters.status
+                        .replace(/_/g, " ")
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                      <button
+                        onClick={() =>
+                          setFilters((prev) => ({ ...prev, status: "" }))
+                        }
+                        className="ml-1 text-blue-500 hover:text-blue-700"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Table Section */}

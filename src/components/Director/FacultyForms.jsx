@@ -22,6 +22,7 @@ const FacultyForms = () => {
     department: "",
     designation: "",
     role: "",
+    status: "",
     minMarks: "",
     maxMarks: "",
   });
@@ -32,6 +33,18 @@ const FacultyForms = () => {
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
   const [roles, setRoles] = useState([]);
+
+  // New state for summary statistics
+  const [statusSummary, setStatusSummary] = useState({
+    done: 0,
+    verification_pending: 0,
+    authority_verification_pending: 0,
+    interaction_pending: 0,
+    portfolio_mark_pending: 0,
+    portfolio_mark_dean_pending: 0,
+    pending: 0,
+    total: 0,
+  });
 
   // New state for PDF viewer modal
   const [pdfModal, setPdfModal] = useState({
@@ -58,7 +71,7 @@ const FacultyForms = () => {
     }));
   };
 
-  // Fetch faculty data using the new all-faculties endpoint
+  // Fetch faculty data using the all-faculties endpoint
   useEffect(() => {
     const fetchFaculties = async () => {
       try {
@@ -68,15 +81,48 @@ const FacultyForms = () => {
         const responseData = await response.json();
 
         if (responseData.status === "success") {
-          // Filter regular faculty only (not HODs) with "Done" status
-          const doneFaculty = responseData.data.filter(
+          // Filter regular faculty only (not HODs)
+          const regularFaculty = responseData.data.filter(
             (faculty) =>
               faculty.role !== "HOD" &&
               faculty.designation !== "HOD" &&
               (faculty.designation === "Faculty" ||
-                faculty.designation === "Associate Dean") &&
-              faculty.status === "Done" // Only faculty with Done status
+                faculty.designation === "Associate Dean")
           );
+
+          // Calculate summary statistics for each status type
+          const summary = {
+            done: 0,
+            verification_pending: 0,
+            authority_verification_pending: 0,
+            interaction_pending: 0,
+            portfolio_mark_pending: 0,
+            portfolio_mark_dean_pending: 0,
+            pending: 0,
+            total: regularFaculty.length,
+          };
+
+          regularFaculty.forEach((faculty) => {
+            const status = faculty.status?.toLowerCase() || "pending";
+
+            if (status.includes("done")) {
+              summary.done++;
+            } else if (status.includes("verification_pending")) {
+              summary.verification_pending++;
+            } else if (status.includes("authority_verification_pending")) {
+              summary.authority_verification_pending++;
+            } else if (status.includes("interaction_pending")) {
+              summary.interaction_pending++;
+            } else if (status.includes("portfolio_mark_dean_pending")) {
+              summary.portfolio_mark_dean_pending++;
+            } else if (status.includes("portfolio_mark_pending")) {
+              summary.portfolio_mark_pending++;
+            } else {
+              summary.pending++;
+            }
+          });
+
+          setStatusSummary(summary);
 
           // Extract unique departments from the faculty data
           const uniqueDepartments = [
@@ -96,7 +142,8 @@ const FacultyForms = () => {
             .filter((role) => role !== "HOD");
           setRoles(uniqueRoles);
 
-          setFacultyData(processVerificationStatus(doneFaculty));
+          // Process and set all faculty data (not just Done status)
+          setFacultyData(processVerificationStatus(regularFaculty));
         } else {
           throw new Error("API returned an error");
         }
@@ -145,6 +192,10 @@ const FacultyForms = () => {
 
         const roleMatch = !filters.role || faculty.role === filters.role;
 
+        const statusMatch =
+          !filters.status ||
+          faculty.status?.toLowerCase() === filters.status?.toLowerCase();
+
         const facultyMarks = getNumericMarks(faculty);
 
         const marksMatch =
@@ -160,6 +211,7 @@ const FacultyForms = () => {
           departmentMatch &&
           designationMatch &&
           roleMatch &&
+          statusMatch &&
           marksMatch
         );
       })
@@ -237,19 +289,68 @@ const FacultyForms = () => {
     }
   };
 
-  // Function to determine what to display in the action column - changed to View button for Done status
+  // Function to determine what to display in the action column
   const renderActionButton = (faculty) => {
-    // Since we're only showing "Done" status faculty, always render View button
-    return (
-      <button
-        type="button"
-        className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-        onClick={() => viewFacultyPDF(faculty)}
-      >
-        <Eye className="h-4 w-4 text-blue-600" />
-        <span className="font-semibold text-blue-700">View PDF</span>
-      </button>
-    );
+    if (faculty.status?.toLowerCase() === "done") {
+      return (
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+          onClick={() => viewFacultyPDF(faculty)}
+        >
+          <Eye className="h-4 w-4 text-green-600" />
+          <span className="font-semibold text-green-700">View PDF</span>
+        </button>
+      );
+    } else if (faculty.status === "authority_verification_pending") {
+      return (
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+          onClick={() => {
+            navigate("/ConfirmVerifybyDirector", {
+              state: {
+                faculty: {
+                  name: faculty.name,
+                  id: faculty._id,
+                  role: faculty.role,
+                  department: faculty.department,
+                  status: "authority_verification_pending",
+                },
+                portfolioData: {},
+                verifiedMarks: {},
+              },
+            });
+          }}
+        >
+          <CheckCircle2 className="h-4 w-4 text-green-600" />
+          <span className="font-semibold text-green-700">Verify</span>
+        </button>
+      );
+    } else if (faculty.status === "Portfolio_Mark_pending") {
+      return (
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          onClick={() =>
+            navigate("/DirectorVerify", {
+              state: {
+                faculty: {
+                  name: faculty.name,
+                  id: faculty._id,
+                  role: faculty.role,
+                  department: faculty.department,
+                },
+              },
+            })
+          }
+        >
+          <span className="font-semibold text-blue-700">Give Marks</span>
+        </button>
+      );
+    } else {
+      return <span className="text-gray-400">-</span>;
+    }
   };
 
   // Update the displayMarks function to handle the object case
@@ -261,6 +362,27 @@ const FacultyForms = () => {
     } else {
       return faculty.grand_marks || "N/A";
     }
+  };
+
+  // Calculate counts for status types
+  const statusLabels = {
+    done: "Completed",
+    verification_pending: "Verification Pending",
+    authority_verification_pending: "Authority Verification Pending",
+    interaction_pending: "Interaction Pending",
+    portfolio_mark_pending: "Portfolio Mark Pending",
+    portfolio_mark_dean_pending: "Portfolio Dean Mark Pending",
+    pending: "Pending",
+  };
+
+  const statusColors = {
+    done: "green",
+    verification_pending: "orange",
+    authority_verification_pending: "yellow",
+    interaction_pending: "purple",
+    portfolio_mark_pending: "blue",
+    portfolio_mark_dean_pending: "indigo",
+    pending: "gray",
   };
 
   if (loading)
@@ -300,7 +422,7 @@ const FacultyForms = () => {
                   <div className="flex items-center">
                     <Users className="mr-2 text-blue-600" />
                     <h2 className="text-xl font-semibold text-gray-800">
-                      Completed Faculty Forms
+                      Faculty Forms
                     </h2>
                   </div>
 
@@ -372,6 +494,37 @@ const FacultyForms = () => {
                           </option>
                         ))}
                       </select>
+
+                      {/* Status filter */}
+                      <select
+                        value={filters.status}
+                        onChange={(e) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            status: e.target.value,
+                          }))
+                        }
+                        className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-full sm:w-auto"
+                      >
+                        <option value="">All Statuses</option>
+                        <option value="done">Done</option>
+                        <option value="interaction_pending">
+                          Interaction Pending
+                        </option>
+                        <option value="authority_verification_pending">
+                          Authority Verification Pending
+                        </option>
+                        <option value="verification_pending">
+                          Verification Pending
+                        </option>
+                        <option value="portfolio_mark_pending">
+                          Portfolio Mark Pending
+                        </option>
+                        <option value="portfolio_mark_dean_pending">
+                          Portfolio Dean Mark Pending
+                        </option>
+                        <option value="pending">Pending</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -432,6 +585,40 @@ const FacultyForms = () => {
                     </span>
                   </button>
                 </div>
+
+                {/* Summary Section */}
+                <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                  <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-600">Total Faculty</p>
+                    <p className="text-2xl font-bold text-blue-800">
+                      {statusSummary.total}
+                    </p>
+                  </div>
+
+                  {Object.entries(statusSummary).map(([status, count]) => {
+                    // Skip the total field as we're already displaying it
+                    if (status === "total") return null;
+
+                    const color = statusColors[status] || "gray";
+                    const label = statusLabels[status] || status;
+
+                    return (
+                      <div
+                        key={status}
+                        className={`bg-${color}-50 p-3 rounded-lg border border-${color}-200`}
+                        onClick={() =>
+                          setFilters((prev) => ({ ...prev, status }))
+                        }
+                        style={{ cursor: "pointer" }}
+                      >
+                        <p className={`text-sm text-${color}-600`}>{label}</p>
+                        <p className={`text-2xl font-bold text-${color}-800`}>
+                          {count}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Table Section */}
@@ -465,8 +652,45 @@ const FacultyForms = () => {
                           <td className="px-6 py-4">{faculty.role}</td>
                           <td className="px-6 py-4">{displayMarks(faculty)}</td>
                           <td className="px-6 py-4">
-                            <span className="inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold bg-green-100 text-green-800">
-                              Done
+                            <span
+                              className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold ${
+                                faculty.status === "done" ||
+                                faculty.status === "Done"
+                                  ? "bg-green-100 text-green-800"
+                                  : faculty.status === "Interaction_pending"
+                                    ? "bg-purple-100 text-purple-800"
+                                    : faculty.status ===
+                                        "authority_verification_pending"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : faculty.status ===
+                                          "verification_pending"
+                                        ? "bg-orange-100 text-orange-800"
+                                        : faculty.status ===
+                                            "Portfolio_Mark_pending"
+                                          ? "bg-blue-100 text-blue-800"
+                                          : faculty.status ===
+                                              "Portfolio_Mark_Dean_pending"
+                                            ? "bg-indigo-100 text-indigo-800"
+                                            : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {faculty.status === "done" ||
+                              faculty.status === "Done"
+                                ? "Done"
+                                : faculty.status === "Interaction_pending"
+                                  ? "Interaction Pending"
+                                  : faculty.status ===
+                                      "authority_verification_pending"
+                                    ? "Authority Verification Pending"
+                                    : faculty.status === "verification_pending"
+                                      ? "Verification Pending"
+                                      : faculty.status ===
+                                          "Portfolio_Mark_pending"
+                                        ? "Portfolio Mark Pending"
+                                        : faculty.status ===
+                                            "Portfolio_Mark_Dean_pending"
+                                          ? "Portfolio Dean Mark Pending"
+                                          : "Pending"}
                             </span>
                           </td>
                           <td className="px-6 py-4">
@@ -480,8 +704,7 @@ const FacultyForms = () => {
                           colSpan="8"
                           className="px-6 py-8 text-center text-gray-500"
                         >
-                          No completed faculty data available. Try adjusting
-                          your filters.
+                          No faculty data available. Try adjusting your filters.
                         </td>
                       </tr>
                     )}
@@ -493,7 +716,7 @@ const FacultyForms = () => {
         </main>
       </div>
 
-      {/* PDF Modal similar to Review.jsx */}
+      {/* PDF Modal */}
       {pdfModal.isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl">
