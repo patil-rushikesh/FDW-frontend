@@ -6,8 +6,11 @@ import {
   CheckCircle2,
   SortAsc,
   SortDesc,
+  FileText,
+  Eye,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const FacultyForms = () => {
   const navigate = useNavigate();
@@ -29,6 +32,15 @@ const FacultyForms = () => {
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
   const [roles, setRoles] = useState([]);
+
+  // New state for PDF viewer modal
+  const [pdfModal, setPdfModal] = useState({
+    isOpen: false,
+    pdfUrl: "",
+    facultyName: "",
+    loading: false,
+    loadingProgress: 0,
+  });
 
   // Process verification status
   const processVerificationStatus = (facultyList) => {
@@ -56,13 +68,14 @@ const FacultyForms = () => {
         const responseData = await response.json();
 
         if (responseData.status === "success") {
-          // Filter regular faculty only (not HODs)
-          const regularFaculty = responseData.data.filter(
+          // Filter regular faculty only (not HODs) with "Done" status
+          const doneFaculty = responseData.data.filter(
             (faculty) =>
               faculty.role !== "HOD" &&
               faculty.designation !== "HOD" &&
               (faculty.designation === "Faculty" ||
-                faculty.designation === "Associate Dean")
+                faculty.designation === "Associate Dean") &&
+              faculty.status === "Done" // Only faculty with Done status
           );
 
           // Extract unique departments from the faculty data
@@ -83,7 +96,7 @@ const FacultyForms = () => {
             .filter((role) => role !== "HOD");
           setRoles(uniqueRoles);
 
-          setFacultyData(processVerificationStatus(regularFaculty));
+          setFacultyData(processVerificationStatus(doneFaculty));
         } else {
           throw new Error("API returned an error");
         }
@@ -172,83 +185,71 @@ const FacultyForms = () => {
     }));
   };
 
-  // Handle verification status change
-  const handleVerify = async (id) => {
+  // Function to generate and view PDF
+  const viewFacultyPDF = async (faculty) => {
+    // Open modal immediately with loading state
+    setPdfModal({
+      isOpen: true,
+      pdfUrl: "",
+      facultyName: faculty.name,
+      loading: true,
+      loadingProgress: 0,
+    });
+
     try {
-      // Update the faculty's status in the local state
-      setFacultyData((prevData) =>
-        prevData.map((faculty) =>
-          faculty._id === id
-            ? { ...faculty, status: "authority_verification_pending" }
-            : faculty
-        )
+      // Start progress simulation
+      const progressInterval = setInterval(() => {
+        setPdfModal((prev) => ({
+          ...prev,
+          loadingProgress:
+            prev.loadingProgress >= 90 ? 90 : prev.loadingProgress + 10,
+        }));
+      }, 500);
+
+      // Fetch PDF from API
+      const response = await fetch(
+        `http://127.0.0.1:5000/${faculty.department}/${faculty._id}/generate-doc`,
+        { method: "GET" }
       );
 
-      // Store the verification status in localStorage
-      const allVerifications = JSON.parse(
-        localStorage.getItem("verifiedFaculty") || "{}"
-      );
-      allVerifications[id] = {
-        verifiedAt: new Date().toISOString(),
-        verifiedBy: JSON.parse(localStorage.getItem("userData"))._id,
-      };
-      localStorage.setItem("verifiedFaculty", JSON.stringify(allVerifications));
-    } catch (err) {
-      setError("Failed to verify faculty: " + err.message);
+      if (!response.ok) throw new Error("Failed to generate PDF");
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      // Clear interval and update state with PDF URL
+      clearInterval(progressInterval);
+      setPdfModal({
+        isOpen: true,
+        pdfUrl: url,
+        facultyName: faculty.name,
+        loading: false,
+        loadingProgress: 100,
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      setPdfModal((prev) => ({
+        ...prev,
+        loading: false,
+        loadingProgress: 0,
+        error: "Failed to load PDF. Please try again.",
+      }));
     }
   };
 
-  // Function to determine what to display in the action column
+  // Function to determine what to display in the action column - changed to View button for Done status
   const renderActionButton = (faculty) => {
-    if (faculty.status === "authority_verification_pending") {
-      return (
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-          onClick={() => {
-            navigate("/directorcnfverify", {
-              state: {
-                faculty: {
-                  name: faculty.name,
-                  id: faculty._id,
-                  role: faculty.role,
-                  department: faculty.department,
-                  status: "authority_verification_pending",
-                },
-                portfolioData: {},
-                verifiedMarks: {},
-              },
-            });
-          }}
-        >
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <span className="font-semibold text-green-700">Verify</span>
-        </button>
-      );
-    } else if (faculty.status === "Portfolio_Mark_pending") {
-      return (
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-          onClick={() =>
-            navigate("/directorverify", {
-              state: {
-                faculty: {
-                  name: faculty.name,
-                  id: faculty._id,
-                  role: faculty.role,
-                  department: faculty.department,
-                },
-              },
-            })
-          }
-        >
-          <span className="font-semibold text-blue-700">Give Marks</span>
-        </button>
-      );
-    } else {
-      return <span className="text-gray-400">-</span>;
-    }
+    // Since we're only showing "Done" status faculty, always render View button
+    return (
+      <button
+        type="button"
+        className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+        onClick={() => viewFacultyPDF(faculty)}
+      >
+        <Eye className="h-4 w-4 text-blue-600" />
+        <span className="font-semibold text-blue-700">View PDF</span>
+      </button>
+    );
   };
 
   // Update the displayMarks function to handle the object case
@@ -299,7 +300,7 @@ const FacultyForms = () => {
                   <div className="flex items-center">
                     <Users className="mr-2 text-blue-600" />
                     <h2 className="text-xl font-semibold text-gray-800">
-                      Faculty Forms
+                      Completed Faculty Forms
                     </h2>
                   </div>
 
@@ -464,37 +465,8 @@ const FacultyForms = () => {
                           <td className="px-6 py-4">{faculty.role}</td>
                           <td className="px-6 py-4">{displayMarks(faculty)}</td>
                           <td className="px-6 py-4">
-                            <span
-                              className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold ${
-                                faculty.status === "Done"
-                                  ? "bg-green-100 text-green-800"
-                                  : faculty.status === "Interaction_pending"
-                                    ? "bg-purple-100 text-purple-800"
-                                    : faculty.status ===
-                                        "authority_verification_pending"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : faculty.status ===
-                                          "verification_pending"
-                                        ? "bg-orange-100 text-orange-800"
-                                        : faculty.status ===
-                                            "Portfolio_Mark_pending"
-                                          ? "bg-blue-100 text-blue-800"
-                                          : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {faculty.status === "Done"
-                                ? "Done"
-                                : faculty.status === "Interaction_pending"
-                                  ? "Interaction Pending"
-                                  : faculty.status ===
-                                      "authority_verification_pending"
-                                    ? "Authority Verification Pending"
-                                    : faculty.status === "verification_pending"
-                                      ? "Verification Pending"
-                                      : faculty.status ===
-                                          "Portfolio_Mark_pending"
-                                        ? "Portfolio Mark Pending"
-                                        : "Pending"}
+                            <span className="inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold bg-green-100 text-green-800">
+                              Done
                             </span>
                           </td>
                           <td className="px-6 py-4">
@@ -505,10 +477,11 @@ const FacultyForms = () => {
                     ) : (
                       <tr>
                         <td
-                          colSpan="8" // Updated to account for the new designation column
+                          colSpan="8"
                           className="px-6 py-8 text-center text-gray-500"
                         >
-                          No faculty data available. Try adjusting your filters.
+                          No completed faculty data available. Try adjusting
+                          your filters.
                         </td>
                       </tr>
                     )}
@@ -519,6 +492,89 @@ const FacultyForms = () => {
           </div>
         </main>
       </div>
+
+      {/* PDF Modal similar to Review.jsx */}
+      {pdfModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl">
+            <div className="flex justify-between items-center border-b border-gray-200 p-4">
+              <h2 className="text-xl font-semibold text-gray-800">
+                {pdfModal.facultyName}'s Appraisal Form
+              </h2>
+              <button
+                onClick={() =>
+                  setPdfModal((prev) => ({ ...prev, isOpen: false }))
+                }
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-4">
+              {pdfModal.loading ? (
+                <div className="flex flex-col items-center justify-center p-8">
+                  <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+                    <div
+                      className="bg-blue-500 h-4 rounded-full transition-all duration-500"
+                      style={{ width: `${pdfModal.loadingProgress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-center mt-2 text-gray-600">
+                    Loading PDF... {pdfModal.loadingProgress}%
+                  </p>
+                </div>
+              ) : pdfModal.error ? (
+                <div className="text-center text-red-500 p-8">
+                  {pdfModal.error}
+                </div>
+              ) : (
+                <div className="w-full h-[70vh] border border-gray-300 rounded-lg">
+                  <iframe
+                    src={pdfModal.pdfUrl}
+                    className="w-full h-full rounded-lg"
+                    title={`${pdfModal.facultyName}'s Appraisal Form`}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-gray-200 p-4 flex justify-end gap-3">
+              {!pdfModal.loading && pdfModal.pdfUrl && (
+                <a
+                  href={pdfModal.pdfUrl}
+                  download={`faculty_appraisal.pdf`}
+                  className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  <FileText size={20} />
+                  Download PDF
+                </a>
+              )}
+              <button
+                onClick={() =>
+                  setPdfModal((prev) => ({ ...prev, isOpen: false }))
+                }
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

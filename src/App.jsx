@@ -52,7 +52,8 @@ import Interactionmarks from "./components/Dean/Interactionmarks";
 import Interactionevaluation from "./components/Dean/Interactionevaluation";
 import HODInteractionEvaluation from "./components/HOD/HODInteractionEvaluation";
 import FinalMarks from "./components/HOD/FinalMarks";
-
+import ConfirmDirectorVerify from "./components/Director/ConfirmVerifybyDirector";
+import DirectorVerify from "./components/Director/DirectorVerify";
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -196,7 +197,7 @@ function AppContent() {
                     path="/hod/final-marks"
                     element={
                       <ProtectedRoute>
-                        <FinalMarks/>
+                        <FinalMarks />
                       </ProtectedRoute>
                     }
                   />
@@ -208,7 +209,7 @@ function AppContent() {
                       </ProtectedRoute>
                     }
                   />
-                  
+
                   <Route
                     path="/dean-evaluation/:department/:facultyId"
                     element={
@@ -217,20 +218,20 @@ function AppContent() {
                       </ProtectedRoute>
                     }
                   />
-                    <Route
-                      path="/dean/give-interaction-marks"
-                      element={
-                        <ProtectedRoute>
-                          <Interactionmarks/>
-                        </ProtectedRoute>
-                      }
-                    />
+                  <Route
+                    path="/dean/give-interaction-marks"
+                    element={
+                      <ProtectedRoute>
+                        <Interactionmarks />
+                      </ProtectedRoute>
+                    }
+                  />
 
                   <Route
                     path="/dean-evaluate/:facultyId"
                     element={
                       <ProtectedRoute>
-                        <Interactionevaluation/>
+                        <Interactionevaluation />
                       </ProtectedRoute>
                     }
                   />
@@ -238,7 +239,7 @@ function AppContent() {
                     path="/hod-evaluate/:facultyId"
                     element={
                       <ProtectedRoute>
-                        <HODInteractionEvaluation/>
+                        <HODInteractionEvaluation />
                       </ProtectedRoute>
                     }
                   />
@@ -322,6 +323,22 @@ function AppContent() {
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/ConfirmVerifybyDirector"
+                    element={
+                      <ProtectedRoute>
+                        <ConfirmDirectorVerify />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/DirectorVerify"
+                    element={
+                      <ProtectedRoute>
+                        <DirectorVerify />
+                      </ProtectedRoute>
+                    }
+                  />
 
                   <Route path="/" element={<Navigate to="/profile" />} />
                 </Routes>
@@ -341,7 +358,7 @@ function AppContent() {
                 />
                 <Route
                   path="/admin/assign-dean-to-department"
-                  element={<AssignDeanToDepartment/>}
+                  element={<AssignDeanToDepartment />}
                 />
                 <Route
                   path="/admin"

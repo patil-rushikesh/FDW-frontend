@@ -179,7 +179,7 @@ const DeanForms = () => {
     }
   };
 
-  // Function to determine what to display in the action column
+  // Function to determine what to display in the action column - Update the Portfolio_Mark_pending section
   const renderActionButton = (faculty) => {
     if (faculty.status === "authority_verification_pending") {
       return (
@@ -187,7 +187,7 @@ const DeanForms = () => {
           type="button"
           className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
           onClick={() => {
-            navigate("/directorcnfverify", {
+            navigate("/ConfirmVerifybyDirector", {
               state: {
                 faculty: {
                   name: faculty.name,
@@ -212,7 +212,7 @@ const DeanForms = () => {
           type="button"
           className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
           onClick={() =>
-            navigate("/directorverify", {
+            navigate("/DirectorVerify", {
               state: {
                 faculty: {
                   name: faculty.name,
