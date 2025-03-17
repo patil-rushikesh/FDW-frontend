@@ -10,8 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/drei": "^10.0.4",
+    "@react-three/fiber": "^9.1.0",
     "@tailwindcss/vite": "^4.0.5",
     "axios": "^1.7.9",
+    "framer-motion": "^12.5.0",
+    "gsap": "^3.12.7",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
@@ -20,7 +24,8 @@
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.1.5",
     "react-spinners": "^0.15.0",
-    "react-toastify": "^11.0.3"
+    "react-toastify": "^11.0.3",
+    "three": "^0.174.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
