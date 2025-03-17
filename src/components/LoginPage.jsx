@@ -40,6 +40,7 @@ const LoginPage = () => {
 
       if (response.ok) {
         setSuccess("Logged in successfully!");
+        console.log(data);
         login(data);
 
         // Wait for 1.5 seconds to show the success message before redirecting
