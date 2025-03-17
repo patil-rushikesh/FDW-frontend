@@ -167,37 +167,37 @@ const FacultyList = () => {
               </div>
 
               {/* Faculty Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-gray-600">ID</th>
-                      <th className="px-6 py-3 text-gray-600">Name</th>
-                      <th className="px-6 py-3 text-gray-600">Department</th>
-                      <th className="px-6 py-3 text-gray-600">Role</th>
-                      <th className="px-6 py-3 text-gray-600">Designation</th>
-                      <th className="px-6 py-3 text-gray-600">Email</th>
-                      <th className="px-6 py-3 text-gray-600">Mobile</th>
-                      <th className="px-6 py-3 text-gray-600">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredFaculties.map((faculty) => (
-                      <tr
-                        key={faculty._id}
-                        className="border-b hover:bg-gray-50"
-                      >
-                        <td className="px-6 py-4">{faculty._id}</td>
-                        <td className="px-6 py-4 font-medium">
-                          {faculty.name}
-                        </td>
-                        <td className="px-6 py-4">{faculty.dept}</td>
-                        <td className="px-6 py-4">{faculty.desg}</td>
-                        <td className="px-6 py-4">{faculty.role}</td>
-                        <td className="px-6 py-4">{faculty.mail}</td>
-                        <td className="px-6 py-4">{faculty.mob}</td>
-                        <td className="px-6 py-4">
-                          <button
+                      <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-left">
+                        <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-gray-600">ID</th>
+                          <th className="px-6 py-3 text-gray-600">Name</th>
+                          <th className="px-6 py-3 text-gray-600">Department</th>
+                          <th className="px-6 py-3 text-gray-600">Role</th>
+                          <th className="px-6 py-3 text-gray-600">Designation</th>
+                          <th className="px-6 py-3 text-gray-600">Email</th>
+                          <th className="px-6 py-3 text-gray-600">Mobile</th>
+                          <th className="px-6 py-3 text-gray-600">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {filteredFaculties.map((faculty) => (
+                          <tr
+                          key={faculty._id}
+                          className="border-b hover:bg-gray-50"
+                          >
+                          <td className="px-6 py-4">{faculty._id}</td>
+                          <td className="px-6 py-4 font-medium">
+                            {faculty.name || faculty.full_name}
+                          </td>
+                          <td className="px-6 py-4">{faculty.dept}</td>
+                          <td className="px-6 py-4">{faculty.desg}</td>
+                          <td className="px-6 py-4">{faculty.role}</td>
+                          <td className="px-6 py-4">{faculty.mail}</td>
+                          <td className="px-6 py-4">{faculty.mob}</td>
+                          <td className="px-6 py-4">
+                            <button
                             onClick={() => {
                               setShowDeleteDialog(true);
                               setFacultyToDelete(faculty);

@@ -524,7 +524,6 @@ const AssignFacultyToExternal = () => {
   // Update the handleAssignDean function
   const handleAssignDean = async (externalId, deanId) => {
     try {
-      setLoading(true);
       
       // Make the API call to assign a dean to an external reviewer
       const response = await fetch(
@@ -537,11 +536,18 @@ const AssignFacultyToExternal = () => {
         }
       );
       
-      const data = await response.json();
       
       if (!response.ok) {
         throw new Error(data.error || "Failed to assign dean");
       }
+      else{
+        window.location.reload();
+      }
+      
+      // Find the dean's name in the eligible faculty list
+      const assignedDean = deanEligibleFaculty.find(dean => dean.id === deanId);
+      const deanName = assignedDean ? assignedDean.name : "Selected dean";
+      const externalName = selectedExternal.name;
       
       // Refresh dean assignments to get the latest data
       const refreshResponse = await fetch(
@@ -560,12 +566,14 @@ const AssignFacultyToExternal = () => {
       // After successful dean assignment, also refresh the dean-external mappings
       await fetchDeanExternalMappings();
       
-      toast.success("Dean assigned successfully");
+      // Close the modal
       closeDeanModal();
+      
+
+      
     } catch (error) {
       console.error("Error assigning dean:", error);
       toast.error(error.message || "Failed to assign dean");
-    } finally {
       setLoading(false);
     }
   };
@@ -687,7 +695,13 @@ const AssignFacultyToExternal = () => {
                         </button>
                         <button
                           onClick={() => openAssignModal(external)}
-                          className="px-4 py-2 bg-indigo-600 text-white rounded-md flex items-center gap-2 hover:bg-indigo-700 transition-colors"
+                          disabled={assignedDean}
+                          className={`px-4 py-2 ${
+                            assignedDean 
+                              ? "bg-gray-400 cursor-not-allowed" 
+                              : "bg-indigo-600 hover:bg-indigo-700"
+                          } text-white rounded-md flex items-center gap-2 transition-colors`}
+                          title={assignedDean ? "Please assign a dean first" : "Assign faculty"}
                         >
                           <UserPlus size={16} />
                           <span>Assign Faculty</span>
@@ -916,12 +930,20 @@ const AssignFacultyToExternal = () => {
 
             {/* Modal Footer */}
             <div className="p-4 border-t flex justify-end gap-2">
-              <button
-                onClick={closeDeanModal}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
+            <div className="p-4 border-t flex justify-end gap-2">
+  <button
+    onClick={closeDeanModal}
+    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+  >
+    Cancel
+  </button>
+  <button
+    onClick={() => window.location.reload()}
+    className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
+  >
+    OK
+  </button>
+</div>
             </div>
           </div>
         </div>
@@ -1041,7 +1063,50 @@ const AssignFacultyToExternal = () => {
                     <table className="w-full text-sm text-left">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-6 py-3 text-gray-600">Select</th>
+                          <th className="px-6 py-3 text-gray-600">
+                            <div className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={
+                                  filteredInternalFaculty.length > 0 &&
+                                  filteredInternalFaculty.every(faculty => 
+                                    pendingAssignments[selectedExternal.id]?.includes(faculty.id) ||
+                                    isFacultyAssignedToAnyExternal(faculty.id)
+                                  )
+                                }
+                                onChange={() => {
+                                  // Get all available faculty (not already assigned to other externals)
+                                  const availableFaculty = filteredInternalFaculty.filter(
+                                    faculty => !isFacultyAssignedToAnyExternal(faculty.id)
+                                  );
+                                  
+                                  // Check if all available faculty are already selected
+                                  const allSelected = availableFaculty.every(faculty => 
+                                    pendingAssignments[selectedExternal.id]?.includes(faculty.id)
+                                  );
+                                  
+                                  // If all are selected, deselect all; otherwise, select all available
+                                  if (allSelected) {
+                                    // Deselect all by removing all faculty IDs from pending assignments
+                                    setPendingAssignments({
+                                      ...pendingAssignments,
+                                      [selectedExternal.id]: []
+                                    });
+                                  } else {
+                                    // Select all available faculty by adding their IDs to pending assignments
+                                    setPendingAssignments({
+                                      ...pendingAssignments,
+                                      [selectedExternal.id]: [
+                                        ...availableFaculty.map(faculty => faculty.id)
+                                      ]
+                                    });
+                                  }
+                                }}
+                                className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                              />
+                              <span className="ml-2">Select All</span>
+                            </div>
+                          </th>
                           <th className="px-6 py-3 text-gray-600">
                             Employee ID
                           </th>

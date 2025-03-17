@@ -206,14 +206,19 @@ const Portfolio = () => {
     const designation = userData.desg;
     const isAdminRole =
       designation === "deputy_director" ||
-      designation === "dean" ||
-      designation === "hod" ||
+      designation === "Dean" ||
+      designation === "HOD" ||
       designation === "associate_dean";
+
+    // Set default portfolio type to "institute" for HOD or Dean
+    const defaultPortfolioType = 
+      (designation === "HOD" || designation === "Dean") ? "institute" : "both";
 
     setFormData((prev) => ({
       ...prev,
       isAdministrativeRole: isAdminRole,
       administrativeRole: designation,
+      portfolioType: prev.portfolioType || defaultPortfolioType, // Only set if not already loaded from backend
     }));
   }, [userData]);
 
@@ -552,7 +557,11 @@ const Portfolio = () => {
 
               {formData.portfolioType !== "department" && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Dean Marks:</span>
+                  <span className="text-sm text-gray-600">
+                    {(userData.desg === "HOD" || userData.desg === "Dean") && formData.portfolioType === "institute"
+                      ? "Director Marks:" 
+                      : "Dean Marks:"}
+                  </span>
                   <span className="font-medium">
                     {formData.isMarkDean
                       ? formData.deanMarks
