@@ -12,8 +12,10 @@ import {
   ClipboardCheck,
   Users,
   Award,
+  LogOut, // Added LogOut icon import
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom"; // Added useNavigate
+import { useAuth } from "../../context/AuthContext"; // Import the useAuth hook
 
 const mainNavItems = [{ icon: User, label: "Dashboard", path: "/dashboard" }];
 
@@ -121,6 +123,8 @@ const paperVerificationItems = [
 
 export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
+  const navigate = useNavigate(); // Add useNavigate hook
+  const { logout } = useAuth(); // Add useAuth hook
   const [isPartsOpen, setIsPartsOpen] = useState(false);
   const [isPrivilegeOpen, setIsPrivilegeOpen] = useState(false);
   const [isPaperVerificationOpen, setIsPaperVerificationOpen] = useState(false);
@@ -144,6 +148,12 @@ export default function Sidebar({ isOpen, onClose }) {
   const togglePaperVerification = () =>
     setIsPaperVerificationOpen(!isPaperVerificationOpen);
   const toggleInteraction = () => setIsInteractionOpen(!isInteractionOpen);
+
+  // Add handleLogout function
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   // 1. Update the NavLink component with improved line styling
   const NavLink = ({ item, isActive, isDropdownItem }) => {
@@ -367,11 +377,11 @@ export default function Sidebar({ isOpen, onClose }) {
         className={`
           fixed top-0 left-0 h-screen bg-indigo-800 text-white z-40
           transform transition-transform duration-300 ease-in-out
-          w-72 overflow-y-auto
+          w-72 overflow-y-auto flex flex-col
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        <div className="p-6">
+        <div className="p-6 flex-grow">
           <div className="flex items-center justify-between mb-10">
             <div>
               <h2 className="text-2xl font-bold tracking-tight">
@@ -391,7 +401,7 @@ export default function Sidebar({ isOpen, onClose }) {
               <X size={24} />
             </button>
           </div>
-          <nav>
+          <nav className="space-y-2">
             {/* For External Faculty: Show only Dashboard and Give Marks options */}
             {isExternal ? (
               externalFacultyItems.map((item) => (
@@ -482,6 +492,17 @@ export default function Sidebar({ isOpen, onClose }) {
               </>
             )}
           </nav>
+        </div>
+        
+        {/* Modify the logout button styling to better match the theme */}
+        <div className="p-6 mt-auto border-t border-indigo-700">
+          <button
+            onClick={handleLogout}
+            className="w-full px-4 py-3 bg-indigo-700 text-white rounded-lg hover:bg-red-600 flex items-center justify-center text-sm font-medium transition-colors"
+          >
+            <LogOut className="mr-2" size={18} />
+            Logout
+          </button>
         </div>
       </div>
     </>

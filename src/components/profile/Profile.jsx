@@ -18,11 +18,10 @@ const Profile = () => {
         position: userData.role,
         email: userData.mail,
         phone: userData.mob,
-        designation: userData.desg  // Add this line
+        designation: userData.desg
       });
     }
   }, []);
-
 
   console.log(facultyData);
 
@@ -39,11 +38,6 @@ const Profile = () => {
     setIsEditing(false);
     // Here you would typically send the updated data to a server
     console.log("Updated faculty data:", facultyData);
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
   };
 
   if (!facultyData) return null;
@@ -122,17 +116,7 @@ const Profile = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email
                 </label>
-                {/* {isEditing ? (
-                  <input
-                    type="email"
-                    name="email"
-                    value={facultyData.email}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border rounded focus:ring focus:ring-indigo-200"
-                  />
-                ) : ( */}
-                  <p className="text-gray-800">{facultyData.email}</p>
-                {/* )} */}
+                <p className="text-gray-800">{facultyData.email}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -164,19 +148,12 @@ const Profile = () => {
           </form>
         </div>
 
-        <div className="flex justify-center mt-6 space-x-4">
+        <div className="flex justify-center mt-6">
           <button
             onClick={() => console.log('Change password clicked')}
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200"
           >
             Change Password
-          </button>
-
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-400 transition duration-200"
-          >
-            Logout
           </button>
         </div>
       </main>

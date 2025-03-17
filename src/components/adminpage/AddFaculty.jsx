@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pencil, Plus, UserPlus, Check, LogOut } from "lucide-react";
+import { Pencil, Plus, UserPlus, Check } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
 
 const AddFaculty = () => {
@@ -106,13 +106,6 @@ const AddFaculty = () => {
       desg: "",
       higherDean: "",
     });
-  };
-
-  const handleLogout = () => {
-    // Add logout logic here
-    // For example:
-    localStorage.removeItem('adminToken'); // Remove admin token
-    window.location.href = '/login'; // Redirect to login page
   };
 
   return (
@@ -352,15 +345,6 @@ const AddFaculty = () => {
                 </div>
               </div>
             )}
-          </div>
-          <div className="fixed bottom-4 right-4">
-            <button
-              onClick={handleLogout}
-              className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center text-sm font-medium shadow-lg"
-            >
-              <LogOut className="mr-2" size={18} />
-              Logout
-            </button>
           </div>
         </main>
       </div>

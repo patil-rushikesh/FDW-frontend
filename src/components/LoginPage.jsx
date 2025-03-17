@@ -132,7 +132,7 @@ const LoginPage = () => {
         </form>
 
         <div className="mt-8 text-center text-sm text-gray-600">
-          <p>© 2025 PCCOE. All rights reserved.</p>
+          <p>© 2025 PCCOE. All rights reserved by team AANSH</p>
         </div>
       </div>
     </div>
