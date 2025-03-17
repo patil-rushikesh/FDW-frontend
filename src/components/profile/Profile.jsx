@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react"; // Import LogOut icon
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -9,7 +10,7 @@ const Profile = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('userData'));
+    const userData = JSON.parse(localStorage.getItem("userData"));
     if (userData) {
       setFacultyData({
         userId: userData._id,
@@ -18,7 +19,7 @@ const Profile = () => {
         position: userData.role,
         email: userData.mail,
         phone: userData.mob,
-        designation: userData.desg
+        designation: userData.desg,
       });
     }
   }, []);
@@ -38,6 +39,12 @@ const Profile = () => {
     setIsEditing(false);
     // Here you would typically send the updated data to a server
     console.log("Updated faculty data:", facultyData);
+  };
+
+  // Add handleLogout function (same as in Sidebar.jsx)
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
 
   if (!facultyData) return null;
@@ -148,12 +155,23 @@ const Profile = () => {
           </form>
         </div>
 
-        <div className="flex justify-center mt-6">
+        {/* Updated buttons section with both logout and change password */}
+        <div className="flex justify-center mt-6 space-x-4">
+        
+          {/* Change Password button */}
           <button
-            onClick={() => console.log('Change password clicked')}
+            onClick={() => console.log("Change password clicked")}
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200"
           >
             Change Password
+          </button>
+          {/* Logout button */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-200"
+          >
+            <LogOut className="mr-2" size={18} />
+            Logout
           </button>
         </div>
       </main>
