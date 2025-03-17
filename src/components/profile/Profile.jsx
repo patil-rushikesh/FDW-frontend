@@ -64,7 +64,6 @@ const Profile = () => {
               <span>{isEditing ? "Cancel" : "Edit Profile"}</span>
             </button>
           </div>
-
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
