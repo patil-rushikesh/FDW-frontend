@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { UserPlus, Users, UserCheck, X, Building } from "lucide-react";
+import { UserPlus, Users, UserCheck, X, Building, LogOut } from "lucide-react";
 
 const AdminSidebar = ({ isOpen, onClose }) => {
   const navLinks = [
@@ -31,6 +31,12 @@ const AdminSidebar = ({ isOpen, onClose }) => {
     },
   ];
 
+  const handleLogout = () => {
+    // Add logout logic here
+    localStorage.removeItem('adminToken'); // Remove admin token
+    window.location.href = '/login'; // Redirect to login page
+  };
+
   return (
     <>
       {isOpen && (
@@ -44,11 +50,11 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         className={`
           fixed top-0 left-0 h-screen bg-indigo-800 text-white z-40
           transform transition-transform duration-300 ease-in-out
-          w-72 overflow-y-auto
+          w-72 overflow-y-auto flex flex-col
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        <div className="p-6">
+        <div className="p-6 flex-grow">
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-2xl font-bold tracking-tight">
               Admin Panel
@@ -81,6 +87,17 @@ const AdminSidebar = ({ isOpen, onClose }) => {
               </NavLink>
             ))}
           </nav>
+        </div>
+        
+        {/* Logout button at bottom of sidebar */}
+        <div className="p-6 mt-auto">
+          <button
+            onClick={handleLogout}
+            className="w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center text-sm font-medium"
+          >
+            <LogOut className="mr-2" size={18} />
+            Logout
+          </button>
         </div>
       </div>
     </>
