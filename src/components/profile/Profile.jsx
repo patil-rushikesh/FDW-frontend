@@ -7,6 +7,12 @@ const Profile = () => {
   const [facultyData, setFacultyData] = useState(null);
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordResetStatus, setPasswordResetStatus] = useState({
+    loading: false,
+    success: false,
+    error: null
+  });
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('userData'));
@@ -38,6 +44,44 @@ const Profile = () => {
     setIsEditing(false);
     // Here you would typically send the updated data to a server
     console.log("Updated faculty data:", facultyData);
+  };
+
+  const handlePasswordReset = async () => {
+    if (!facultyData?.email) return;
+
+    setPasswordResetStatus({loading: true, success: false, error: null});
+    
+    try {
+      const response = await fetch('http://localhost:5000/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: facultyData.email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setPasswordResetStatus({
+          loading: false, 
+          success: true, 
+          error: null
+        });
+      } else {
+        setPasswordResetStatus({
+          loading: false, 
+          success: false, 
+          error: data.error || 'Failed to send password reset email'
+        });
+      }
+    } catch (err) {
+      setPasswordResetStatus({
+        loading: false, 
+        success: false, 
+        error: 'An error occurred. Please try again.'
+      });
+    }
   };
 
   if (!facultyData) return null;
@@ -150,13 +194,70 @@ const Profile = () => {
 
         <div className="flex justify-center mt-6">
           <button
-            onClick={() => console.log('Change password clicked')}
+            onClick={() => setShowPasswordModal(true)}
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200"
           >
             Change Password
           </button>
         </div>
       </main>
+
+      {/* Password Reset Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4">Change Password</h3>
+            
+            {passwordResetStatus.success ? (
+              <div className="text-center mb-4">
+                <p className="text-green-600 font-medium mb-2">
+                  Password reset link sent successfully!
+                </p>
+                <p className="text-gray-600">
+                  Please check your email for instructions to reset your password.
+                </p>
+              </div>
+            ) : (
+              <div className="mb-4">
+                <p className="text-gray-600 mb-4">
+                  A password reset link will be sent to your email address: <span className="font-semibold">{facultyData.email}</span>
+                </p>
+                
+                {passwordResetStatus.error && (
+                  <p className="text-red-600 text-sm mb-4">{passwordResetStatus.error}</p>
+                )}
+                
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handlePasswordReset}
+                    disabled={passwordResetStatus.loading}
+                    className={`flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-200 ${
+                      passwordResetStatus.loading ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    {passwordResetStatus.loading ? "Sending..." : "Send Reset Link"}
+                  </button>
+                  <button
+                    onClick={() => setShowPasswordModal(false)}
+                    className="flex-1 bg-gray-300 text-gray-800 py-2 px-4 rounded hover:bg-gray-400 transition duration-200"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {passwordResetStatus.success && (
+              <button
+                onClick={() => setShowPasswordModal(false)}
+                className="w-full bg-gray-300 text-gray-800 py-2 px-4 rounded hover:bg-gray-400 transition duration-200"
+              >
+                Close
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
