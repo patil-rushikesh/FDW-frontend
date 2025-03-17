@@ -146,6 +146,7 @@ const ScoreCard = ({
           </div>
           <div>
             <input
+              onWheel={(e) => e.target.blur()} 
               type="number"
               value={verifiedScore || ""}
               onChange={(e) =>
@@ -188,6 +189,7 @@ const InputFieldWithProof = ({
       <label className="block text-sm font-medium text-gray-700">{label}</label>
       <div className="flex gap-2 items-center">
         <input
+          onWheel={(e) => e.target.blur()}
           type="number"
           name={name}
           value={value || 0}
@@ -213,6 +215,7 @@ const InputFieldWithProof = ({
           {displayMarks}
         </div>
         <input
+           onWheel={(e) => e.target.blur()} 
           type="number"
           value={verifiedScore || ""}
           onChange={(e) => onVerifiedScoreChange(parseInt(e.target.value) || 0)}
