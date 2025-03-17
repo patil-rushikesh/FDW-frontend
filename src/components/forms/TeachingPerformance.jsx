@@ -195,6 +195,7 @@ const ScoreCard = ({ label, score, total, isManual, onManualScoreChange, manualS
           onKeyDown={(e) => {
             if (e.key === "-") e.preventDefault();
           }}
+          onWheel={(e) => e.target.blur()} // Prevent value change on scroll
         />
         <span className="text-lg font-bold text-blue-600">/ {total}</span>
       </div>
