@@ -10,6 +10,7 @@ const Interactionevaluation = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [faculty, setFaculty] = useState(null);
+  const [externalId, setExternalId] = useState(null);
   const [deanId, setDeanId] = useState(null);
   const [userDepartment, setUserDepartment] = useState("");
 
@@ -41,6 +42,7 @@ const Interactionevaluation = () => {
     // Get faculty data from location state (passed from Interactionmarks)
     if (location.state?.faculty) {
       setFaculty(location.state.faculty);
+      setExternalId(location.state.externalId);
     } else {
       toast.error("Faculty information not available");
       navigate("/dean/give-interaction-marks");
@@ -161,24 +163,34 @@ const Interactionevaluation = () => {
         const userData = JSON.parse(localStorage.getItem("userData") || "{}");
         const department = userData.dept || "";
         
-        const apiResponse = await fetch(`http://127.0.0.1:5000/${department}/dean_interaction_marks/${deanId}/${facultyId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            total_marks: totalScore,
-            comments: evaluation.comments || '',
-          }),
-        });
-        
-        if (!apiResponse.ok) {
-          const errorData = await apiResponse.json();
-          throw new Error(errorData.error || 'Failed to submit evaluation to server');
+        try {
+          // Modified API endpoint to include externalId in the URL path
+          const apiResponse = await fetch(`http://127.0.0.1:5000/${department}/dean_interaction_marks/${deanId}/${facultyId}/${externalId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              total_marks: totalScore,
+              comments: evaluation.comments || '',
+            }),
+          });
+          
+          if (!apiResponse.ok) {
+            const errorData = await apiResponse.json();
+            throw new Error(errorData.error || 'Failed to submit evaluation to server');
+          }
+          
+          // Add this console log for debugging
+          console.log("API Response:", await apiResponse.clone().json());
+          
+          toast.success("Evaluation submitted successfully!");
+          navigate("/dean/give-interaction-marks");
+        } catch (error) {
+          console.error("Error submitting evaluation:", error);
+          toast.error(error.message || "Failed to submit evaluation");
+          return; // Exit function early on error
         }
-        
-        toast.success("Evaluation submitted successfully!");
-        navigate("/dean/give-interaction-marks");
       } else {
         toast.success("Progress saved successfully!");
       }

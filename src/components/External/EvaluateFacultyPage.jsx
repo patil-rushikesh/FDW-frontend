@@ -159,11 +159,27 @@ const EvaluateFacultyPage = () => {
         JSON.stringify(savedEvaluations)
       );
 
+
+      console.log("Testing....");
+
       // If submitting final evaluation, send to backend API
       if (isSubmitted) {
         const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-        const department = userData.dept || "";
-        
+        const department = userData.dept;
+        if (!department) {
+          toast.error("Department information is missing");
+          return;
+        }
+
+        // Log the values before making the API call
+        console.log("Submitting evaluation:", {
+          department,
+          externalId,
+          facultyId,
+          totalScore,
+          comments: evaluation.comments
+        });
+
         const apiResponse = await fetch(`http://127.0.0.1:5000/${department}/external_interaction_marks/${externalId}/${facultyId}`, {
           method: 'POST',
           headers: {
@@ -173,11 +189,14 @@ const EvaluateFacultyPage = () => {
             total_marks: totalScore,
             comments: evaluation.comments || '',
           }),
+          credentials: 'include', // Include this to send cookies if using sessions
         });
-        
+
+        // Add better error handling
         if (!apiResponse.ok) {
           const errorData = await apiResponse.json();
-          throw new Error(errorData.error || 'Failed to submit evaluation to server');
+          console.error("API Error:", errorData);
+          throw new Error(errorData.error || `Server responded with status ${apiResponse.status}`);
         }
         
         toast.success("Evaluation submitted successfully!");
