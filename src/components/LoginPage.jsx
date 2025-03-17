@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { FaEye, FaEyeSlash, FaUser, FaLock } from "react-icons/fa";
 
 const LoginPage = () => {
   const [userId, setUserId] = useState("");
@@ -8,6 +9,7 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -58,14 +60,18 @@ const LoginPage = () => {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-50">
+      <div className="bg-white p-10 rounded-xl shadow-xl w-full max-w-md transform transition-all duration-300 hover:shadow-2xl">
         <div className="flex flex-col items-center mb-8">
           <img
             src="https://mca.pccoepune.com/assets/img/pccoe-logo-new.png"
             alt="College Logo"
-            className="w-32 h-32 mb-4"
+            className="w-32 h-32 mb-4 hover:scale-105 transition-transform duration-300"
           />
           <h1 className="text-3xl font-bold text-gray-800 text-center">
             Faculty Portal
@@ -76,13 +82,13 @@ const LoginPage = () => {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm border border-red-300 animate-pulse">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-sm">
+          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-sm border border-green-300 animate-pulse">
             {success}
           </div>
         )}
@@ -93,9 +99,12 @@ const LoginPage = () => {
               User ID
             </label>
             <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <FaUser className="text-gray-500" />
+              </div>
               <input
                 type="text"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
                 required
@@ -110,22 +119,32 @@ const LoginPage = () => {
               Password
             </label>
             <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <FaLock className="text-gray-500" />
+              </div>
               <input
-                type="password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                type={showPassword ? "text" : "password"}
+                className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Enter your password"
                 disabled={isLoading}
               />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-600 hover:text-gray-900"
+                onClick={togglePasswordVisibility}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-300 font-medium disabled:bg-blue-400"
+            className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-300 font-medium disabled:bg-indigo-400 transform hover:scale-[1.02]"
           >
             {isLoading ? "Signing in..." : "Sign In"}
           </button>
