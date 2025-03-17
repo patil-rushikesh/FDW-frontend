@@ -130,6 +130,38 @@ const AssignFacultyToVerificationTeam = () => {
     });
   };
 
+  // Add this handler function after the existing handler functions in your component
+const handleSelectAll = (member) => {
+  setSelectedFaculties((prev) => {
+    const updatedSelection = { ...prev };
+    
+    // Get all eligible faculty IDs (ones that aren't already allocated elsewhere)
+    const eligibleFacultyIds = facultyList
+      .filter(faculty => 
+        faculty._id !== extractFacultyId(member) && 
+        !isFacultyAllocated(faculty._id, member)
+      )
+      .map(faculty => faculty._id);
+    
+    // If all eligible faculties are already selected, deselect all
+    const allSelected = eligibleFacultyIds.every(id => 
+      updatedSelection[member].includes(id)
+    );
+    
+    if (allSelected) {
+      // Deselect all
+      updatedSelection[member] = [];
+    } else {
+      // Select all eligible faculties
+      updatedSelection[member] = eligibleFacultyIds;
+    }
+    
+    return updatedSelection;
+  });
+};
+
+// Then modify the table header to add the "Select All" checkbox:
+
   // Handle submission of faculty allocation
   const handleSubmit = async () => {
     if (!selectedDepartment) return;
@@ -328,14 +360,36 @@ const AssignFacultyToVerificationTeam = () => {
                             <thead className="bg-gray-50">
                               <tr>
                                 <th className="px-6 py-3 text-gray-600">
-                                  Select
+                                  <div className="flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      onChange={() => handleSelectAll(member)}
+                                      checked={facultyList
+                                        .filter(
+                                          (faculty) =>
+                                            faculty._id !==
+                                              extractFacultyId(member) &&
+                                            !isFacultyAllocated(
+                                              faculty._id,
+                                              member
+                                            )
+                                        )
+                                        .every((faculty) =>
+                                          selectedFaculties[member]?.includes(
+                                            faculty._id
+                                          )
+                                        )}
+                                      className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                    />
+                                    <span className="ml-2">Select All</span>
+                                  </div>
                                 </th>
                                 <th className="px-6 py-3 text-gray-600">ID</th>
                                 <th className="px-6 py-3 text-gray-600">
                                   Name
                                 </th>
                                 <th className="px-6 py-3 text-gray-600">
-                                  Role
+                                  Designation
                                 </th>
                                 <th className="px-6 py-3 text-gray-600">
                                   Status

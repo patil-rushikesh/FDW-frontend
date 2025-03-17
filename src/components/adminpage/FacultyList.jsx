@@ -28,7 +28,7 @@ const FacultyList = () => {
   ];
 
   const designations = [
-    "faculty",
+    "Faculty",
     "HOD",
     "Dean",
     "Associate Dean",
@@ -39,8 +39,6 @@ const FacultyList = () => {
     "Professor",
     "Associate Professor",
     "Assistant Professor",
-    "HOD",
-    "Dean",
   ];
 
   useEffect(() => {
@@ -89,7 +87,7 @@ const FacultyList = () => {
     const matchDepartment =
       !filterDepartment || faculty.dept === filterDepartment;
     const matchDesignation =
-      !filterDesignation || faculty.designation === filterDesignation;
+      !filterDesignation || faculty.desg === filterDesignation;
     const matchRole = !filterRole || faculty.role === filterRole;
     const matchUserId =
       !searchUserId ||
@@ -144,7 +142,7 @@ const FacultyList = () => {
                         onChange={(e) => setFilterDesignation(e.target.value)}
                         className="p-2 bg-white border border-gray-300 rounded-lg text-sm"
                       >
-                        <option value="">All Designations</option>
+                        <option value="">All Roles</option>
                         {designations.map((designation) => (
                           <option key={designation} value={designation}>
                             {designation}
@@ -156,7 +154,7 @@ const FacultyList = () => {
                         onChange={(e) => setFilterRole(e.target.value)}
                         className="p-2 bg-white border border-gray-300 rounded-lg text-sm"
                       >
-                        <option value="">All Roles</option>
+                        <option value="">All Designation</option>
                         {roles.map((role) => (
                           <option key={role} value={role}>
                             {role}
@@ -176,8 +174,8 @@ const FacultyList = () => {
                       <th className="px-6 py-3 text-gray-600">ID</th>
                       <th className="px-6 py-3 text-gray-600">Name</th>
                       <th className="px-6 py-3 text-gray-600">Department</th>
-                      <th className="px-6 py-3 text-gray-600">Designation</th>
                       <th className="px-6 py-3 text-gray-600">Role</th>
+                      <th className="px-6 py-3 text-gray-600">Designation</th>
                       <th className="px-6 py-3 text-gray-600">Email</th>
                       <th className="px-6 py-3 text-gray-600">Mobile</th>
                       <th className="px-6 py-3 text-gray-600">Actions</th>

@@ -189,7 +189,7 @@ const AddFaculty = () => {
                       required
                       className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                      <option value="">Select Designation</option>
+                      <option value="">Select Role</option>
                       {desg.map((desig) => (
                         <option key={desig} value={desig}>
                           {desig}
@@ -200,7 +200,7 @@ const AddFaculty = () => {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">
-                      Designatin
+                      Designation
                     </label>
                     <select
                       name="role"
@@ -209,7 +209,7 @@ const AddFaculty = () => {
                       required
                       className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                      <option value="">Select Role</option>
+                      <option value="">Select Designation</option>
                       {roles.map((role) => (
                         <option key={role} value={role}>
                           {role}
