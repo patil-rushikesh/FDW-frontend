@@ -268,7 +268,14 @@ const AddFaculty = () => {
                       name="mob"
                       placeholder="10-digit mobile number"
                       value={formData.mob}
-                      onChange={handleInputChange}
+                      onChange={(e) => {
+                        // Only allow digits and limit to 10 characters
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        setFormData(prev => ({
+                          ...prev,
+                          mob: value
+                        }));
+                      }}
                       required
                       pattern="[0-9]{10}"
                       className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
