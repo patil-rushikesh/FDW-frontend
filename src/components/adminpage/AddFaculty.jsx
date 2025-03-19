@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pencil, Plus, UserPlus, Check } from "lucide-react";
+import { Pencil, Plus, UserPlus, Check, AlertCircle } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
 
 const AddFaculty = () => {
@@ -76,6 +76,7 @@ const AddFaculty = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null); // Clear any previous errors
     try {
       setLoading(true);
       const response = await fetch("http://localhost:5000/users", {
@@ -84,12 +85,20 @@ const AddFaculty = () => {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error("Failed to add faculty member");
+      const data = await response.json(); // Parse JSON response
+
+      if (!response.ok) {
+        // Use the error message from the API if available
+        throw new Error(data.error || "Failed to add faculty member");
+      }
+      
       setSuccessMessage("Faculty member added successfully");
       resetForm();
       setShowSuccessDialog(true);
     } catch (err) {
       setError(err.message);
+      // Scroll to the error message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
@@ -117,6 +126,23 @@ const AddFaculty = () => {
       <div className="lg:ml-72">
         <main className="p-4 lg:p-6 mt-16">
           <div className="max-w-7xl mx-auto space-y-8">
+            {/* Error Alert */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 flex items-start">
+                <AlertCircle className="mr-3 mt-0.5 text-red-600 flex-shrink-0" size={18} />
+                <div>
+                  <h3 className="font-medium">Error</h3>
+                  <p className="text-red-700">{error}</p>
+                </div>
+                <button 
+                  onClick={() => setError(null)} 
+                  className="ml-auto text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             {/* Add Faculty Form */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 flex items-center">
