@@ -32,11 +32,7 @@ const AddFaculty = () => {
     "Faculty",
   ];
 
-  const roles = [
-    "Professor",
-    "Assistant Professor",
-    "Associate Professor",
-  ];
+  const roles = ["Professor", "Assistant Professor", "Associate Professor"];
 
   const [formData, setFormData] = useState({
     _id: "",
@@ -49,19 +45,30 @@ const AddFaculty = () => {
     higherDean: "", // Add this new field
   });
 
-  const fetchDeanSuggestions = async (query) => {
+  const fetchDeanSuggestions = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:5000/deans`);
-      if (!response.ok) throw new Error('Failed to fetch deans');
-      const result = await response.json();
-      // Extract dean data from the response
-      const deans = result.data.map(dean => ({
-        _id: dean._id,
-        name: dean.name
-      }));
-      setDeanSuggestions(deans);
+      const response = await fetch('http://127.0.0.1:5000/all-faculties');
+      if (!response.ok) throw new Error('Failed to fetch faculty data');
+      const data = await response.json();
+      
+      // Extract the data property from the response
+      const facultyList = data.data || [];
+      console.log(facultyList)
+      
+      // Only keep faculty with Dean designation
+      const deanFaculty = facultyList
+        .filter(faculty => faculty.designation === "Dean")
+        .map(dean => ({
+          _id: dean._id,
+          name: dean.name,
+          department: dean.dept // Include department for display
+        }));
+
+        console.log("Dean Suggestions: ", deanFaculty);
+        
+      setDeanSuggestions(deanFaculty);
     } catch (error) {
-      console.error('Error fetching dean suggestions:', error);
+      console.error("Error fetching dean suggestions:", error);
       setDeanSuggestions([]);
     }
   };
@@ -72,6 +79,21 @@ const AddFaculty = () => {
       ...prev,
       [name]: value,
     }));
+
+    // Filter dean suggestions if typing in the higherDean field
+    if (name === "higherDean" && value.trim()) {
+      const filtered = deanSuggestions
+        .filter(
+          (dean) =>
+            dean._id.toLowerCase().includes(value.toLowerCase()) ||
+            dean.name.toLowerCase().includes(value.toLowerCase())
+        )
+        .slice(0, 5); // Limit to 5 suggestions
+      setDeanSuggestions(filtered);
+      setShowDeanSuggestions(true);
+    } else if (name === "higherDean") {
+      setShowDeanSuggestions(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -91,14 +113,14 @@ const AddFaculty = () => {
         // Use the error message from the API if available
         throw new Error(data.error || "Failed to add faculty member");
       }
-      
+
       setSuccessMessage("Faculty member added successfully");
       resetForm();
       setShowSuccessDialog(true);
     } catch (err) {
       setError(err.message);
       // Scroll to the error message
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setLoading(false);
     }
@@ -129,13 +151,16 @@ const AddFaculty = () => {
             {/* Error Alert */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 flex items-start">
-                <AlertCircle className="mr-3 mt-0.5 text-red-600 flex-shrink-0" size={18} />
+                <AlertCircle
+                  className="mr-3 mt-0.5 text-red-600 flex-shrink-0"
+                  size={18}
+                />
                 <div>
                   <h3 className="font-medium">Error</h3>
                   <p className="text-red-700">{error}</p>
                 </div>
-                <button 
-                  onClick={() => setError(null)} 
+                <button
+                  onClick={() => setError(null)}
                   className="ml-auto text-gray-500 hover:text-gray-700"
                 >
                   ✕
@@ -285,33 +310,40 @@ const AddFaculty = () => {
                       <input
                         type="text"
                         name="higherDean"
-                        placeholder="Search for Dean"
+                        placeholder="Search for Dean by ID or name"
                         value={formData.higherDean}
                         onClick={() => {
                           fetchDeanSuggestions();
                           setShowDeanSuggestions(true);
                         }}
-                        onChange={(e) => {
-                          handleInputChange(e);
-                          setShowDeanSuggestions(true);
-                        }}
+                        onChange={handleInputChange}
                         className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                       {showDeanSuggestions && deanSuggestions.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                           {deanSuggestions.map((dean) => (
                             <div
                               key={dean._id}
-                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                               onClick={() => {
-                                setFormData(prev => ({
+                                setFormData((prev) => ({
                                   ...prev,
-                                  higherDean: `${dean._id}`
+                                  higherDean: dean._id,
                                 }));
                                 setShowDeanSuggestions(false);
                               }}
+                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between items-center"
                             >
-                              {dean._id} - {dean.name}
+                              <div>
+                                <span className="font-medium">{dean._id}</span>
+                                <span className="text-gray-600 ml-2">
+                                  ({dean.name})
+                                </span>
+                              </div>
+                              {dean.department && (
+                                <span className="text-gray-500 text-sm">
+                                  {dean.department}
+                                </span>
+                              )}
                             </div>
                           ))}
                         </div>

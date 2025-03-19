@@ -19,7 +19,7 @@ const Verify = () => {
 
         const verifierId = userData._id;
         const response = await fetch(
-          `http://127.0.0.1:5000/faculty_to_verify/${verifierId}`
+          `${process.env.BASE_URL}/faculty_to_verify/${verifierId}`
         );
 
         if (!response.ok) {

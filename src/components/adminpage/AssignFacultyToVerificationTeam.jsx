@@ -7,6 +7,7 @@ import {
   RefreshCw,
   CheckCircle,
   ChevronDown,
+  Check,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar"; // Import AdminSidebar component
@@ -22,6 +23,7 @@ const AssignFacultyToVerificationTeam = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Add state for sidebar
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const navigate = useNavigate();
 
   const departments = [
@@ -182,24 +184,15 @@ const handleSelectAll = (member) => {
 
       if (!response.ok) throw new Error("Failed to allocate faculties");
 
-      // Navigate to SubmissionStatus page with success state
-      navigate("/submission-status", {
-        state: {
-          status: "success",
-          message: "Faculty allocation has been successfully completed!",
-          formName: "verification panel allocation",
-        },
-      });
+      // Show success dialog instead of navigating
+      setSuccessMessage("Faculty allocation has been successfully completed!");
+      setShowSuccessDialog(true);
     } catch (err) {
-      // Navigate to SubmissionStatus page with error state
-      navigate("/submission-status", {
-        state: {
-          status: "error",
-          message: "Failed to allocate faculties",
-          error: err.message,
-          formName: "verification panel allocation",
-        },
-      });
+      setError("Failed to allocate faculties: " + err.message);
+      // Scroll to top to show error message
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -483,6 +476,42 @@ const handleSelectAll = (member) => {
           </div>
         </main>
       </div>
+      
+      {/* Success Dialog */}
+      {showSuccessDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 backdrop-blur-sm z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full mx-auto mb-4">
+                <Check
+                  className="text-green-600 mx-auto mb-4"
+                  size={36}
+                />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">
+                Success
+              </h3>
+              <p className="text-gray-600 text-center mb-6">
+                {successMessage}
+              </p>
+              <div className="flex justify-center">
+                <button
+                  onClick={() => {
+                    setShowSuccessDialog(false);
+                    setSuccessMessage("");
+                    // Optionally reset the form or data
+                    setSelectedFaculties({});
+                    setSelectedDepartment("");
+                  }}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

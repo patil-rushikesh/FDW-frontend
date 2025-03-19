@@ -73,9 +73,12 @@ useEffect(() => {
       if (!department) return;
 
       setLoading(true);
+
       const response = await fetch(
-        `http://localhost:5000/faculty/${department}`
+        
+        `${import.meta.env.VITE_BASE_URL}/faculty/${department}`
       );
+      console.log( "ENV LINK: " + import.meta.env.VITE_BASE_URL);
       if (!response.ok) throw new Error("Failed to fetch faculty data");
       const responseData = await response.json();
       if (responseData.status === "success") {
