@@ -176,6 +176,7 @@ const FeedbackInput = ({ courseData, onChange, index, directScoreInput }) => (
   </div>
 );
 
+// For the ScoreCard component's input field, add similar protections
 const ScoreCard = ({ label, score, total, isManual, onManualScoreChange, manualScore }) => (
   <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg flex items-center justify-between shadow-sm">
     <span className="font-medium text-gray-700">{label}:</span>
@@ -189,12 +190,16 @@ const ScoreCard = ({ label, score, total, isManual, onManualScoreChange, manualS
             const value = Math.min(Number(e.target.value), Number(total));
             onManualScoreChange(value >= 0 ? value : 0);
           }}
-          className="w-20 px-2 py-1 border rounded"
+          className="w-20 px-2 py-1 border rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           min="0"
           max={total}
           onKeyDown={(e) => {
             if (e.key === "-") e.preventDefault();
           }}
+          // Prevent value changes on scroll
+          onWheel={(e) => e.preventDefault()}
+          onFocus={(e) => e.target.addEventListener('wheel', (e) => e.preventDefault(), { passive: false })}
+          onBlur={(e) => e.target.removeEventListener('wheel', (e) => e.preventDefault())}
         />
         <span className="text-lg font-bold text-blue-600">/ {total}</span>
       </div>
@@ -226,7 +231,7 @@ const SectionCard = ({ title, icon, borderColor, children }) => (
   </div>
 );
 
-// Modify the InputField component to accept and use the disabled prop
+// Modify the InputField component to prevent scroll changes
 const InputField = ({
   label,
   name,
@@ -234,6 +239,7 @@ const InputField = ({
   value,
   onChange,
   placeholder,
+  disabled = false
 }) => (
   <div className="space-y-2">
     {label && (
@@ -246,15 +252,17 @@ const InputField = ({
       onChange={onChange}
       placeholder={placeholder}
       min="0" // Add min attribute to prevent negative values
-
+      disabled={disabled}
       onKeyDown={(e) => {
         if (e.key === "-") {
           e.preventDefault();
         }
       }}
-      onWheel={(e) => e.target.blur()}
+      // These events help prevent value changes on scroll
+      onWheel={(e) => e.target.blur()} // Blur the input when wheeling to prevent value changes
+      onFocus={(e) => e.target.addEventListener('wheel', (e) => e.preventDefault(), { passive: false })}
+      onBlur={(e) => e.target.removeEventListener('wheel', (e) => e.preventDefault())}
       className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-
     />
   </div>
 );
