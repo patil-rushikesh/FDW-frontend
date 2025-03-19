@@ -34,7 +34,7 @@ const AssociateDeansList = () => {
         }
 
         const response = await fetch(
-          `http://localhost:5000/dean/${userData._id}/associates`
+          `${import.meta.env.VITE_BASE_URL}/dean/${userData._id}/associates`
         );
 
         if (!response.ok) throw new Error("Failed to fetch associates data");

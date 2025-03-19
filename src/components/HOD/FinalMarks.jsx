@@ -33,7 +33,7 @@ const FinalMarks = () => {
       try {
         setLoading(true);
         // Updated API endpoint to match the provided route
-        const response = await fetch(`http://localhost:5000/${department}/all_faculties_final_marks`);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/${department}/all_faculties_final_marks`);
         if (!response.ok) throw new Error("Failed to fetch faculty marks data");
         
         const responseData = await response.json();

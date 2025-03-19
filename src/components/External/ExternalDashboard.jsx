@@ -64,7 +64,7 @@ const ExternalDashboard = () => {
   const fetchAssignments = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:5000/${department}/external-assignments/${externalId}`);
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/${department}/external-assignments/${externalId}`);
       
       if (response.data && response.data.data) {
         // Set assigned faculty

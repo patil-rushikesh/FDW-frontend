@@ -74,7 +74,7 @@ const Interactionmarks = () => {
       for (const department of departments) {
         try {
           const response = await axios.get(
-            `http://localhost:5000/${department}/dean-assignments/${deanId}`
+            `${import.meta.env.VITE_BASE_URL}/${department}/dean-assignments/${deanId}`
           );
           
           if (response.data && response.data.data) {

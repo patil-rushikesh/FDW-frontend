@@ -164,7 +164,7 @@ const HODInteractionEvaluation = () => {
         const department = userData.dept || "";
         const external_id = externalReviewer.id; 
         
-        const apiResponse = await fetch(`http://127.0.0.1:5000/${department}/hod_interaction_marks/${external_id}/${facultyId}`, {
+        const apiResponse = await fetch(`${import.meta.env.VITE_BASE_URL}/${department}/hod_interaction_marks/${external_id}/${facultyId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

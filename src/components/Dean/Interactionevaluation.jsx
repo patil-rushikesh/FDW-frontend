@@ -172,7 +172,7 @@ const Interactionevaluation = () => {
           console.log(`Submitting evaluation to department: ${department}`);
           
           // Use the department from state in the API endpoint
-          const apiResponse = await fetch(`http://127.0.0.1:5000/${department}/dean_interaction_marks/${deanId}/${facultyId}/${externalId}`, {
+          const apiResponse = await fetch(`${import.meta.env.VITE_BASE_URL}/${department}/dean_interaction_marks/${deanId}/${facultyId}/${externalId}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

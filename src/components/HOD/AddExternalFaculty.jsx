@@ -43,7 +43,7 @@ const AddExternalFaculty = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/${userDept}/get-externals`
+          `${import.meta.env.VITE_BASE_URL}/${userDept}/get-externals`
         );
 
         if (!response.ok) {
@@ -112,7 +112,7 @@ const AddExternalFaculty = () => {
       console.log("Department:", userDept);
 
       const response = await fetch(
-        `http://localhost:5000/${userDept}/create-external`,
+        `${import.meta.env.VITE_BASE_URL}/${userDept}/create-external`,
         {
           method: "POST",
           headers: {

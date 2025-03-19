@@ -48,7 +48,7 @@ const FacultyList = () => {
   const fetchFaculties = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/users");
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users`);
       if (!response.ok) throw new Error("Failed to fetch faculty data");
       const data = await response.json();
       setFaculties(data);

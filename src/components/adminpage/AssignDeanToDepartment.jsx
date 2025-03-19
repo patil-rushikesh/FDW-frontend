@@ -36,7 +36,7 @@ const AssignInteractionDeans = () => {
 
   const fetchFacultyData = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/all-faculties');
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/all-faculties`);
       if (!response.ok) throw new Error('Failed to fetch faculty data');
       const data = await response.json();
       // Extract the data property from the response
@@ -57,7 +57,7 @@ const AssignInteractionDeans = () => {
       // Fetch interaction deans for each department
       const promises = departments.map(async (department) => {
         try {
-          const response = await fetch(`http://127.0.0.1:5000/${department}/interaction-deans`);
+          const response = await fetch(`${import.meta.env.VITE_BASE_URL}/${department}/interaction-deans`);
           if (response.ok) {
             const data = await response.json();
             deansData[department] = data;
@@ -135,7 +135,7 @@ const handleSubmit = async (e) => {
     setLoading(true);
     setError(null);
 
-    const baseUrl = 'http://127.0.0.1:5000';
+    const baseUrl = `${import.meta.env.VITE_BASE_URL}`;
     const url = `${baseUrl}/${selectedDepartment}/assign-interaction-deans`;
     
     console.log("Assigning interaction dean IDs:", deanIds, "to department:", selectedDepartment);

@@ -46,7 +46,7 @@ const AssignFacultyToVerificationTeam = () => {
         setLoading(true);
         setError(null);
         const response = await fetch(
-          `http://localhost:5000/${selectedDepartment}/verification-committee`
+          `${import.meta.env.VITE_BASE_URL}/${selectedDepartment}/verification-committee`
         );
         if (!response.ok) throw new Error("Failed to fetch committee data");
 
@@ -85,7 +85,7 @@ const AssignFacultyToVerificationTeam = () => {
 
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:5000/users");
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users`);
         if (!response.ok) throw new Error("Failed to fetch faculty data");
 
         const data = await response.json();
@@ -172,7 +172,7 @@ const handleSelectAll = (member) => {
       setIsSubmitting(true);
 
       const response = await fetch(
-        `http://localhost:5000/${selectedDepartment}/verification-committee/addfaculties`,
+        `${import.meta.env.VITE_BASE_URL}/${selectedDepartment}/verification-committee/addfaculties`,
         {
           method: "POST",
           headers: {

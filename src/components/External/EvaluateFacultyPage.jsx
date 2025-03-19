@@ -177,7 +177,7 @@ const EvaluateFacultyPage = () => {
           comments: evaluation.comments
         });
 
-        const apiResponse = await fetch(`http://127.0.0.1:5000/${department}/external_interaction_marks/${externalId}/${facultyId}`, {
+        const apiResponse = await fetch(`${import.meta.env.VITE_BASE_URL}/${department}/external_interaction_marks/${externalId}/${facultyId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -76,7 +76,7 @@ const FacultyForms = () => {
     const fetchFaculties = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:5000/all-faculties");
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/all-faculties`);
         if (!response.ok) throw new Error("Failed to fetch faculty data");
         const responseData = await response.json();
 
@@ -260,7 +260,7 @@ const FacultyForms = () => {
 
       // Fetch PDF from API
       const response = await fetch(
-        `http://127.0.0.1:5000/${faculty.department}/${faculty._id}/generate-doc`,
+        `${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}/generate-doc`,
         { method: "GET" }
       );
 

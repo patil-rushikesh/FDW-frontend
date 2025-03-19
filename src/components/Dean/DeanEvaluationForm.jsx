@@ -39,7 +39,7 @@ const DeanEvaluationForm = () => {
       }
 
       const response = await axios.get(
-        `http://localhost:5000/${department}/${userId}/D`
+        `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/D`
       );
       const data = response.data || {};
 
@@ -123,12 +123,12 @@ const DeanEvaluationForm = () => {
 
       // Update the portfolio data with Dean marks
       await axios.post(
-        `http://localhost:5000/${department}/${userId}/D`,
+        `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/D`,
         payload
       );
       
       await axios.post(
-        `http://localhost:5000/${department}/${userId}/portfolio-given`
+        `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/portfolio-given`
       );
 
       setIsModalOpen(false);
