@@ -65,77 +65,81 @@ const FacultyFormsList = () => {
     }));
   };
 
-  // Modify the fetch faculty data useEffect to calculate status summary
-  useEffect(() => {
-    const fetchFaculties = async () => {
-      try {
-        // Only fetch if department exists
-        if (!department) return;
+// Modify the fetch faculty data useEffect to calculate status summary
+useEffect(() => {
+  const fetchFaculties = async () => {
+    try {
+      // Only fetch if department exists
+      if (!department) return;
 
-        setLoading(true);
-        const response = await fetch(
-          `http://localhost:5000/faculty/${department}`
+      setLoading(true);
+
+      const response = await fetch(
+        
+        `${import.meta.env.VITE_BASE_URL}/faculty/${department}`
+      );
+      console.log( "ENV LINK: " + import.meta.env.VITE_BASE_URL);
+      if (!response.ok) throw new Error("Failed to fetch faculty data");
+      const responseData = await response.json();
+      if (responseData.status === "success") {
+        // Filter regular faculty only - exclude Admin role
+        const regularFaculty = responseData.data.filter(
+          (faculty) =>
+            (faculty.designation === "Faculty" ||
+             faculty.designation === "Associate Dean") &&
+            faculty.role !== "Admin"  // Add this condition to exclude Admin role
         );
-        if (!response.ok) throw new Error("Failed to fetch faculty data");
-        const responseData = await response.json();
-        if (responseData.status === "success") {
-          // Filter regular faculty only
-          const regularFaculty = responseData.data.filter(
-            (faculty) =>
-              faculty.designation === "Faculty" ||
-              faculty.designation === "Associate Dean"
-          );
 
-          // Calculate status counts for summary
-          const summary = {
-            done: 0,
-            verification_pending: 0,
-            interaction_pending: 0,
-            authority_verification_pending: 0,
-            portfolio_mark_pending: 0,
-            portfolio_mark_dean_pending: 0,
-            pending: 0,
-            total: regularFaculty.length,
-          };
+        // Calculate status counts for summary
+        const summary = {
+          done: 0,
+          verification_pending: 0,
+          interaction_pending: 0,
+          authority_verification_pending: 0,
+          portfolio_mark_pending: 0,
+          portfolio_mark_dean_pending: 0,
+          pending: 0,
+          total: regularFaculty.length,
+        };
 
-          regularFaculty.forEach((faculty) => {
-            const status = faculty.status?.toLowerCase() || "pending";
+        regularFaculty.forEach((faculty) => {
+          const status = faculty.status?.toLowerCase() || "pending";
 
-            if (status.includes("done")) {
-              summary.done++;
-            } else if (
-              status.includes("verification_pending") &&
-              !status.includes("authority_verification_pending")
-            ) {
-              summary.verification_pending++;
-            } else if (status.includes("authority_verification_pending")) {
-              summary.authority_verification_pending++;
-            } else if (status.includes("interaction_pending")) {
-              summary.interaction_pending++;
-            } else if (status.includes("portfolio_mark_dean_pending")) {
-              summary.portfolio_mark_dean_pending++;
-            } else if (status.includes("portfolio_mark_pending")) {
-              summary.portfolio_mark_pending++;
-            } else {
-              summary.pending++;
-            }
-          });
+          if (status.includes("done")) {
+            summary.done++;
+          } else if (
+            status.includes("verification_pending") &&
+            !status.includes("authority_verification_pending")
+          ) {
+            summary.verification_pending++;
+          } else if (status.includes("authority_verification_pending")) {
+            summary.authority_verification_pending++;
+          } else if (status.includes("interaction_pending")) {
+            summary.interaction_pending++;
+          } else if (status.includes("portfolio_mark_dean_pending")) {
+            summary.portfolio_mark_dean_pending++;
+          } else if (status.includes("portfolio_mark_pending")) {
+            summary.portfolio_mark_pending++;
+          } else {
+            summary.pending++;
+          }
+        });
 
-          setStatusSummary(summary);
+        setStatusSummary(summary);
 
-          setFacultyData(processVerificationStatus(responseData.data));
-        } else {
-          throw new Error("API returned an error");
-        }
-      } catch (err) {
-        setError("Error loading faculty data: " + err.message);
-      } finally {
-        setLoading(false);
+        setFacultyData(processVerificationStatus(responseData.data));
+      } else {
+        throw new Error("API returned an error");
       }
-    };
+    } catch (err) {
+      setError("Error loading faculty data: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchFaculties();
-  }, [department]);
+  fetchFaculties();
+}, [department]);
 
   // Modify the departments array to only show the HOD's department
   const departments = useMemo(() => {
@@ -146,8 +150,6 @@ const FacultyFormsList = () => {
     "Professor",
     "Associate Professor",
     "Assistant Professor",
-    "HOD",
-    "Dean",
   ];
 
   // Helper function to get numeric marks value regardless of format
@@ -177,7 +179,8 @@ const FacultyFormsList = () => {
           faculty.designation === "Faculty" ||
           faculty.designation === "Associate Dean";
 
-        if (!allowedDesignation) return false;
+        // Exclude Admin role
+        if (!allowedDesignation || faculty.role === "Admin") return false;
 
         const searchMatch =
           faculty._id.toLowerCase().includes(filters.search.toLowerCase()) ||

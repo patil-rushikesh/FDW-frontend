@@ -16,7 +16,7 @@ export const CourseProvider = ({ children }) => {
 
       try {
         const response = await fetch(
-          `http://127.0.0.1:5000/${userData.dept}/${userData._id}/A`
+          `${process.env.BASE_URL}/${userData.dept}/${userData._id}/A`
         );
         
         if (!response.ok) {

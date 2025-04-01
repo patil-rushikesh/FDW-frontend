@@ -38,7 +38,7 @@ const VerificationTeam = () => {
 
   const fetchFacultyData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/users');
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users`);
       if (!response.ok) throw new Error('Failed to fetch faculty data');
       const data = await response.json();
       setAllFaculty(data);
@@ -55,7 +55,7 @@ const VerificationTeam = () => {
       // Fetch verification committee for each department
       const promises = departments.map(async (department) => {
         try {
-          const response = await fetch(`http://localhost:5000/${department}/verification-committee`);
+          const response = await fetch(`${import.meta.env.VITE_BASE_URL}/${department}/verification-committee`);
           if (response.ok) {
             const data = await response.json();
             teamsData[department] = data;
@@ -127,7 +127,7 @@ const VerificationTeam = () => {
   
       // Fix: Remove the process.env access and use a direct URL instead
       // Replace with your actual API base URL
-      const baseUrl = 'http://localhost:5000'; // or your production API URL
+      const baseUrl = `${import.meta.env.VITE_BASE_URL}`; // or your production API URL
       const url = `${baseUrl}/${selectedDepartment}/verification-committee`;
       
       // Add a force=true parameter when editing to ensure changes are detected

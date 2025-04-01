@@ -12,7 +12,7 @@ const Interactionevaluation = () => {
   const [faculty, setFaculty] = useState(null);
   const [externalId, setExternalId] = useState(null);
   const [deanId, setDeanId] = useState(null);
-  const [userDepartment, setUserDepartment] = useState("");
+  const [department, setDepartment] = useState(""); // Add state for faculty's department
 
   // Evaluation form data
   const [evaluation, setEvaluation] = useState({
@@ -37,12 +37,13 @@ const Interactionevaluation = () => {
     }
     
     setDeanId(currentDeanId);
-    setUserDepartment(userData.dept || "");
     
     // Get faculty data from location state (passed from Interactionmarks)
     if (location.state?.faculty) {
       setFaculty(location.state.faculty);
       setExternalId(location.state.externalId);
+      // Set the department from state (this is the faculty's department)
+      setDepartment(location.state.department || "");
     } else {
       toast.error("Faculty information not available");
       navigate("/dean/give-interaction-marks");
@@ -160,12 +161,18 @@ const Interactionevaluation = () => {
 
       // If submitting final evaluation, send to backend API
       if (isSubmitted) {
-        const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-        const department = userData.dept || "";
+        // Use the department from state instead of userData.dept
+        if (!department) {
+          toast.error("Department information is missing");
+          setSaving(false);
+          return;
+        }
         
         try {
-          // Modified API endpoint to include externalId in the URL path
-          const apiResponse = await fetch(`http://127.0.0.1:5000/${department}/dean_interaction_marks/${deanId}/${facultyId}/${externalId}`, {
+          console.log(`Submitting evaluation to department: ${department}`);
+          
+          // Use the department from state in the API endpoint
+          const apiResponse = await fetch(`${import.meta.env.VITE_BASE_URL}/${department}/dean_interaction_marks/${deanId}/${facultyId}/${externalId}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -273,7 +280,7 @@ const Interactionevaluation = () => {
                   <div className="flex items-center">
                     <Briefcase size={18} className="text-indigo-600 mr-2" />
                     <span className="text-gray-700">
-                      <span className="font-medium">Department:</span> {userDepartment || "Not specified"}
+                      <span className="font-medium">Department:</span> {department || "Not specified"}
                     </span>
                   </div>
 

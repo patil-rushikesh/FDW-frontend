@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { FaEye, FaEyeSlash, FaUser, FaLock } from "react-icons/fa";
+import logo from "../assets/logo.png";
 
 const LoginPage = () => {
   const [userId, setUserId] = useState("");
@@ -24,8 +25,9 @@ const LoginPage = () => {
       return;
     }
 
+
     try {
-      const response = await fetch("http://127.0.0.1:5000/login", {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -40,6 +42,7 @@ const LoginPage = () => {
 
       if (response.ok) {
         setSuccess("Logged in successfully!");
+        console.log(data);
         login(data);
 
         // Wait for 1.5 seconds to show the success message before redirecting
@@ -69,7 +72,7 @@ const LoginPage = () => {
       <div className="bg-white p-10 rounded-xl shadow-xl w-full max-w-md transform transition-all duration-300 hover:shadow-2xl">
         <div className="flex flex-col items-center mb-8">
           <img
-            src="https://mca.pccoepune.com/assets/img/pccoe-logo-new.png"
+            src={logo}
             alt="College Logo"
             className="w-32 h-32 mb-4 hover:scale-105 transition-transform duration-300"
           />

@@ -42,9 +42,6 @@ const EvaluateFacultyPage = () => {
     if (location.state?.faculty) {
       setFaculty(location.state.faculty);
     } else {
-      // Fallback if no state was passed - could fetch faculty data from API here
-      // Instead of using mock data, you would make an API call like:
-      // fetchFacultyById(facultyId).then(data => setFaculty(data));
       toast.error("Faculty information not available");
       navigate("/external/give-marks");
     }
@@ -180,7 +177,7 @@ const EvaluateFacultyPage = () => {
           comments: evaluation.comments
         });
 
-        const apiResponse = await fetch(`http://127.0.0.1:5000/${department}/external_interaction_marks/${externalId}/${facultyId}`, {
+        const apiResponse = await fetch(`${import.meta.env.VITE_BASE_URL}/${department}/external_interaction_marks/${externalId}/${facultyId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -247,6 +244,31 @@ const EvaluateFacultyPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
+      {/* CSS to hide number input spinners and prevent value changes on scroll */}
+      <style>
+        {`
+          /* Hide spinner buttons for Chrome, Safari, Edge, Opera */
+          input::-webkit-outer-spin-button,
+          input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+          }
+          
+          /* Hide spinner for Firefox */
+          input[type=number] {
+            -moz-appearance: textfield;
+          }
+          
+          /* Prevent scroll-driven value changes */
+          input[type=number]:focus {
+            pointer-events: none;
+          }
+          input[type=number]:not(:focus) {
+            pointer-events: auto;
+          }
+        `}
+      </style>
+
       {/* Back Button */}
       <button
         onClick={() => navigate("/external/give-marks")}
@@ -255,65 +277,43 @@ const EvaluateFacultyPage = () => {
         <ArrowLeft size={16} className="mr-1" /> Back to Dashboard
       </button>
 
-      {/* Faculty Info Card */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+      {/* Faculty Info Card - Made sticky */}
+      <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6 sticky top-0 z-10">
         <div className="bg-indigo-700 px-6 py-4">
           <h1 className="text-xl font-bold text-white">Evaluate Faculty</h1>
         </div>
 
-        <div className="p-6">
-          {/* Enhanced Faculty Profile Section */}
-          <div className="bg-indigo-50 rounded-lg p-6 mb-6 border border-indigo-100">
-            <div className="flex flex-col md:flex-row items-center md:items-start">
-              <div className="bg-indigo-100 rounded-full w-24 h-24 flex items-center justify-center mr-6 text-indigo-700 mb-4 md:mb-0">
-                <User size={40} />
+        <div className="p-4">
+          {/* Enhanced Faculty Profile Section - Condensed for sticky header */}
+          <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
+            <div className="flex items-center">
+              <div className="bg-indigo-100 rounded-full w-16 h-16 flex items-center justify-center mr-4 text-indigo-700 shrink-0">
+                <User size={28} />
               </div>
               
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-lg font-bold text-gray-900">
                   {faculty.name}
                 </h2>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-wrap gap-2 mt-1">
                   {faculty._id && (
-                    <div className="flex items-center">
-                      <span className="text-md text-gray-500 bg-gray-100 px-2 py-1 rounded">ID: {faculty._id}</span>
-                    </div>
+                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">ID: {faculty._id}</span>
                   )}
-                  <div className="flex items-center">
-                    <Briefcase size={18} className="text-indigo-600 mr-2" />
-                    <span className="text-gray-700">
-                      <span className="font-medium">Department:</span> {userDepartment|| "Not specified"}
-                    </span>
-                  </div>
-
-                  
-                  {faculty.email && (
-                    <div className="flex items-center">
-                      <Mail size={18} className="text-indigo-600 mr-2" />
-                      <span className="text-gray-700">{faculty.email}</span>
-                    </div>
-                  )}
-                  
+                  <span className="text-xs text-gray-700">
+                    <Briefcase size={12} className="inline text-indigo-600 mr-1" /> 
+                    {userDepartment || "Not specified"}
+                  </span>
                 </div>
-                
-                {faculty.expertise && (
-                  <div className="mt-4">
-                    <h3 className="font-medium text-gray-800 mb-1">Areas of Expertise:</h3>
-                    <p className="text-gray-700">{faculty.expertise}</p>
-                  </div>
-                )}
-                
-                {faculty.achievements && (
-                  <div className="mt-3">
-                    <h3 className="font-medium text-gray-800 mb-1">Notable Achievements:</h3>
-                    <p className="text-gray-700">{faculty.achievements}</p>
-                  </div>
-                )}
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
+      {/* Main Content Container */}
+      <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+        <div className="p-6">
           <div className="mb-8">
             <p className="text-gray-600">
               Please evaluate this faculty member on the following parameters.
@@ -339,6 +339,7 @@ const EvaluateFacultyPage = () => {
                   name="knowledge"
                   value={evaluation.knowledge}
                   onChange={handleInputChange}
+                  onClick={(e) => e.target.focus()} // Ensure focus when clicked
                   min="0"
                   max="20"
                   placeholder="0-20"
@@ -348,7 +349,6 @@ const EvaluateFacultyPage = () => {
               </div>
             </div>
 
-            {/* Rest of the form remains the same */}
             {/* Skills */}
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-blue-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -364,6 +364,7 @@ const EvaluateFacultyPage = () => {
                   name="skills"
                   value={evaluation.skills}
                   onChange={handleInputChange}
+                  onClick={(e) => e.target.focus()}
                   min="0"
                   max="20"
                   placeholder="0-20"
@@ -388,6 +389,7 @@ const EvaluateFacultyPage = () => {
                   name="attributes"
                   value={evaluation.attributes}
                   onChange={handleInputChange}
+                  onClick={(e) => e.target.focus()}
                   min="0"
                   max="10"
                   placeholder="0-10"
@@ -412,6 +414,7 @@ const EvaluateFacultyPage = () => {
                   name="outcomesInitiatives"
                   value={evaluation.outcomesInitiatives}
                   onChange={handleInputChange}
+                  onClick={(e) => e.target.focus()}
                   min="0"
                   max="20"
                   placeholder="0-20"
@@ -436,6 +439,7 @@ const EvaluateFacultyPage = () => {
                   name="selfBranching"
                   value={evaluation.selfBranching}
                   onChange={handleInputChange}
+                  onClick={(e) => e.target.focus()}
                   min="0"
                   max="10"
                   placeholder="0-10"
@@ -460,6 +464,7 @@ const EvaluateFacultyPage = () => {
                   name="teamPerformance"
                   value={evaluation.teamPerformance}
                   onChange={handleInputChange}
+                  onClick={(e) => e.target.focus()}
                   min="0"
                   max="20"
                   placeholder="0-20"

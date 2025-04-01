@@ -36,7 +36,7 @@ const Review = () => {
       }, 5000);
 
       const response = await fetch(
-        `http://127.0.0.1:5000/${userData.dept}/${userData._id}/generate-doc`,
+        `${import.meta.env.VITE_BASE_URL}/${userData.dept}/${userData._id}/generate-doc`,
         {
           method: 'GET',
         }
@@ -66,7 +66,7 @@ const Review = () => {
   const fetchFormStatus = useCallback(async () => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/${userData.dept}/${userData._id}/get-status`,
+        `${import.meta.env.VITE_BASE_URL}/${userData.dept}/${userData._id}/get-status`,
         {
           method: 'GET',
         }
@@ -94,7 +94,7 @@ const Review = () => {
   const handleSubmit = async () => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/${userData.dept}/${userData._id}/submit-form`,
+        `${import.meta.env.VITE_BASE_URL}/${userData.dept}/${userData._id}/submit-form`,
         {
           method: 'POST',
           headers: {
@@ -122,7 +122,7 @@ const Review = () => {
   const handleFreezeForm = async () => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/${userData.dept}/${userData._id}/submit-form`,
+        `${import.meta.env.VITE_BASE_URL}/${userData.dept}/${userData._id}/submit-form`,
         {
           method: 'POST',
           headers: {

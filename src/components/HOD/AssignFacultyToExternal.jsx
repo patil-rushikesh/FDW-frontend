@@ -73,7 +73,7 @@ const AssignFacultyToExternal = () => {
 
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:5000/users");
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users`);
         if (!response.ok) throw new Error("Failed to fetch faculty data");
 
         const data = await response.json();
@@ -123,7 +123,7 @@ const AssignFacultyToExternal = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          `http://localhost:5000/${userDept}/get-externals`
+          `${import.meta.env.VITE_BASE_URL}/${userDept}/get-externals`
         );
 
         if (!response.ok) {
@@ -161,7 +161,7 @@ const AssignFacultyToExternal = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/${userDept}/external-assignments`
+          `${import.meta.env.VITE_BASE_URL}/${userDept}/external-assignments`
         );
         if (!response.ok) throw new Error("Failed to fetch assignments");
 
@@ -183,7 +183,7 @@ const AssignFacultyToExternal = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/${userDept}/external-dean-assignments`
+          `${import.meta.env.VITE_BASE_URL}/${userDept}/external-dean-assignments`
         );
         if (!response.ok) throw new Error("Failed to fetch dean assignments");
 
@@ -204,7 +204,7 @@ const AssignFacultyToExternal = () => {
       if (!userDept) return; // Exit early if department isn't available yet
       
       try {
-        const response = await fetch(`http://localhost:5000/${userDept}/interaction-deans`);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/${userDept}/interaction-deans`);
         if (!response.ok) throw new Error("Failed to fetch department interaction deans");
         
         const result = await response.json();
@@ -233,7 +233,7 @@ const AssignFacultyToExternal = () => {
     if (!userDept) return;
     
     try {
-      const response = await fetch(`http://localhost:5000/${userDept}/dean-external-mappings`);
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/${userDept}/dean-external-mappings`);
       if (!response.ok) throw new Error("Failed to fetch dean-external mappings");
       
       const data = await response.json();
@@ -365,7 +365,7 @@ const AssignFacultyToExternal = () => {
   
       // Make API call
       const response = await fetch(
-        `http://localhost:5000/${userDept}/assign-externals`,
+        `${import.meta.env.VITE_BASE_URL}/${userDept}/assign-externals`,
         {
           method: "POST",
           headers: {
@@ -383,7 +383,7 @@ const AssignFacultyToExternal = () => {
   
       // Fetch the latest assignment data to update the UI completely
       const refreshResponse = await fetch(
-        `http://localhost:5000/${userDept}/external-assignments`
+        `${import.meta.env.VITE_BASE_URL}/${userDept}/external-assignments`
       );
       
       if (!refreshResponse.ok) {
@@ -430,7 +430,7 @@ const AssignFacultyToExternal = () => {
     try {
       // Make API call with the pending assignments
       const response = await fetch(
-        `http://localhost:5000/${userDept}/assign-externals`,
+        `${import.meta.env.VITE_BASE_URL}/${userDept}/assign-externals`,
         {
           method: "POST",
           headers: {
@@ -448,7 +448,7 @@ const AssignFacultyToExternal = () => {
       
       // Fetch the latest assignment data to update the UI completely
       const refreshResponse = await fetch(
-        `http://localhost:5000/${userDept}/external-assignments`
+        `${import.meta.env.VITE_BASE_URL}/${userDept}/external-assignments`
       );
       
       if (!refreshResponse.ok) {
@@ -527,7 +527,7 @@ const AssignFacultyToExternal = () => {
       
       // Make the API call to assign a dean to an external reviewer
       const response = await fetch(
-        `http://localhost:5000/${userDept}/dean-external-assignment/${externalId}/${deanId}`,
+        `${import.meta.env.VITE_BASE_URL}/${userDept}/dean-external-assignment/${externalId}/${deanId}`,
         {
           method: 'POST',
           headers: {
@@ -551,7 +551,7 @@ const AssignFacultyToExternal = () => {
       
       // Refresh dean assignments to get the latest data
       const refreshResponse = await fetch(
-        `http://localhost:5000/${userDept}/external-dean-assignments`
+        `${import.meta.env.VITE_BASE_URL}/${userDept}/external-dean-assignments`
       );
       
       if (!refreshResponse.ok) {
@@ -584,7 +584,7 @@ const AssignFacultyToExternal = () => {
       setLoading(true);
       
       const response = await fetch(
-        `http://localhost:5000/${userDept}/remove-dean-from-external`,
+        `${import.meta.env.VITE_BASE_URL}/${userDept}/remove-dean-from-external`,
         {
           method: "POST",
           headers: {

@@ -601,7 +601,7 @@ const Research = () => {
         const department = userData.dept;
         const user_id = userData._id;
         const response = await fetch(
-          `http://127.0.0.1:5000/${department}/${user_id}/B`
+          `${import.meta.env.VITE_BASE_URL}/${department}/${user_id}/B`
         );
 
         if (response.ok) {
@@ -633,7 +633,7 @@ const fetchFormStatus = async () => {
     if (!userData?.dept || !userData?._id) return;
 
     const response = await fetch(
-      `http://127.0.0.1:5000/${userData.dept}/${userData._id}/get-status`
+      `${import.meta.env.VITE_BASE_URL}/${userData.dept}/${userData._id}/get-status`
     );
 
     if (response.ok) {
@@ -1049,7 +1049,7 @@ const handleSubmitClick = () => {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/${department}/${user_id}/B`,
+        `${import.meta.env.VITE_BASE_URL}/${department}/${user_id}/B`,
         {
           method: "POST",
           headers: {

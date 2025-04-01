@@ -41,7 +41,7 @@ const FacultyEvaluationForm = () => {
       }
 
       const response = await axios.get(
-        `http://localhost:5000/${department}/${userId}/D`
+        `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/D`
       );
       const data = response.data || {};
 
@@ -129,19 +129,19 @@ const handleConfirmSubmit = async () => {
 
     // First, update the portfolio data with HOD marks
     await axios.post(
-      `http://localhost:5000/${department}/${userId}/D`,
+      `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/D`,
       payload
     );
     // Check portfolio type to determine which status update API to call
     if (portfolioData.portfolioType === "both") {
       // For 'both' type, set status to Portfolio_Mark_Dean_pending
       await axios.post(
-        `http://localhost:5000/${department}/${userId}/hod-mark-given`
+        `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/hod-mark-given`
       );
     } else {
       // For other types (department or institute), status to verification_pending
       await axios.post(
-        `http://localhost:5000/${department}/${userId}/portfolio-given`
+        `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/portfolio-given`
       );
     }
 

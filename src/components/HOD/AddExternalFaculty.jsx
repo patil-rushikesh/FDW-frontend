@@ -43,7 +43,7 @@ const AddExternalFaculty = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/${userDept}/get-externals`
+          `${import.meta.env.VITE_BASE_URL}/${userDept}/get-externals`
         );
 
         if (!response.ok) {
@@ -112,7 +112,7 @@ const AddExternalFaculty = () => {
       console.log("Department:", userDept);
 
       const response = await fetch(
-        `http://localhost:5000/${userDept}/create-external`,
+        `${import.meta.env.VITE_BASE_URL}/${userDept}/create-external`,
         {
           method: "POST",
           headers: {
@@ -249,12 +249,21 @@ const AddExternalFaculty = () => {
                 <span className="text-red-500">*</span>
               </label>
               <input
-                type="text"
+                type="tel"
                 name="mob"
                 value={formData.mob}
-                onChange={handleChange}
+                onChange={(e) => {
+                  // Allow only digits and restrict to 10 digits
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setFormData(prev => ({
+                    ...prev,
+                    mob: value
+                  }));
+                }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 placeholder="Enter 10-digit mobile number"
+                maxLength="10"
+                pattern="[0-9]{10}"
                 required
               />
             </div>

@@ -239,7 +239,7 @@ const VerificationForm = () => {
     const fetchfacultyData = async () => {
       try {
         const response = await fetch(
-          `http://127.0.0.1:5000/users/${facultyId}`
+          `${process.env.BASE_URL}users/${facultyId}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch user data");
@@ -900,7 +900,7 @@ const VerificationForm = () => {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `http://127.0.0.1:5000/${department}/${facultyId}/B`
+          `${process.env.BASE_URL}/${department}/${facultyId}/B`
         );
 
         if (response.ok) {
@@ -1489,7 +1489,7 @@ const VerificationForm = () => {
       async function verifyResearch(department, userId, verifierId) {
         try {
           const verifyResponse = await fetch(
-            `http://127.0.0.1:5000/${department}/${userId}/${verifierId}/verify-research`,
+            `${process.env.BASE_URL}/${department}/${userId}/${verifierId}/verify-research`,
             {
               method: "POST",
               headers: {
@@ -1522,7 +1522,7 @@ const VerificationForm = () => {
       }
 
       const response = await fetch(
-        `http://127.0.0.1:5000/${department}/${facultyId}/B`,
+        `${process.env.BASE_URL}/${department}/${facultyId}/B`,
         {
           method: "POST",
           headers: {

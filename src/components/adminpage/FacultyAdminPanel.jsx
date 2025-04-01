@@ -65,7 +65,7 @@ const FacultyAdminPanel = () => {
   const fetchFaculties = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/users');
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users`);
       if (!response.ok) throw new Error('Failed to fetch faculty data');
       const data = await response.json();
       setFaculties(data);
@@ -89,7 +89,7 @@ const FacultyAdminPanel = () => {
     try {
       setLoading(true);
       if (isEditing) {
-        const response = await fetch(`http://localhost:5000/users/${selectedFaculty._id}`, {
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users/${selectedFaculty._id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -104,7 +104,7 @@ const FacultyAdminPanel = () => {
         if (!response.ok) throw new Error('Failed to update faculty member');
         setSuccessMessage('Faculty member updated successfully');
       } else {
-        const response = await fetch('http://localhost:5000/users', {
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -140,7 +140,7 @@ const FacultyAdminPanel = () => {
   const handleDelete = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/users/${facultyToDelete._id}`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users/${facultyToDelete._id}`, {
         method: 'DELETE'
       });
 

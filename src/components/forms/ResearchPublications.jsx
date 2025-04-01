@@ -149,7 +149,7 @@ const Research = () => {
         const user_id = userData._id;
 
         const response = await fetch(
-          `http://127.0.0.1:5000/${department}/${user_id}/B`
+          `${import.meta.env.VITE_BASE_URL}/${department}/${user_id}/B`
         );
 
         if (!response.ok) {
@@ -596,7 +596,7 @@ const Research = () => {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/${department}/${user_id}/B`,
+        `${import.meta.env.VITE_BASE_URL}/${department}/${user_id}/B`,
         {
           method: "POST",
           headers: {

@@ -42,7 +42,7 @@ const FacultyEvaluationForm = () => {
       }
 
       const response = await axios.get(
-        `http://localhost:5000/${department}/${userId}/D`
+        `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/D`
       );
       const data = response.data || {};
 
@@ -130,12 +130,12 @@ const FacultyEvaluationForm = () => {
 
       // First, update the portfolio data with Director marks
       await axios.post(
-        `http://localhost:5000/${department}/${userId}/D`,
+        `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/D`,
         payload
       );
     // Update the status to 'verification_pending' after portfolio marks are assigned
     await axios.post(
-      `http://localhost:5000/${department}/${userId}/portfolio-given`
+      `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/portfolio-given`
     );
 
       setIsModalOpen(false);

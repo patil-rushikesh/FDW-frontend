@@ -17,6 +17,7 @@ const Profile = () => {
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("userData"));
+    console.log("UserData:"+ userData);
     if (userData) {
       setFacultyData({
         userId: userData._id,
@@ -26,11 +27,11 @@ const Profile = () => {
         email: userData.mail,
         phone: userData.mob,
         designation: userData.desg,
+        interactionDepartments: userData.interactionDepartments || [],
       });
     }
   }, []);
 
-  console.log(facultyData);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -54,7 +55,7 @@ const Profile = () => {
     setPasswordResetStatus({loading: true, success: false, error: null});
     
     try {
-      const response = await fetch('http://localhost:5000/forgot-password', {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

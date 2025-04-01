@@ -25,7 +25,7 @@ const ConfirmVerify = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `http://127.0.0.1:5000/total_marks/${department}/${facultyId}`
+          `${import.meta.env.VITE_BASE_URL}/total_marks/${department}/${facultyId}`
         );
 
         console.log(response);
@@ -217,14 +217,14 @@ const ConfirmVerify = () => {
 
         // First submit the verified marks
         const markResponse = await axios.post(
-          `http://127.0.0.1:5000/total_marks/${department}/${facultyId}`,
+          `${import.meta.env.VITE_BASE_URL}/total_marks/${department}/${facultyId}`,
           formattedData
         );
 
         if (markResponse.status === 200) {
           // Then update the status to Interaction_pending
           const statusResponse = await axios.post(
-            `http://127.0.0.1:5000/${department}/${facultyId}/verify-authority`
+            `${import.meta.env.VITE_BASE_URL}/${department}/${facultyId}/verify-authority`
           );
 
           if (statusResponse.status === 200) {
@@ -269,7 +269,7 @@ const ConfirmVerify = () => {
         }, 5000);
 
         const response = await fetch(
-          `http://127.0.0.1:5000/${department}/${facultyId}/generate-doc`,
+          `${import.meta.env.VITE_BASE_URL}/${department}/${facultyId}/generate-doc`,
           {
             method: "GET",
           }

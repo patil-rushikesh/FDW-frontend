@@ -329,7 +329,7 @@ const TeachingPerformance = () => {
 
       try {
         const response = await fetch(
-          `http://127.0.0.1:5000/${userData.dept}/${userData._id}/A`
+          `${import.meta.env.VITE_BASE_URL}/${userData.dept}/${userData._id}/A`
         );
 
         if (!response.ok) {
@@ -738,7 +738,7 @@ const TeachingPerformance = () => {
   
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/${department}/${user_id}/A`,
+        `${import.meta.env.VITE_BASE_URL}/${department}/${user_id}/A`,
         {
           method: "POST",
           headers: {

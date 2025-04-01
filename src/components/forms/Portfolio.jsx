@@ -89,7 +89,7 @@ const Portfolio = () => {
 
       try {
         const response = await axios.get(
-          `http://127.0.0.1:5000/${department}/${userId}/D`
+          `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/D`
         );
 
         if (response.data) {
@@ -161,7 +161,7 @@ const Portfolio = () => {
       if (!storedUserData?.dept || !storedUserData?._id) return;
 
       const response = await fetch(
-        `http://127.0.0.1:5000/${storedUserData.dept}/${storedUserData._id}/get-status`
+        `${import.meta.env.VITE_BASE_URL}/${storedUserData.dept}/${storedUserData._id}/get-status`
       );
 
       if (response.ok) {
@@ -304,7 +304,7 @@ const Portfolio = () => {
 
       // Make the request
       const response = await axios.post(
-        `http://127.0.0.1:5000/${department}/${userId}/D`,
+        `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/D`,
         payload,
         {
           headers: {
