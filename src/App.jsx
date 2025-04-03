@@ -22,7 +22,7 @@ import Research from "./components/forms/Research";
 import Portfolio from "./components/forms/Portfolio";
 import Dashboard from "./components/forms/Dashboard";
 import SubmissionStatus from "./components/forms/SubmissionStatus";
-import Review from "./components/forms/review";
+import Review from "./components/forms/Review";
 import VerificationTeam from "./components/adminpage/VerificationTeam";
 import AddFaculty from "./components/adminpage/AddFaculty";
 import FacultyList from "./components/adminpage/FacultyList";
