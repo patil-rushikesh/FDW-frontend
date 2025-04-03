@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Users, Search, Filter, SortAsc, SortDesc } from "lucide-react";
+import { Users, Search, Filter, SortAsc, SortDesc, Send } from "lucide-react";
 
 const FinalMarks = () => {
   const [facultyData, setFacultyData] = useState([]);
@@ -16,6 +16,7 @@ const FinalMarks = () => {
     key: null,
     direction: "desc", // Default to highest marks first
   });
+  const [isSending, setIsSending] = useState(false);
 
   // Get user's department on component mount
   useEffect(() => {
@@ -33,9 +34,11 @@ const FinalMarks = () => {
       try {
         setLoading(true);
         // Updated API endpoint to match the provided route
-        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/${department}/all_faculties_final_marks`);
+        const response = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/${department}/all_faculties_final_marks`
+        );
         if (!response.ok) throw new Error("Failed to fetch faculty marks data");
-        
+
         const responseData = await response.json();
         if (responseData.data) {
           setFacultyData(responseData.data);
@@ -62,14 +65,23 @@ const FinalMarks = () => {
   const filteredData = useMemo(() => {
     return facultyData
       .filter((faculty) => {
-        const searchMatch = faculty.faculty_info.id.toLowerCase().includes(filters.search.toLowerCase()) ||
-          faculty.faculty_info.name?.toLowerCase().includes(filters.search.toLowerCase());
-        
+        const searchMatch =
+          faculty.faculty_info.id
+            .toLowerCase()
+            .includes(filters.search.toLowerCase()) ||
+          faculty.faculty_info.name
+            ?.toLowerCase()
+            .includes(filters.search.toLowerCase());
+
         const totalMarks = faculty.final_marks?.total_marks || 0;
-        
+
         const marksMatch =
-          (!filters.minMarks || filters.minMarks === "" || totalMarks >= Number(filters.minMarks)) &&
-          (!filters.maxMarks || filters.maxMarks === "" || totalMarks <= Number(filters.maxMarks));
+          (!filters.minMarks ||
+            filters.minMarks === "" ||
+            totalMarks >= Number(filters.minMarks)) &&
+          (!filters.maxMarks ||
+            filters.maxMarks === "" ||
+            totalMarks <= Number(filters.maxMarks));
 
         return searchMatch && marksMatch;
       })
@@ -77,8 +89,8 @@ const FinalMarks = () => {
         if (!sortConfig.key) return 0;
 
         let valueA, valueB;
-        
-        switch(sortConfig.key) {
+
+        switch (sortConfig.key) {
           case "total":
             valueA = a.final_marks?.total_marks || 0;
             valueB = b.final_marks?.total_marks || 0;
@@ -99,15 +111,48 @@ const FinalMarks = () => {
             return 0;
         }
 
-        return sortConfig.direction === "asc" ? valueA - valueB : valueB - valueA;
+        return sortConfig.direction === "asc"
+          ? valueA - valueB
+          : valueB - valueA;
       });
   }, [facultyData, filters, sortConfig]);
 
   const toggleSort = (key) => {
     setSortConfig((current) => ({
       key,
-      direction: current.key === key && current.direction === "desc" ? "asc" : "desc"
+      direction:
+        current.key === key && current.direction === "desc" ? "asc" : "desc",
     }));
+  };
+
+  // Add this function to handle sending to director
+  const handleSendToDirector = async () => {
+    if (
+      window.confirm(
+        "Are you sure you want to send all final marks to the Director?"
+      )
+    ) {
+      try {
+        setIsSending(true);
+
+        // TODO: Replace with actual API call
+        // const response = await fetch(`${import.meta.env.VITE_BASE_URL}/${department}/send_to_director`, {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' }
+        // });
+
+        // if (!response.ok) throw new Error("Failed to send marks to director");
+
+        // Simulate API call for now
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        alert("Faculty marks successfully sent to Director!");
+      } catch (err) {
+        alert("Error sending marks: " + err.message);
+      } finally {
+        setIsSending(false);
+      }
+    }
   };
 
   // The rest of the component remains unchanged
@@ -200,7 +245,7 @@ const FinalMarks = () => {
               </div>
 
               {/* Summary Section */}
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              {/* <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
                     <p className="text-sm text-blue-600">Total Faculty</p>
                     <p className="text-2xl font-bold text-blue-800">{summary.total_faculty || 0}</p>
@@ -217,7 +262,7 @@ const FinalMarks = () => {
                   <p className="text-sm text-red-600">Not Reviewed</p>
                   <p className="text-2xl font-bold text-red-800">{summary.not_reviewed || 0}</p>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Table Section - remains the same */}
@@ -228,38 +273,52 @@ const FinalMarks = () => {
                     <th className="px-3 py-3 text-gray-600">ID</th>
                     <th className="px-3 py-3 text-gray-600">Name</th>
                     <th className="px-3 py-3 text-gray-600">Designation</th>
-                    <th className="px-3 py-3 text-gray-600 cursor-pointer" onClick={() => toggleSort("verified")}>
+                    <th
+                      className="px-3 py-3 text-gray-600 cursor-pointer"
+                      onClick={() => toggleSort("verified")}
+                    >
                       <div className="flex items-center">
                         Self Appraisal Marks(Max 1000)
                         <span className="text-xs ml-1"></span>
-                        {sortConfig.key === "verified" && (
-                          sortConfig.direction === "asc" ? 
-                            <SortAsc size={14} className="ml-1" /> : 
+                        {sortConfig.key === "verified" &&
+                          (sortConfig.direction === "asc" ? (
+                            <SortAsc size={14} className="ml-1" />
+                          ) : (
                             <SortDesc size={14} className="ml-1" />
-                        )}
+                          ))}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-gray-600 cursor-pointer" onClick={() => toggleSort("scaled_verified")}>
+                    <th
+                      className="px-3 py-3 text-gray-600 cursor-pointer"
+                      onClick={() => toggleSort("scaled_verified")}
+                    >
                       <div className="flex items-center">
                         Scaled Self Appraisal (Max 75)
                         <span className="text-xs ml-1"></span>
-                        {sortConfig.key === "scaled_verified" && (
-                          sortConfig.direction === "asc" ? 
-                            <SortAsc size={14} className="ml-1" /> : 
+                        {sortConfig.key === "scaled_verified" &&
+                          (sortConfig.direction === "asc" ? (
+                            <SortAsc size={14} className="ml-1" />
+                          ) : (
                             <SortDesc size={14} className="ml-1" />
-                        )}
+                          ))}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-gray-600">Interaction Marks</th>
-                    <th className="px-3 py-3 text-gray-600 cursor-pointer" onClick={() => toggleSort("interaction_avg")}>
+                    <th className="px-3 py-3 text-gray-600">
+                      Interaction Marks
+                    </th>
+                    <th
+                      className="px-3 py-3 text-gray-600 cursor-pointer"
+                      onClick={() => toggleSort("interaction_avg")}
+                    >
                       <div className="flex items-center">
                         Interaction Score (Max 100)
                         <span className="text-xs ml-1"></span>
-                        {sortConfig.key === "interaction_avg" && (
-                          sortConfig.direction === "asc" ? 
-                            <SortAsc size={14} className="ml-1" /> : 
+                        {sortConfig.key === "interaction_avg" &&
+                          (sortConfig.direction === "asc" ? (
+                            <SortAsc size={14} className="ml-1" />
+                          ) : (
                             <SortDesc size={14} className="ml-1" />
-                        )}
+                          ))}
                       </div>
                     </th>
                     <th className="px-3 py-3 text-gray-600">
@@ -268,15 +327,19 @@ const FinalMarks = () => {
                         <span className="text-xs ml-1"></span>
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-gray-600 cursor-pointer" onClick={() => toggleSort("total")}>
+                    <th
+                      className="px-3 py-3 text-gray-600 cursor-pointer"
+                      onClick={() => toggleSort("total")}
+                    >
                       <div className="flex items-center">
                         Total Marks (Max 100)
                         <span className="text-xs ml-1"></span>
-                        {sortConfig.key === "total" && (
-                          sortConfig.direction === "asc" ? 
-                            <SortAsc size={14} className="ml-1" /> : 
+                        {sortConfig.key === "total" &&
+                          (sortConfig.direction === "asc" ? (
+                            <SortAsc size={14} className="ml-1" />
+                          ) : (
                             <SortDesc size={14} className="ml-1" />
-                        )}
+                          ))}
                       </div>
                     </th>
                     <th className="px-3 py-3 text-gray-600">Status</th>
@@ -285,43 +348,83 @@ const FinalMarks = () => {
                 <tbody>
                   {filteredData.length === 0 ? (
                     <tr>
-                      <td colSpan="10" className="px-6 py-8 text-center text-gray-500">
+                      <td
+                        colSpan="10"
+                        className="px-6 py-8 text-center text-gray-500"
+                      >
                         No faculty marks data available
                       </td>
                     </tr>
                   ) : (
                     filteredData.map((faculty) => (
-                      <tr key={faculty.faculty_info.id} className="border-b hover:bg-gray-50">
-                        <td className="px-3 py-4 font-medium">{faculty.faculty_info.id}</td>
-                        <td className="px-3 py-4">{faculty.faculty_info.name}</td>
-                        <td className="px-3 py-4">{faculty.faculty_info.designation}</td>
-                        <td className="px-3 py-4">
-                          <span className="font-medium">{formatNumber(faculty.final_marks?.verified_marks)}</span>
+                      <tr
+                        key={faculty.faculty_info.id}
+                        className="border-b hover:bg-gray-50"
+                      >
+                        <td className="px-3 py-4 font-medium">
+                          {faculty.faculty_info.id}
                         </td>
                         <td className="px-3 py-4">
-                          <span className="font-medium text-blue-700">{formatNumber(faculty.final_marks?.scaled_verified_marks)}</span>
+                          {faculty.faculty_info.name}
+                        </td>
+                        <td className="px-3 py-4">
+                          {faculty.faculty_info.designation}
+                        </td>
+                        <td className="px-3 py-4">
+                          <span className="font-medium">
+                            {formatNumber(faculty.final_marks?.verified_marks)}
+                          </span>
+                        </td>
+                        <td className="px-3 py-4">
+                          <span className="font-medium text-blue-700">
+                            {formatNumber(
+                              faculty.final_marks?.scaled_verified_marks
+                            )}
+                          </span>
                         </td>
                         <td className="px-3 py-4">
                           <div className="space-y-1">
                             <div className="flex justify-between">
-                              <span className="text-xs text-gray-500">HOD:</span>
-                              <span className="text-xs font-medium">{faculty.interaction_marks?.hod?.marks || "N/A"}</span>
+                              <span className="text-xs text-gray-500">
+                                HOD:
+                              </span>
+                              <span className="text-xs font-medium">
+                                {faculty.interaction_marks?.hod?.marks || "N/A"}
+                              </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-xs text-gray-500">Dean:</span>
-                              <span className="text-xs font-medium">{faculty.interaction_marks?.dean?.marks || "N/A"}</span>
+                              <span className="text-xs text-gray-500">
+                                Dean:
+                              </span>
+                              <span className="text-xs font-medium">
+                                {faculty.interaction_marks?.dean?.marks ||
+                                  "N/A"}
+                              </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-xs text-gray-500">External:</span>
-                              <span className="text-xs font-medium">{faculty.interaction_marks?.external?.marks || "N/A"}</span>
+                              <span className="text-xs text-gray-500">
+                                External:
+                              </span>
+                              <span className="text-xs font-medium">
+                                {faculty.interaction_marks?.external?.marks ||
+                                  "N/A"}
+                              </span>
                             </div>
                           </div>
                         </td>
                         <td className="px-3 py-4">
-                          <span className="font-medium">{formatNumber(faculty.final_marks?.interaction_average)}</span>
+                          <span className="font-medium">
+                            {formatNumber(
+                              faculty.final_marks?.interaction_average
+                            )}
+                          </span>
                         </td>
                         <td className="px-3 py-4">
-                          <span className="font-medium text-blue-700">{formatNumber(faculty.final_marks?.scaled_interaction_marks)}</span>
+                          <span className="font-medium text-blue-700">
+                            {formatNumber(
+                              faculty.final_marks?.scaled_interaction_marks
+                            )}
+                          </span>
                         </td>
                         <td className="px-3 py-4">
                           <span className="font-semibold text-lg text-blue-800">
@@ -334,11 +437,13 @@ const FinalMarks = () => {
                               faculty.faculty_info.status === "done"
                                 ? "bg-green-100 text-green-800"
                                 : faculty.faculty_info.status === "pending"
-                                ? "bg-orange-100 text-orange-800"
-                                : "bg-gray-100 text-gray-800"
+                                  ? "bg-orange-100 text-orange-800"
+                                  : "bg-gray-100 text-gray-800"
                             }`}
                           >
-                            {faculty.faculty_info.status === "done" ? "Completed" : faculty.faculty_info.status}
+                            {faculty.faculty_info.status === "done"
+                              ? "Completed"
+                              : faculty.faculty_info.status}
                           </span>
                         </td>
                       </tr>
@@ -346,6 +451,29 @@ const FinalMarks = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Send to Director Section */}
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex justify-end">
+                <button
+                  onClick={handleSendToDirector}
+                  disabled={isSending || filteredData.length === 0}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  {isSending ? (
+                    <>
+                      <div className="animate-spin h-4 w-4 border-2 border-white border-opacity-50 border-t-transparent rounded-full"></div>
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send size={18} />
+                      <span>Send to Director</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
