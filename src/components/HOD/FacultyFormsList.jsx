@@ -6,6 +6,9 @@ import {
   CheckCircle2,
   SortAsc,
   SortDesc,
+  ChevronDown,
+  ChevronUp,
+  Plus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -39,6 +42,9 @@ const FacultyFormsList = () => {
     total: 0,
   });
 
+  // Add this state near the top with your other state declarations
+  const [showAllStatuses, setShowAllStatuses] = useState(false);
+
   // Add this useEffect to get HOD's department when component mounts
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("userData"));
@@ -66,42 +72,41 @@ const FacultyFormsList = () => {
     }));
   };
 
-// Modify the fetch faculty data useEffect to calculate status summary
-useEffect(() => {
-  const fetchFaculties = async () => {
-    try {
-      // Only fetch if department exists
-      if (!department) return;
+  // Modify the fetch faculty data useEffect to calculate status summary
+  useEffect(() => {
+    const fetchFaculties = async () => {
+      try {
+        // Only fetch if department exists
+        if (!department) return;
 
-      setLoading(true);
+        setLoading(true);
 
-      const response = await fetch(
-        
-        `${import.meta.env.VITE_BASE_URL}/faculty/${department}`
-      );
-      console.log( "ENV LINK: " + import.meta.env.VITE_BASE_URL);
-      if (!response.ok) throw new Error("Failed to fetch faculty data");
-      const responseData = await response.json();
-      if (responseData.status === "success") {
-        // Filter regular faculty only - exclude Admin role
-        const regularFaculty = responseData.data.filter(
-          (faculty) =>
-            (faculty.designation === "Faculty" ||
-             faculty.designation === "Associate Dean") &&
-            faculty.role !== "Admin"  // Add this condition to exclude Admin role
+        const response = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/faculty/${department}`
         );
+        console.log("ENV LINK: " + import.meta.env.VITE_BASE_URL);
+        if (!response.ok) throw new Error("Failed to fetch faculty data");
+        const responseData = await response.json();
+        if (responseData.status === "success") {
+          // Filter regular faculty only - exclude Admin role
+          const regularFaculty = responseData.data.filter(
+            (faculty) =>
+              (faculty.designation === "Faculty" ||
+                faculty.designation === "Associate Dean") &&
+              faculty.role !== "Admin" // Add this condition to exclude Admin role
+          );
 
-        // Calculate status counts for summary
-        const summary = {
-          done: 0,
-          verification_pending: 0,
-          interaction_pending: 0,
-          authority_verification_pending: 0,
-          portfolio_mark_pending: 0,
-          portfolio_mark_dean_pending: 0,
-          pending: 0,
-          total: regularFaculty.length,
-        };
+          // Calculate status counts for summary
+          const summary = {
+            done: 0,
+            verification_pending: 0,
+            interaction_pending: 0,
+            authority_verification_pending: 0,
+            portfolio_mark_pending: 0,
+            portfolio_mark_dean_pending: 0,
+            pending: 0,
+            total: regularFaculty.length,
+          };
 
         regularFaculty.forEach((faculty) => {
           const status = faculty.status?.toLowerCase() || "pending";
@@ -129,30 +134,26 @@ useEffect(() => {
         });
         setStatusSummary(summary);
 
-        setFacultyData(processVerificationStatus(responseData.data));
-      } else {
-        throw new Error("API returned an error");
+          setFacultyData(processVerificationStatus(responseData.data));
+        } else {
+          throw new Error("API returned an error");
+        }
+      } catch (err) {
+        setError("Error loading faculty data: " + err.message);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError("Error loading faculty data: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchFaculties();
-}, [department]);
+    fetchFaculties();
+  }, [department]);
 
   // Modify the departments array to only show the HOD's department
   const departments = useMemo(() => {
     return department ? [department] : [];
   }, [department]);
 
-  const roles = [
-    "Professor",
-    "Associate Professor",
-    "Assistant Professor",
-  ];
+  const roles = ["Professor", "Associate Professor", "Assistant Professor"];
 
   // Helper function to get numeric marks value regardless of format
   const getNumericMarks = (faculty) => {
@@ -498,132 +499,172 @@ useEffect(() => {
                 </div>
 
                 {/* Summary Section - Improved UI */}
-                <div className="mt-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-                  <div
-                    className={`bg-blue-50 p-4 rounded-lg border ${
-                      filters.status === ""
-                        ? "border-blue-400 shadow-md"
-                        : "border-blue-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("")}
-                  >
-                    <p className="text-sm text-blue-600 mb-1">Total Faculty</p>
-                    <p className="text-2xl font-bold text-blue-800 mt-auto">
-                      {statusSummary.total}
-                    </p>
+                <div className="mt-6">
+                  <div className="flex flex-wrap gap-3 items-center">
+                    {/* Primary Status Cards - Always visible */}
+                    <div
+                      className={`bg-blue-50 p-3 rounded-lg border ${
+                        filters.status === ""
+                          ? "border-blue-400 shadow-md"
+                          : "border-blue-200"
+                      } cursor-pointer hover:shadow-md transition-shadow w-44`}
+                      onClick={() => handleStatusFilter("")}
+                    >
+                      <p className="text-xs text-blue-600 mb-1">
+                        Total Faculty
+                      </p>
+                      <p className="text-xl font-bold text-blue-800">
+                        {statusSummary.total}
+                      </p>
+                    </div>
+
+                    <div
+                      className={`bg-green-50 p-3 rounded-lg border ${
+                        filters.status === "done"
+                          ? "border-green-400 shadow-md"
+                          : "border-green-200"
+                      } cursor-pointer hover:shadow-md transition-shadow w-44`}
+                      onClick={() => handleStatusFilter("done")}
+                    >
+                      <p className="text-xs text-green-600 mb-1">Completed</p>
+                      <p className="text-xl font-bold text-green-800">
+                        {statusSummary.done}
+                      </p>
+                    </div>
+
+                    {/* Show More Button */}
+                    <button
+                      onClick={() => setShowAllStatuses(!showAllStatuses)}
+                      className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-blue-700 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                    >
+                      {showAllStatuses ? (
+                        <>
+                          <ChevronUp size={16} />
+                          <span>Hide Details</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus size={16} />
+                          <span>Show Details</span>
+                        </>
+                      )}
+                    </button>
                   </div>
 
-                  <div
-                    className={`bg-green-50 p-4 rounded-lg border ${
-                      filters.status === "done"
-                        ? "border-green-400 shadow-md"
-                        : "border-green-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("done")}
-                  >
-                    <p className="text-sm text-green-600 mb-1">Completed</p>
-                    <p className="text-2xl font-bold text-green-800 mt-auto">
-                      {statusSummary.done}
-                    </p>
-                  </div>
+                  {/* Expandable Status Cards */}
+                  {showAllStatuses && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mt-3 animate-fadeIn">
+                      <div
+                        className={`bg-gray-50 p-3 rounded-lg border ${
+                          filters.status === "pending"
+                            ? "border-gray-400 shadow-md"
+                            : "border-gray-200"
+                        } cursor-pointer hover:shadow-md transition-shadow`}
+                        onClick={() => handleStatusFilter("pending")}
+                        title="Pending – The faculty member has not yet filled the form."
+                      >
+                        <p className="text-xs text-gray-600 mb-1">Pending</p>
+                        <p className="text-xl font-bold text-gray-800">
+                          {statusSummary.pending}
+                        </p>
+                      </div>
 
-                  <div
-                    className={`bg-yellow-50 p-4 rounded-lg border ${
-                      filters.status === "authority_verification_pending"
-                        ? "border-yellow-400 shadow-md"
-                        : "border-yellow-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() =>
-                      handleStatusFilter("authority_verification_pending")
-                    }
-                  >
-                    <p className="text-sm text-yellow-600 mb-1">
-                      Authority Verification
-                    </p>
-                    <p className="text-2xl font-bold text-yellow-800 mt-auto">
-                      {statusSummary.authority_verification_pending}
-                    </p>
-                  </div>
+                      <div
+                        className={`bg-yellow-50 p-3 rounded-lg border ${
+                          filters.status === "authority_verification_pending"
+                            ? "border-yellow-400 shadow-md"
+                            : "border-yellow-200"
+                        } cursor-pointer hover:shadow-md transition-shadow`}
+                        onClick={() =>
+                          handleStatusFilter("authority_verification_pending")
+                        }
+                        title="Authority Verification Pending – The Head of Department (HoD) needs to review the form and assign the marks."
+                      >
+                        <p className="text-xs text-yellow-600 mb-1">
+                          Authority Verification
+                        </p>
+                        <p className="text-xl font-bold text-yellow-800">
+                          {statusSummary.authority_verification_pending}
+                        </p>
+                      </div>
 
-                  <div
-                    className={`bg-purple-50 p-4 rounded-lg border ${
-                      filters.status === "interaction_pending"
-                        ? "border-purple-400 shadow-md"
-                        : "border-purple-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("interaction_pending")}
-                  >
-                    <p className="text-sm text-purple-600 mb-1">
-                      Interaction Pending
-                    </p>
-                    <p className="text-2xl font-bold text-purple-800 mt-auto">
-                      {statusSummary.interaction_pending}
-                    </p>
-                  </div>
+                      <div
+                        className={`bg-purple-50 p-3 rounded-lg border ${
+                          filters.status === "interaction_pending"
+                            ? "border-purple-400 shadow-md"
+                            : "border-purple-200"
+                        } cursor-pointer hover:shadow-md transition-shadow`}
+                        onClick={() =>
+                          handleStatusFilter("interaction_pending")
+                        }
+                        title="Interaction Pending – Faculty interaction with another faculty member is pending."
+                      >
+                        <p className="text-xs text-purple-600 mb-1">
+                          Interaction Pending
+                        </p>
+                        <p className="text-xl font-bold text-purple-800">
+                          {statusSummary.interaction_pending}
+                        </p>
+                      </div>
 
-                  <div
-                    className={`bg-orange-50 p-4 rounded-lg border ${
-                      filters.status === "verification_pending"
-                        ? "border-orange-400 shadow-md"
-                        : "border-orange-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("verification_pending")}
-                  >
-                    <p className="text-sm text-orange-600 mb-1">
-                      Verification Pending
-                    </p>
-                    <p className="text-2xl font-bold text-orange-800 mt-auto">
-                      {statusSummary.verification_pending}
-                    </p>
-                  </div>
+                      <div
+                        className={`bg-orange-50 p-3 rounded-lg border ${
+                          filters.status === "verification_pending"
+                            ? "border-orange-400 shadow-md"
+                            : "border-orange-200"
+                        } cursor-pointer hover:shadow-md transition-shadow`}
+                        onClick={() =>
+                          handleStatusFilter("verification_pending")
+                        }
+                        title="Verification Pending – Verification of the research paper or Part B is still pending."
+                      >
+                        <p className="text-xs text-orange-600 mb-1">
+                          Verification Pending
+                        </p>
+                        <p className="text-xl font-bold text-orange-800">
+                          {statusSummary.verification_pending}
+                        </p>
+                      </div>
 
-                  <div
-                    className={`bg-blue-50 p-4 rounded-lg border ${
-                      filters.status === "portfolio_mark_pending"
-                        ? "border-blue-400 shadow-md"
-                        : "border-blue-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("portfolio_mark_pending")}
-                  >
-                    <p className="text-sm text-blue-600 mb-1">
-                      Portfolio Mark Pending
-                    </p>
-                    <p className="text-2xl font-bold text-blue-800 mt-auto">
-                      {statusSummary.portfolio_mark_pending}
-                    </p>
-                  </div>
+                      <div
+                        className={`bg-blue-50 p-3 rounded-lg border ${
+                          filters.status === "portfolio_mark_pending"
+                            ? "border-blue-400 shadow-md"
+                            : "border-blue-200"
+                        } cursor-pointer hover:shadow-md transition-shadow`}
+                        onClick={() =>
+                          handleStatusFilter("portfolio_mark_pending")
+                        }
+                        title="Portfolio Mark Pending – The HoD needs to review and assign marks for the faculty's portfolio."
+                      >
+                        <p className="text-xs text-blue-600 mb-1">
+                          Portfolio Mark Pending
+                        </p>
+                        <p className="text-xl font-bold text-blue-800">
+                          {statusSummary.portfolio_mark_pending}
+                        </p>
+                      </div>
 
-                  <div
-                    className={`bg-indigo-50 p-4 rounded-lg border ${
-                      filters.status === "portfolio_mark_dean_pending"
-                        ? "border-indigo-400 shadow-md"
-                        : "border-indigo-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() =>
-                      handleStatusFilter("portfolio_mark_dean_pending")
-                    }
-                  >
-                    <p className="text-sm text-indigo-600 mb-1">
-                      Dean Mark Pending
-                    </p>
-                    <p className="text-2xl font-bold text-indigo-800 mt-auto">
-                      {statusSummary.portfolio_mark_dean_pending}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`bg-gray-50 p-4 rounded-lg border ${
-                      filters.status === "pending"
-                        ? "border-gray-400 shadow-md"
-                        : "border-gray-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("pending")}
-                  >
-                    <p className="text-sm text-gray-600 mb-1">Pending</p>
-                    <p className="text-2xl font-bold text-gray-800 mt-auto">
-                      {statusSummary.pending}
-                    </p>
-                  </div>
+                      <div
+                        className={`bg-indigo-50 p-3 rounded-lg border ${
+                          filters.status === "portfolio_mark_dean_pending"
+                            ? "border-indigo-400 shadow-md"
+                            : "border-indigo-200"
+                        } cursor-pointer hover:shadow-md transition-shadow`}
+                        onClick={() =>
+                          handleStatusFilter("portfolio_mark_dean_pending")
+                        }
+                        title="Portfolio Mark Dean Pending – The Dean has not yet assigned marks for the faculty's portfolio."
+                      >
+                        <p className="text-xs text-indigo-600 mb-1">
+                          Dean Mark Pending
+                        </p>
+                        <p className="text-xl font-bold text-indigo-800">
+                          {statusSummary.portfolio_mark_dean_pending}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Add an indicator if any filter is active */}

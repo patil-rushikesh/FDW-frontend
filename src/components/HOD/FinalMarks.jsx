@@ -344,21 +344,10 @@ const FinalMarks = () => {
 
               {/* Summary Section */}
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                  <p className="text-sm text-blue-600">Total Faculty</p>
-                  <p className="text-2xl font-bold text-blue-800">{summary.total_faculty || 0}</p>
-                </div>
+
                 <div className="bg-green-50 p-3 rounded-lg border border-green-200">
                   <p className="text-sm text-green-600">Final Marks Calculated</p>
                   <p className="text-2xl font-bold text-green-800">{summary.final_marks_calculated || 0}</p>
-                </div>
-                <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                  <p className="text-sm text-yellow-600">Partially Reviewed</p>
-                  <p className="text-2xl font-bold text-yellow-800">{summary.partially_reviewed || 0}</p>
-                </div>
-                <div className="bg-red-50 p-3 rounded-lg border border-red-200">
-                  <p className="text-sm text-red-600">Not Reviewed</p>
-                  <p className="text-2xl font-bold text-red-800">{summary.not_reviewed || 0}</p>
                 </div>
               </div>
             </div>

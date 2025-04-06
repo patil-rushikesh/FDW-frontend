@@ -55,6 +55,9 @@ import FinalMarks from "./components/HOD/FinalMarks";
 import ConfirmDirectorVerify from "./components/Director/ConfirmVerifybyDirector";
 import DirectorVerify from "./components/Director/DirectorVerify";
 import ResetPassword from "./components/ResetPassword";
+// Add this to your routes configuration
+import Summary from "./components/adminpage/Summary";
+
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -340,17 +343,16 @@ function AppContent() {
                       </ProtectedRoute>
                     }
                   />
-
-                  <Route path="/reset-password" element={<ResetPassword/>} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/" element={<Navigate to="/profile" />} />
                 </Routes>
               </div>
             ) : (
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
-                
                 <Route path="/admin/add-faculty" element={<AddFaculty />} />
                 <Route path="/admin/faculty-list" element={<FacultyList />} />
+                <Route path="/admin/summary" element={<Summary />} />
                 <Route
                   path="/admin/verification-team"
                   element={<VerificationTeam />}
@@ -367,6 +369,7 @@ function AppContent() {
                   path="/admin"
                   element={<Navigate to="/admin/add-faculty" />}
                 />
+
                 <Route path="" element={<FacultyFormsList />} />
                 <Route path="/*" element={<Navigate to="/login" />} />
               </Routes>

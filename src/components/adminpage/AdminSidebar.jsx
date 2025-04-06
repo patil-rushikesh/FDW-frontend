@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { NavLink as RouterNavLink, useLocation } from "react-router-dom";
-import { UserPlus, Users, UserCheck, X, Building, LogOut, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  UserPlus,
+  Users,
+  UserCheck,
+  X,
+  Building,
+  LogOut,
+  ChevronDown,
+  ChevronRight,
+  BarChart2,
+} from "lucide-react";
 
 const AdminSidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
@@ -19,6 +29,11 @@ const AdminSidebar = ({ isOpen, onClose }) => {
       name: "Faculty List",
       path: "/admin/faculty-list",
       icon: <Users className="w-6 h-6" />,
+    },
+    {
+      name: "Summary",
+      path: "/admin/summary",
+      icon: <BarChart2 className="w-6 h-6" />,
     },
   ];
 
@@ -46,32 +61,34 @@ const AdminSidebar = ({ isOpen, onClose }) => {
   // Auto-open dropdown menus based on current path when component mounts
   useEffect(() => {
     const currentPath = location.pathname;
-    
+
     // Check if current path is in faculty links
-    if (facultyLinks.some(link => link.path === currentPath)) {
+    if (facultyLinks.some((link) => link.path === currentPath)) {
       setIsManageFacultyOpen(true);
     }
-    
+
     // Check if current path is in verification links
-    if (verificationLinks.some(link => link.path === currentPath)) {
+    if (verificationLinks.some((link) => link.path === currentPath)) {
       setIsVerificationTeamOpen(true);
     }
   }, [location.pathname]);
 
   const handleLogout = () => {
     // Add logout logic here
-    localStorage.removeItem('adminToken'); // Remove admin token
-    window.location.href = '/login'; // Redirect to login page
+    localStorage.removeItem("adminToken"); // Remove admin token
+    window.location.href = "/login"; // Redirect to login page
   };
 
   // Toggle functions for dropdowns
-  const toggleManageFaculty = () => setIsManageFacultyOpen(!isManageFacultyOpen);
-  const toggleVerificationTeam = () => setIsVerificationTeamOpen(!isVerificationTeamOpen);
+  const toggleManageFaculty = () =>
+    setIsManageFacultyOpen(!isManageFacultyOpen);
+  const toggleVerificationTeam = () =>
+    setIsVerificationTeamOpen(!isVerificationTeamOpen);
 
   // NavLink component for consistent styling
   const NavLink = ({ item, isDropdownItem }) => {
     const isActive = location.pathname === item.path;
-    
+
     return (
       <RouterNavLink
         to={item.path}
@@ -125,9 +142,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
       >
         <div className="p-6 flex-grow">
           <div className="flex items-center justify-between mb-10">
-            <h2 className="text-2xl font-bold tracking-tight">
-              Admin Panel
-            </h2>
+            <h2 className="text-2xl font-bold tracking-tight">Admin Panel</h2>
             <button
               onClick={onClose}
               className="p-2 hover:bg-indigo-700 rounded-full lg:hidden transition-colors duration-200"
@@ -156,10 +171,10 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                 </div>
               </button>
 
-              <div 
+              <div
                 className={`
                   overflow-hidden transition-all duration-300 ease-in-out
-                  ${isManageFacultyOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}
+                  ${isManageFacultyOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}
                 `}
               >
                 <div
@@ -194,7 +209,9 @@ const AdminSidebar = ({ isOpen, onClose }) => {
               >
                 <div className="flex items-center space-x-4">
                   <UserCheck size={24} strokeWidth={2} />
-                  <span className="text-base font-medium">Verification Team</span>
+                  <span className="text-base font-medium">
+                    Verification Team
+                  </span>
                 </div>
                 <div className="transition-transform duration-300 ease-in-out">
                   {isVerificationTeamOpen ? (
@@ -205,10 +222,10 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                 </div>
               </button>
 
-              <div 
+              <div
                 className={`
                   overflow-hidden transition-all duration-300 ease-in-out
-                  ${isVerificationTeamOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}
+                  ${isVerificationTeamOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}
                 `}
               >
                 <div
@@ -237,15 +254,11 @@ const AdminSidebar = ({ isOpen, onClose }) => {
 
             {/* Other links without dropdowns */}
             {otherLinks.map((item) => (
-              <NavLink
-                key={item.path}
-                item={item}
-                isDropdownItem={false}
-              />
+              <NavLink key={item.path} item={item} isDropdownItem={false} />
             ))}
           </nav>
         </div>
-        
+
         {/* Updated logout button styling to match Sidebar.jsx */}
         <div className="p-6 mt-auto border-t border-indigo-700">
           <button
