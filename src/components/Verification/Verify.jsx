@@ -19,7 +19,7 @@ const Verify = () => {
 
         const verifierId = userData._id;
         const response = await fetch(
-          `${process.env.BASE_URL}/faculty_to_verify/${verifierId}`
+          `${import.meta.env.VITE_BASE_URL}/faculty_to_verify/${verifierId}`
         );
 
         if (!response.ok) {

@@ -93,6 +93,7 @@ const AssignFacultyToExternal = () => {
           id: faculty._id,
           name: faculty.name,
           department: faculty.dept,
+          designation: faculty.desg,
           employeeId: faculty.empId, // Update this line to match your API field name
           role: faculty.role,
         }));
@@ -405,10 +406,12 @@ const AssignFacultyToExternal = () => {
   };
   
   // Filter internal faculty based on search query
+  console.log("Filtered internal faculty:", internalFacultyList); // Debug log
   const filteredInternalFaculty = internalFacultyList.filter(
     (faculty) =>
-      faculty.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      faculty.department.toLowerCase().includes(searchQuery.toLowerCase())
+      (faculty.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      faculty.department.toLowerCase().includes(searchQuery.toLowerCase())) && 
+      (faculty.designation === "Faculty" || faculty.designation === "Associate Dean")
   );
 
   // Update the getAssignedFacultyDetails function

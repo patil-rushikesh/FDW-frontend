@@ -239,7 +239,7 @@ const VerificationForm = () => {
     const fetchfacultyData = async () => {
       try {
         const response = await fetch(
-          `${process.env.BASE_URL}users/${facultyId}`
+          `${import.meta.env.VITE_BASE_URL}/users/${facultyId}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch user data");
@@ -900,7 +900,7 @@ const VerificationForm = () => {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `${process.env.BASE_URL}/${department}/${facultyId}/B`
+          `${import.meta.env.VITE_BASE_URL}/${department}/${facultyId}/B`
         );
 
         if (response.ok) {
@@ -1489,7 +1489,7 @@ const VerificationForm = () => {
       async function verifyResearch(department, userId, verifierId) {
         try {
           const verifyResponse = await fetch(
-            `${process.env.BASE_URL}/${department}/${userId}/${verifierId}/verify-research`,
+            `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/${verifierId}/verify-research`,
             {
               method: "POST",
               headers: {
@@ -1522,7 +1522,7 @@ const VerificationForm = () => {
       }
 
       const response = await fetch(
-        `${process.env.BASE_URL}/${department}/${facultyId}/B`,
+        `${import.meta.env.VITE_BASE_URL}/${department}/${facultyId}/B`,
         {
           method: "POST",
           headers: {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Users, Search, Filter, SortAsc, SortDesc } from "lucide-react";
+import { Users, Search, Filter, SortAsc, SortDesc, Send, Check, AlertCircle } from "lucide-react";
 
 const FinalMarks = () => {
   const [facultyData, setFacultyData] = useState([]);
@@ -16,6 +16,9 @@ const FinalMarks = () => {
     key: null,
     direction: "desc", // Default to highest marks first
   });
+  const [selectedFaculty, setSelectedFaculty] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Get user's department on component mount
   useEffect(() => {
@@ -32,11 +35,11 @@ const FinalMarks = () => {
 
       try {
         setLoading(true);
-        // Updated API endpoint to match the provided route
         const response = await fetch(`${import.meta.env.VITE_BASE_URL}/${department}/all_faculties_final_marks`);
         if (!response.ok) throw new Error("Failed to fetch faculty marks data");
         
         const responseData = await response.json();
+        console.log("API Response:", responseData); // Log the API response for debugging
         if (responseData.data) {
           setFacultyData(responseData.data);
           setSummary(responseData.summary || {});
@@ -58,7 +61,7 @@ const FinalMarks = () => {
     return typeof num === "number" ? num.toFixed(2) : "N/A";
   };
 
-  // Filter and sort faculty data - remains the same
+  // Filter and sort faculty data
   const filteredData = useMemo(() => {
     return facultyData
       .filter((faculty) => {
@@ -103,6 +106,28 @@ const FinalMarks = () => {
       });
   }, [facultyData, filters, sortConfig]);
 
+  
+  // Get only faculty with "done" status for selection
+  const eligibleFaculty = useMemo(() => {
+    return filteredData.filter(faculty => 
+      faculty.faculty_info.status && faculty.faculty_info.status.toLowerCase() === "done" 
+    );
+  }, [filteredData]);
+  
+  console.log("Eligible Data:", eligibleFaculty);
+  // Add a new memoized value for all viewable faculty (including "SentToDirector")
+  const viewableFacultyStatuses = useMemo(() => {
+    // Get unique statuses from the filtered data to determine if checkboxes should be shown
+    const uniqueStatuses = new Set(filteredData.map(faculty => 
+      faculty.faculty_info.status?.toLowerCase()
+    ));
+    
+    return {
+      showCheckboxes: uniqueStatuses.has("done"),
+      hasSentToDirector: uniqueStatuses.has("senttodirector")
+    };
+  }, [filteredData]);
+
   const toggleSort = (key) => {
     setSortConfig((current) => ({
       key,
@@ -110,7 +135,102 @@ const FinalMarks = () => {
     }));
   };
 
-  // The rest of the component remains unchanged
+  // Handle selection of individual faculty
+  const handleSelectFaculty = (facultyId) => {
+    setSelectedFaculty(prev => {
+      if (prev.includes(facultyId)) {
+        return prev.filter(id => id !== facultyId);
+      } else {
+        return [...prev, facultyId];
+      }
+    });
+  };
+
+  // Handle "Select All" functionality
+  const handleSelectAll = () => {
+    if (selectedFaculty.length === eligibleFaculty.length) {
+      setSelectedFaculty([]);
+    } else {
+      setSelectedFaculty(eligibleFaculty.map(faculty => faculty.faculty_info.id));
+    }
+  };
+
+  // Send selected faculty to director
+  const handleSendToDirector = async () => {
+    if (selectedFaculty.length === 0) {
+      setError("Please select at least one faculty member");
+      return;
+    }
+    
+    // Check if all selected faculty are in "done" status
+    const invalidFaculty = selectedFaculty.filter(id => {
+      const faculty = facultyData.find(f => f.faculty_info.id === id);
+      return !faculty || faculty.faculty_info.status?.toLowerCase() !== "done";
+    });
+    
+    if (invalidFaculty.length > 0) {
+      setError(`${invalidFaculty.length} selected faculty members are not in "Completed" status and cannot be sent.`);
+      return;
+    }
+
+    console.log("Selected Faculty IDs:", selectedFaculty);
+    try {
+      setSubmitting(true);
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/${department}/send-to-director`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_ids: selectedFaculty
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send data to director');
+      }
+      
+      // Check if we have any successful IDs
+      if (!data.successful_ids || data.successful_ids.length === 0) {
+        throw new Error('No valid users found. Please ensure selected faculty have completed all requirements.');
+      }
+
+      console.log("Response Data:", data);
+      // Update UI with the successfully sent faculty members
+      setFacultyData(prev => prev.map(faculty => {
+        if (data.successful_ids.includes(faculty.faculty_info.id)) {
+          return {
+            ...faculty,
+            faculty_info: {
+              ...faculty.faculty_info,
+              status: "SentToDirector"
+            }
+          };
+        }
+        return faculty;
+      }));
+      
+      setSuccessMessage(`Successfully sent ${data.successful_ids.length} faculty appraisals to director`);
+      setSelectedFaculty([]);
+      
+      // If there were some unsuccessful IDs, show a warning
+      if (data.unsuccessful_ids && data.unsuccessful_ids.length > 0) {
+        setError(`${data.successful_ids.length} faculty sent successfully, but ${data.unsuccessful_ids.length} could not be processed.`);
+      }
+      
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 5000);
+      
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -169,7 +289,7 @@ const FinalMarks = () => {
               </div>
 
               {/* Marks Filter Section */}
-              <div className="mt-4 flex flex-wrap gap-4">
+              <div className="mt-4 flex flex-wrap gap-4 items-center justify-between">
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -197,14 +317,37 @@ const FinalMarks = () => {
                     className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-20 sm:w-24"
                   />
                 </div>
+                
+                {/* New "Send to Director" button */}
+                {eligibleFaculty.length > 0 && (
+                  <button
+                    onClick={handleSendToDirector}
+                    disabled={selectedFaculty.length === 0 || submitting}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition 
+                      ${selectedFaculty.length === 0 || submitting 
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-blue-600 hover:bg-blue-700'}`}
+                  >
+                    <Send size={16} />
+                    {submitting ? 'Sending...' : `Send to Director (${selectedFaculty.length})`}
+                  </button>
+                )}
               </div>
+
+              {/* Success message */}
+              {successMessage && (
+                <div className="mt-4 p-3 bg-green-100 border border-green-300 rounded-lg text-green-800 flex items-center gap-2">
+                  <Check size={18} className="text-green-600" />
+                  {successMessage}
+                </div>
+              )}
 
               {/* Summary Section */}
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                    <p className="text-sm text-blue-600">Total Faculty</p>
-                    <p className="text-2xl font-bold text-blue-800">{summary.total_faculty || 0}</p>
-                    </div>
+                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-600">Total Faculty</p>
+                  <p className="text-2xl font-bold text-blue-800">{summary.total_faculty || 0}</p>
+                </div>
                 <div className="bg-green-50 p-3 rounded-lg border border-green-200">
                   <p className="text-sm text-green-600">Final Marks Calculated</p>
                   <p className="text-2xl font-bold text-green-800">{summary.final_marks_calculated || 0}</p>
@@ -220,11 +363,22 @@ const FinalMarks = () => {
               </div>
             </div>
 
-            {/* Table Section - remains the same */}
+            {/* Table Section - Updated with checkboxes */}
             <div className="overflow-x-auto w-full">
               <table className="min-w-full text-md text-left">
                 <thead className="bg-gray-50 text-md">
                   <tr>
+                    {/* Checkbox column for selection - show if any faculty has "done" status */}
+                    {viewableFacultyStatuses.showCheckboxes && (
+                      <th className="px-3 py-3 text-gray-600 w-10">
+                        <input
+                          type="checkbox"
+                          checked={selectedFaculty.length === eligibleFaculty.length && eligibleFaculty.length > 0}
+                          onChange={handleSelectAll}
+                          className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                        />
+                      </th>
+                    )}
                     <th className="px-3 py-3 text-gray-600">ID</th>
                     <th className="px-3 py-3 text-gray-600">Name</th>
                     <th className="px-3 py-3 text-gray-600">Designation</th>
@@ -241,7 +395,7 @@ const FinalMarks = () => {
                     </th>
                     <th className="px-3 py-3 text-gray-600 cursor-pointer" onClick={() => toggleSort("scaled_verified")}>
                       <div className="flex items-center">
-                        Scaled Self Appraisal (Max 75)
+                        Scaled Self Appraisal (Max 85)
                         <span className="text-xs ml-1"></span>
                         {sortConfig.key === "scaled_verified" && (
                           sortConfig.direction === "asc" ? 
@@ -264,7 +418,7 @@ const FinalMarks = () => {
                     </th>
                     <th className="px-3 py-3 text-gray-600">
                       <div className="flex items-center">
-                        Scaled Interaction (Max 25)
+                        Scaled Interaction (Max 15)
                         <span className="text-xs ml-1"></span>
                       </div>
                     </th>
@@ -285,13 +439,26 @@ const FinalMarks = () => {
                 <tbody>
                   {filteredData.length === 0 ? (
                     <tr>
-                      <td colSpan="10" className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={viewableFacultyStatuses.showCheckboxes ? "11" : "10"} className="px-6 py-8 text-center text-gray-500">
                         No faculty marks data available
                       </td>
                     </tr>
                   ) : (
                     filteredData.map((faculty) => (
                       <tr key={faculty.faculty_info.id} className="border-b hover:bg-gray-50">
+                        {/* Checkbox for faculty selection - only visible for "done" status faculty */}
+                        {viewableFacultyStatuses.showCheckboxes && (
+                          <td className="px-3 py-4">
+                            {faculty.faculty_info.status?.toLowerCase() === "done" && (
+                              <input
+                                type="checkbox"
+                                checked={selectedFaculty.includes(faculty.faculty_info.id)}
+                                onChange={() => handleSelectFaculty(faculty.faculty_info.id)}
+                                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                              />
+                            )}
+                          </td>
+                        )}
                         <td className="px-3 py-4 font-medium">{faculty.faculty_info.id}</td>
                         <td className="px-3 py-4">{faculty.faculty_info.name}</td>
                         <td className="px-3 py-4">{faculty.faculty_info.designation}</td>
@@ -335,10 +502,16 @@ const FinalMarks = () => {
                                 ? "bg-green-100 text-green-800"
                                 : faculty.faculty_info.status === "pending"
                                 ? "bg-orange-100 text-orange-800"
+                                : faculty.faculty_info.status === "SentToDirector"
+                                ? "bg-blue-100 text-blue-800"
                                 : "bg-gray-100 text-gray-800"
                             }`}
                           >
-                            {faculty.faculty_info.status === "done" ? "Completed" : faculty.faculty_info.status}
+                            {faculty.faculty_info.status === "done" 
+                              ? "Completed" 
+                              : faculty.faculty_info.status === "SentToDirector"
+                              ? "Sent to Director"
+                              : faculty.faculty_info.status}
                           </span>
                         </td>
                       </tr>

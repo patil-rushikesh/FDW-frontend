@@ -33,7 +33,8 @@ const FacultyFormsList = () => {
     interaction_pending: 0,
     authority_verification_pending: 0,
     portfolio_mark_pending: 0,
-    portfolio_mark_dean_pending: 0, // Add this for faculty-specific status
+    portfolio_mark_dean_pending: 0,
+    sent_to_director: 0, // Add this for the new status
     pending: 0,
     total: 0,
   });
@@ -104,7 +105,7 @@ useEffect(() => {
 
         regularFaculty.forEach((faculty) => {
           const status = faculty.status?.toLowerCase() || "pending";
-
+        
           if (status.includes("done")) {
             summary.done++;
           } else if (
@@ -120,11 +121,12 @@ useEffect(() => {
             summary.portfolio_mark_dean_pending++;
           } else if (status.includes("portfolio_mark_pending")) {
             summary.portfolio_mark_pending++;
+          } else if (status.includes("sent_to_director") || status.includes("senttodirector")) {
+            summary.sent_to_director++;
           } else {
             summary.pending++;
           }
         });
-
         setStatusSummary(summary);
 
         setFacultyData(processVerificationStatus(responseData.data));
@@ -199,31 +201,33 @@ useEffect(() => {
 
         // Add status filtering
         const statusMatch =
-          !filters.status ||
-          (filters.status === "done" &&
-            faculty.status?.toLowerCase() === "done") ||
-          (filters.status === "verification_pending" &&
-            faculty.status?.toLowerCase().includes("verification_pending") &&
-            !faculty.status
-              ?.toLowerCase()
-              .includes("authority_verification_pending")) ||
-          (filters.status === "authority_verification_pending" &&
-            faculty.status
-              ?.toLowerCase()
-              .includes("authority_verification_pending")) ||
-          (filters.status === "interaction_pending" &&
-            faculty.status?.toLowerCase().includes("interaction_pending")) ||
-          (filters.status === "portfolio_mark_pending" &&
-            faculty.status?.toLowerCase().includes("portfolio_mark_pending") &&
-            !faculty.status
-              ?.toLowerCase()
-              .includes("portfolio_mark_dean_pending")) ||
-          (filters.status === "portfolio_mark_dean_pending" &&
-            faculty.status
-              ?.toLowerCase()
-              .includes("portfolio_mark_dean_pending")) ||
-          (filters.status === "pending" &&
-            (!faculty.status || faculty.status.toLowerCase() === "pending"));
+  !filters.status ||
+  (filters.status === "done" &&
+    faculty.status?.toLowerCase() === "done") ||
+  (filters.status === "verification_pending" &&
+    faculty.status?.toLowerCase().includes("verification_pending") &&
+    !faculty.status
+      ?.toLowerCase()
+      .includes("authority_verification_pending")) ||
+  (filters.status === "authority_verification_pending" &&
+    faculty.status
+      ?.toLowerCase()
+      .includes("authority_verification_pending")) ||
+  (filters.status === "interaction_pending" &&
+    faculty.status?.toLowerCase().includes("interaction_pending")) ||
+  (filters.status === "portfolio_mark_pending" &&
+    faculty.status?.toLowerCase().includes("portfolio_mark_pending") &&
+    !faculty.status
+      ?.toLowerCase()
+      .includes("portfolio_mark_dean_pending")) ||
+  (filters.status === "portfolio_mark_dean_pending" &&
+    faculty.status
+      ?.toLowerCase()
+      .includes("portfolio_mark_dean_pending")) ||
+  (filters.status === "sent_to_director" &&
+    faculty.status?.toLowerCase().includes("senttodirector")) ||
+  (filters.status === "pending" &&
+    (!faculty.status || faculty.status.toLowerCase() === "pending"));
 
         return searchMatch && roleMatch && marksMatch && statusMatch;
       })
@@ -291,7 +295,6 @@ useEffect(() => {
           type="button"
           className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
           onClick={() => {
-            // Ensure we don't modify status here
             navigate("/hodcnfverify", {
               state: {
                 faculty: {
@@ -299,7 +302,7 @@ useEffect(() => {
                   id: faculty._id,
                   role: faculty.role,
                   department: department,
-                  status: "authority_verification_pending", // Explicitly pass current status
+                  status: "authority_verification_pending",
                 },
                 portfolioData: {},
                 verifiedMarks: {},
@@ -324,13 +327,22 @@ useEffect(() => {
                   id: faculty._id,
                   role: faculty.role,
                   department: department,
-                  // Include any additional data needed for the form
                 },
               },
             })
           }
         >
           <span className="font-semibold text-blue-700">Give Marks</span>
+        </button>
+      );
+    } else if (faculty.status === "SentToDirector") {
+      return (
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-teal-700 bg-white border-2 border-teal-600 hover:bg-teal-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors cursor-not-allowed opacity-70"
+          disabled
+        >
+          <span className="font-semibold text-teal-700">Sent to Director</span>
         </button>
       );
     } else {
@@ -666,44 +678,41 @@ useEffect(() => {
                           <td className="px-6 py-4">{faculty.role}</td>
                           <td className="px-6 py-4">{displayMarks(faculty)}</td>
                           <td className="px-6 py-4">
-                            <span
-                              className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold ${
-                                faculty.status === "done"
-                                  ? "bg-green-100 text-green-800"
-                                  : faculty.status === "Interaction_pending"
-                                    ? "bg-purple-100 text-purple-800"
-                                    : faculty.status ===
-                                        "authority_verification_pending"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : faculty.status ===
-                                          "verification_pending"
-                                        ? "bg-orange-100 text-orange-800"
-                                        : faculty.status ===
-                                            "Portfolio_Mark_pending"
-                                          ? "bg-blue-100 text-blue-800"
-                                          : faculty.status ===
-                                              "Portfolio_Mark_Dean_pending"
-                                            ? "bg-indigo-100 text-indigo-800"
-                                            : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {faculty.status === "done"
-                                ? "Done"
-                                : faculty.status === "Interaction_pending"
-                                  ? "Interaction Pending"
-                                  : faculty.status ===
-                                      "authority_verification_pending"
-                                    ? "Authority Verification Pending"
-                                    : faculty.status === "verification_pending"
-                                      ? "Verification Pending"
-                                      : faculty.status ===
-                                          "Portfolio_Mark_pending"
-                                        ? "Portfolio Mark Pending"
-                                        : faculty.status ===
-                                            "Portfolio_Mark_Dean_pending"
-                                          ? "Portfolio Dean Mark Pending"
-                                          : "Pending"}
-                            </span>
+                          <span
+  className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold ${
+    faculty.status === "done"
+      ? "bg-green-100 text-green-800"
+      : faculty.status === "Interaction_pending"
+        ? "bg-purple-100 text-purple-800"
+        : faculty.status === "authority_verification_pending"
+          ? "bg-yellow-100 text-yellow-800"
+          : faculty.status === "verification_pending"
+            ? "bg-orange-100 text-orange-800"
+            : faculty.status === "Portfolio_Mark_pending"
+              ? "bg-blue-100 text-blue-800"
+              : faculty.status === "Portfolio_Mark_Dean_pending"
+                ? "bg-indigo-100 text-indigo-800"
+                : faculty.status === "SentToDirector"
+                  ? "bg-teal-100 text-teal-800"
+                  : "bg-gray-100 text-gray-800"
+  }`}
+>
+  {faculty.status === "done"
+    ? "Done"
+    : faculty.status === "Interaction_pending"
+      ? "Interaction Pending"
+      : faculty.status === "authority_verification_pending"
+        ? "Authority Verification Pending"
+        : faculty.status === "verification_pending"
+          ? "Verification Pending"
+          : faculty.status === "Portfolio_Mark_pending"
+            ? "Portfolio Mark Pending"
+            : faculty.status === "Portfolio_Mark_Dean_pending"
+              ? "Portfolio Dean Mark Pending"
+              : faculty.status === "SentToDirector"
+                ? "Sent To Director"
+                : "Pending"}
+</span>
                           </td>
                           <td className="px-6 py-4">
                             {renderActionButton(faculty)}

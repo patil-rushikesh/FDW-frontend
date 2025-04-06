@@ -397,6 +397,12 @@ const AddExternalFaculty = () => {
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
+                      ID
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       Name
                     </th>
                     <th
@@ -428,6 +434,11 @@ const AddExternalFaculty = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {facultyList.map((faculty) => (
                     <tr key={faculty._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">
+                          {faculty._id}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="font-medium text-gray-900">
                           {faculty.full_name}
