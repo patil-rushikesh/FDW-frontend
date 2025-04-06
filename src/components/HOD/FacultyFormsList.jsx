@@ -549,6 +549,7 @@ const FacultyFormsList = () => {
                             : "border-gray-200"
                         } cursor-pointer hover:shadow-md transition-shadow`}
                         onClick={() => handleStatusFilter("pending")}
+                        title="Pending – The faculty member has not yet filled the form."
                       >
                         <p className="text-xs text-gray-600 mb-1">Pending</p>
                         <p className="text-xl font-bold text-gray-800">
@@ -565,6 +566,7 @@ const FacultyFormsList = () => {
                         onClick={() =>
                           handleStatusFilter("authority_verification_pending")
                         }
+                        title="Authority Verification Pending – The Head of Department (HoD) needs to review the form and assign the marks."
                       >
                         <p className="text-xs text-yellow-600 mb-1">
                           Authority Verification
@@ -583,6 +585,7 @@ const FacultyFormsList = () => {
                         onClick={() =>
                           handleStatusFilter("interaction_pending")
                         }
+                        title="Interaction Pending – Faculty interaction with another faculty member is pending."
                       >
                         <p className="text-xs text-purple-600 mb-1">
                           Interaction Pending
@@ -601,6 +604,7 @@ const FacultyFormsList = () => {
                         onClick={() =>
                           handleStatusFilter("verification_pending")
                         }
+                        title="Verification Pending – Verification of the research paper or Part B is still pending."
                       >
                         <p className="text-xs text-orange-600 mb-1">
                           Verification Pending
@@ -619,6 +623,7 @@ const FacultyFormsList = () => {
                         onClick={() =>
                           handleStatusFilter("portfolio_mark_pending")
                         }
+                        title="Portfolio Mark Pending – The HoD needs to review and assign marks for the faculty's portfolio."
                       >
                         <p className="text-xs text-blue-600 mb-1">
                           Portfolio Mark Pending
@@ -637,6 +642,7 @@ const FacultyFormsList = () => {
                         onClick={() =>
                           handleStatusFilter("portfolio_mark_dean_pending")
                         }
+                        title="Portfolio Mark Dean Pending – The Dean has not yet assigned marks for the faculty's portfolio."
                       >
                         <p className="text-xs text-indigo-600 mb-1">
                           Dean Mark Pending
@@ -721,6 +727,25 @@ const FacultyFormsList = () => {
                                             ? "bg-indigo-100 text-indigo-800"
                                             : "bg-gray-100 text-gray-800"
                               }`}
+                              title={
+                                faculty.status === "done"
+                                  ? "Done – The form has been completely filled by the faculty."
+                                  : faculty.status === "Interaction_pending"
+                                    ? "Interaction Pending – Faculty interaction with another faculty member is pending."
+                                    : faculty.status ===
+                                        "authority_verification_pending"
+                                      ? "Authority Verification Pending – The Head of Department (HoD) needs to review the form and assign the marks."
+                                      : faculty.status ===
+                                          "verification_pending"
+                                        ? "Verification Pending – Verification of the research paper or Part B is still pending."
+                                        : faculty.status ===
+                                            "Portfolio_Mark_pending"
+                                          ? "Portfolio Mark Pending – The HoD needs to review and assign marks for the faculty's portfolio."
+                                          : faculty.status ===
+                                              "Portfolio_Mark_Dean_pending"
+                                            ? "Portfolio Mark Dean Pending – The Dean has not yet assigned marks for the faculty's portfolio."
+                                            : "Pending – The faculty member has not yet filled the form."
+                              }
                             >
                               {faculty.status === "done"
                                 ? "Done"
