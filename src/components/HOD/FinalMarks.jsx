@@ -384,7 +384,7 @@ const FinalMarks = () => {
                     </th>
                     <th className="px-3 py-3 text-gray-600 cursor-pointer" onClick={() => toggleSort("scaled_verified")}>
                       <div className="flex items-center">
-                        Scaled Self Appraisal (Max 85)
+                        Scaled Self Appraisal * 0.85
                         <span className="text-xs ml-1"></span>
                         {sortConfig.key === "scaled_verified" && (
                           sortConfig.direction === "asc" ? 
@@ -393,7 +393,7 @@ const FinalMarks = () => {
                         )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-gray-600">Interaction Marks</th>
+                    
                     <th className="px-3 py-3 text-gray-600 cursor-pointer" onClick={() => toggleSort("interaction_avg")}>
                       <div className="flex items-center">
                         Interaction Score (Max 100)
@@ -407,13 +407,13 @@ const FinalMarks = () => {
                     </th>
                     <th className="px-3 py-3 text-gray-600">
                       <div className="flex items-center">
-                        Scaled Interaction (Max 15)
+                        Scaled Interaction *1.5
                         <span className="text-xs ml-1"></span>
                       </div>
                     </th>
                     <th className="px-3 py-3 text-gray-600 cursor-pointer" onClick={() => toggleSort("total")}>
                       <div className="flex items-center">
-                        Total Marks (Max 100)
+                        Total Marks (Max 1000)
                         <span className="text-xs ml-1"></span>
                         {sortConfig.key === "total" && (
                           sortConfig.direction === "asc" ? 
@@ -450,28 +450,12 @@ const FinalMarks = () => {
                         )}
                         <td className="px-3 py-4 font-medium">{faculty.faculty_info.id}</td>
                         <td className="px-3 py-4">{faculty.faculty_info.name}</td>
-                        <td className="px-3 py-4">{faculty.faculty_info.designation}</td>
+                        <td className="px-3 py-4">{faculty.faculty_info.role}</td>
                         <td className="px-3 py-4">
                           <span className="font-medium">{formatNumber(faculty.final_marks?.verified_marks)}</span>
                         </td>
                         <td className="px-3 py-4">
                           <span className="font-medium text-blue-700">{formatNumber(faculty.final_marks?.scaled_verified_marks)}</span>
-                        </td>
-                        <td className="px-3 py-4">
-                          <div className="space-y-1">
-                            <div className="flex justify-between">
-                              <span className="text-xs text-gray-500">HOD:</span>
-                              <span className="text-xs font-medium">{faculty.interaction_marks?.hod?.marks || "N/A"}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-xs text-gray-500">Dean:</span>
-                              <span className="text-xs font-medium">{faculty.interaction_marks?.dean?.marks || "N/A"}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-xs text-gray-500">External:</span>
-                              <span className="text-xs font-medium">{faculty.interaction_marks?.external?.marks || "N/A"}</span>
-                            </div>
-                          </div>
                         </td>
                         <td className="px-3 py-4">
                           <span className="font-medium">{formatNumber(faculty.final_marks?.interaction_average)}</span>

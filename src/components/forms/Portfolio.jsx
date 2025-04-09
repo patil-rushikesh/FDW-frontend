@@ -546,74 +546,63 @@ const Portfolio = () => {
 
         {/* Show marks status information */}
         <div className="mt-4 space-y-2">
-          {!formData.isAdministrativeRole && (
+          {/* Always show self awarded marks regardless of role */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">
+              Self Awarded Marks:
+            </span>
+            <span className="font-medium">
+              {formData.isAdministrativeRole ? formData.adminSelfAwardedMarks : formData.selfAwardedMarks}
+            </span>
+          </div>
+
+          {/* For Associate Dean: Show both HOD and Dean marks */}
+          {userData.desg === "Associate Dean" && (
             <>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">
-                  Self Awarded Marks:
+                <span className="text-sm text-gray-600">HOD Marks:</span>
+                <span className="font-medium">
+                  {formData.isMarkHOD ? formData.hodMarks : "Not reviewed yet"}
                 </span>
-                <span className="font-medium">{formData.selfAwardedMarks}</span>
               </div>
-
-              {formData.portfolioType !== "department" && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">
-                    {(userData.desg === "HOD" || userData.desg === "Dean") && formData.portfolioType === "institute"
-                      ? "Director Marks:" 
-                      : "Dean Marks:"}
-                  </span>
-                  <span className="font-medium">
-                    {formData.isMarkDean
-                      ? formData.deanMarks
-                      : "Not reviewed yet"}
-                  </span>
-                </div>
-              )}
-
-              {formData.portfolioType !== "institute" && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">HOD Marks:</span>
-                  <span className="font-medium">
-                    {formData.isMarkHOD
-                      ? formData.hodMarks
-                      : "Not reviewed yet"}
-                  </span>
-                </div>
-              )}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Dean Marks:</span>
+                <span className="font-medium">
+                  {formData.isMarkDean ? formData.deanMarks : "Not reviewed yet"}
+                </span>
+              </div>
             </>
           )}
 
-          {formData.isAdministrativeRole && (
-            <>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">
-                  Self Awarded Marks:
-                </span>
-                <span className="font-medium">
-                  {formData.adminSelfAwardedMarks}
-                </span>
-              </div>
+          {/* For Faculty: Show only HOD marks */}
+          {(userData.desg !== "HOD" && userData.desg !== "Dean" && 
+            userData.desg !== "deputy_director" && userData.desg !== "Associate Dean") && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">HOD Marks:</span>
+              <span className="font-medium">
+                {formData.isMarkHOD ? formData.hodMarks : "Not reviewed yet"}
+              </span>
+            </div>
+          )}
 
-              {formData.administrativeRole === "associate_dean" ? (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Dean Marks:</span>
-                  <span className="font-medium">
-                    {formData.isMarkDean
-                      ? formData.adminDeanMarks
-                      : "Not reviewed yet"}
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Director Marks:</span>
-                  <span className="font-medium">
-                    {formData.directorMarks > 0
-                      ? formData.directorMarks
-                      : "Not reviewed yet"}
-                  </span>
-                </div>
-              )}
-            </>
+          {/* For HOD and Dean: Show Director marks */}
+          {(userData.desg === "HOD" || userData.desg === "Dean") && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Director Marks:</span>
+              <span className="font-medium">
+                {formData.directorMarks > 0 ? formData.directorMarks : "Not reviewed yet"}
+              </span>
+            </div>
+          )}
+
+          {/* For Deputy Director: Show Director marks */}
+          {userData.desg === "deputy_director" && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Director Marks:</span>
+              <span className="font-medium">
+                {formData.directorMarks > 0 ? formData.directorMarks : "Not reviewed yet"}
+              </span>
+            </div>
           )}
         </div>
       </SectionCard>

@@ -328,6 +328,7 @@ const FacultyFormsList = () => {
                   id: faculty._id,
                   role: faculty.role,
                   department: department,
+                  designation: faculty.designation,
                 },
               },
             })
@@ -700,6 +701,7 @@ const FacultyFormsList = () => {
                       <th className="px-6 py-3 text-gray-600">Designation</th>
                       <th className="px-6 py-3 text-gray-600">Role</th>
                       <th className="px-6 py-3 text-gray-600">Total Marks</th>
+                      <th className="px-6 py-3 text-gray-600">Final Verified Marks</th>
                       <th className="px-6 py-3 text-gray-600">Status</th>
                       <th className="px-6 py-3 text-gray-600">Action</th>
                     </tr>
@@ -718,6 +720,7 @@ const FacultyFormsList = () => {
                           <td className="px-6 py-4">{faculty.designation}</td>
                           <td className="px-6 py-4">{faculty.role}</td>
                           <td className="px-6 py-4">{displayMarks(faculty)}</td>
+                          <td className="px-6 py-4">{faculty.grand_verified_marks}</td>
                           <td className="px-6 py-4">
                           <span
   className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold ${
@@ -743,13 +746,13 @@ const FacultyFormsList = () => {
     : faculty.status === "Interaction_pending"
       ? "Interaction Pending"
       : faculty.status === "authority_verification_pending"
-        ? "Authority Verification Pending"
+        ? "HOD Verification Pending"
         : faculty.status === "verification_pending"
-          ? "Verification Pending"
+          ? "Section B Verification Pending"
           : faculty.status === "Portfolio_Mark_pending"
-            ? "Portfolio Mark Pending"
+            ? "HOD Portfolio Mark Pending"
             : faculty.status === "Portfolio_Mark_Dean_pending"
-              ? "Portfolio Dean Mark Pending"
+              ? "Dean Portfolio Mark Pending"
               : faculty.status === "SentToDirector"
                 ? "Sent To Director"
                 : "Pending"}

@@ -32,6 +32,8 @@ const DeanEvaluationForm = () => {
     try {
       const department = faculty?.department;
       const userId = faculty?.id;
+      const designation = faculty?.designation;
+      console.log("Faculty Designation:", designation);
 
       if (!department || !userId) {
         console.error("Department or User ID is missing");
@@ -74,25 +76,19 @@ const DeanEvaluationForm = () => {
     } else {
       console.warn("Faculty information is incomplete");
     }
-  }, [faculty?.id, faculty?.department]);
+  }, [faculty?.id, faculty?.department,faculty?.designation]);
+  console.log("Faculty Designation:", faculty?.designation);
 
   const calculateTotalScore = () => {
     const selfScore = Math.min(60, Number(portfolioData.selfAwardedMarks) || 0);
     const hodScore = Math.min(60, Number(portfolioData.hodMarks) || 0);
     const deanScore = Math.min(60, Number(deanMarks) || 0);
-
-    if (!portfolioData.isAdministrativeRole) {
-      switch (portfolioData.portfolioType) {
-        case "both":
-          return Math.min(180, selfScore + (hodScore/2) + (deanScore/2));
-        case "institute":
-          return Math.min(120, selfScore + deanScore); // Only self and dean marks
-        case "department":
-          return Math.min(120, selfScore + hodScore); // Only self and HOD marks
-        default:
-          return selfScore;
+  
+      if (faculty?.designation === "Associate Dean") {
+        return Math.min(120, selfScore + (hodScore/2) + (deanScore/2));
+      } else {
+        return Math.min(120, selfScore + deanScore);
       }
-    }
     return 0;
   };
 
@@ -161,6 +157,7 @@ const DeanEvaluationForm = () => {
               { label: "Faculty ID", value: faculty?.id },
               { label: "Faculty Role", value: faculty?.role },
               { label: "Department", value: faculty?.department },
+              { label: "Designation", value: faculty?.designation },
             ].map((item, index) => (
               <div
                 key={index}
@@ -196,19 +193,22 @@ const DeanEvaluationForm = () => {
 
         {/* Dean Marks Input Section */}
         <div className="mb-6 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <div className="flex flex-col space-y-4">
-            <label className="text-gray-700 font-medium">
-              Enter Dean Marks (Maximum 60)
-            </label>
-            <input
-              type="number"
-              className="w-full md:w-1/3 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              max="60"
-              min="0"
-              value={deanMarks}
-              onChange={(e) => setDeanMarks(e.target.value)}
-            />
-          </div>
+        <div className="flex flex-col space-y-4">
+  <label className="text-gray-700 font-medium">
+    Enter Dean Marks (Maximum 60)
+  </label>
+  <input
+    type="number"
+    className="w-full md:w-1/3 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+    max="60"
+    min="0"
+    value={deanMarks}
+    onChange={(e) => {
+      const value = Math.min(60, Number(e.target.value));
+      setDeanMarks(value);
+    }}
+  />
+</div>
         </div>
 
         {/* Summary Table */}

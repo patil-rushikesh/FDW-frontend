@@ -7,7 +7,7 @@ const FacultyEvaluationForm = () => {
   const { faculty } = location.state || {};
 
   const [portfolioData, setPortfolioData] = useState({
-    portfolioType: "both",
+    portfolioType: "department",
     selfAwardedMarks: 0,
     deanMarks: 0,
     hodMarks: 0,
@@ -15,7 +15,7 @@ const FacultyEvaluationForm = () => {
     isMarkDean: false,
     isAdministrativeRole: false,
     administrativeRole: "",
-    adminSelfAwardedMarks: 30,
+    adminSelfAwardedMarks: 0,
     directorMarks: 0,
     adminDeanMarks: 0,
     instituteLevelPortfolio: "",
@@ -34,6 +34,7 @@ const FacultyEvaluationForm = () => {
       // Get values from faculty information
       const department = faculty?.department;
       const userId = faculty?.id;
+      const designation = faculty?.designation;
 
       if (!department || !userId) {
         console.error("Department or User ID is missing");
@@ -54,7 +55,7 @@ const FacultyEvaluationForm = () => {
       console.error("Error fetching portfolio data:", error);
       // Set default values in case of error
       setPortfolioData({
-        portfolioType: "both",
+        portfolioType: "department",
         selfAwardedMarks: 0,
         deanMarks: 0,
         hodMarks: 0,
@@ -62,7 +63,7 @@ const FacultyEvaluationForm = () => {
         isMarkDean: false,
         isAdministrativeRole: false,
         administrativeRole: "",
-        adminSelfAwardedMarks: 30,
+        adminSelfAwardedMarks: 0,
         directorMarks: 0,
         adminDeanMarks: 0,
         instituteLevelPortfolio: "",
@@ -89,13 +90,12 @@ const FacultyEvaluationForm = () => {
 
     // For regular faculty
     if (!portfolioData.isAdministrativeRole) {
-      switch (portfolioData.portfolioType) {
-        case "both":
-          return Math.min(120, selfScore + hodScore / 2);
-        case "department":
-          return Math.min(120, selfScore + hodScore);
-        default:
-          return selfScore; // For institute level, HOD doesn't give marks
+      // Only Associate Deans get half HOD marks
+      if (faculty?.designation === "Associate Dean") {
+        return Math.min(120, selfScore + hodScore / 2);
+      } else {
+        // All other faculty get full HOD marks
+        return Math.min(120, selfScore + hodScore);
       }
     }
     return 0; // For administrative roles
@@ -111,6 +111,7 @@ const handleConfirmSubmit = async () => {
   try {
     const department = faculty?.department;
     const userId = faculty?.id;
+    const designation = faculty?.designation;
 
     if (!department || !userId) {
       console.error("Department or User ID is missing");
@@ -133,7 +134,7 @@ const handleConfirmSubmit = async () => {
       payload
     );
     // Check portfolio type to determine which status update API to call
-    if (portfolioData.portfolioType === "both") {
+    if (faculty?.designation === "Associate Dean"){
       // For 'both' type, set status to Portfolio_Mark_Dean_pending
       await axios.post(
         `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/hod-mark-given`
@@ -181,7 +182,7 @@ const handleConfirmSubmit = async () => {
               { label: "Faculty Name", value: faculty?.name },
               { label: "Faculty ID", value: faculty?.id },
               { label: "Faculty Role", value: faculty?.role },
-              { label: "Department", value: faculty?.department },
+              { label: "Designation", value: faculty?.designation },
             ].map((item, index) => (
               <div
                 key={index}

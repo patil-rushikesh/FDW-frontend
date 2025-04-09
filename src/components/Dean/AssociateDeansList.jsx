@@ -87,6 +87,8 @@ const AssociateDeansList = () => {
       });
   }, [associatesData, filters, sortConfig]);
 
+
+  console.log("Filtered Data:", filteredData);
   // Function to determine what to display in the action column
   const renderActionButton = (associate) => {
     if (associate.status === "Portfolio_Mark_Dean_pending") {
@@ -105,6 +107,7 @@ const AssociateDeansList = () => {
                     id: associate.id,
                     role: associate.role,
                     department: associate.department,
+                    designation: associate.designation,
                   },
                 },
               }
@@ -230,18 +233,19 @@ const AssociateDeansList = () => {
                         <td className="px-6 py-4">{associate.department}</td>
                         <td className="px-6 py-4">{associate.role}</td>
                         <td className="px-6 py-4">
-                          <span
-                            className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-xs font-semibold ${
-                              associate.status === "Portfolio_Mark_Dean_pending"
-                                ? "bg-green-100 text-green-800"
-                                : associate.status === "pending"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {associate.status.charAt(0).toUpperCase() +
-                              associate.status.slice(1)}
-                          </span>
+                        <span
+  className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-xs font-semibold ${
+    associate.status === "Portfolio_Mark_Dean_pending"
+      ? "bg-green-100 text-green-800"
+      : associate.status === "pending"
+        ? "bg-yellow-100 text-yellow-800"
+        : "bg-gray-100 text-gray-800"
+  }`}
+>
+  {associate.status === "Portfolio_Mark_Dean_pending"
+    ? "Dean Portfolio Mark Pending"
+    : associate.status.charAt(0).toUpperCase() + associate.status.slice(1)}
+</span>
                         </td>
                         <td className="px-6 py-4">
                           {renderActionButton(associate)}
