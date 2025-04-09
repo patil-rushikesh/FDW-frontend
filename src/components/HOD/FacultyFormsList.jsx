@@ -247,6 +247,8 @@ const FacultyFormsList = () => {
       });
   }, [facultyData, filters, sortConfig]);
 
+   console.log("Filtered Data: ", filteredData); // Debugging line
+
   const toggleSort = () => {
     setSortConfig((current) => ({
       key: "marks",
@@ -303,6 +305,7 @@ const FacultyFormsList = () => {
                   id: faculty._id,
                   role: faculty.role,
                   department: department,
+                  designation:faculty.designation,
                   status: "authority_verification_pending",
                 },
                 portfolioData: {},

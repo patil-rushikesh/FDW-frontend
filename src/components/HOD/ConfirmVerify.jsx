@@ -19,6 +19,7 @@ const ConfirmVerify = () => {
   const params = useParams();
   const department = faculty?.department || params?.department;
   const facultyId = faculty?.id || params?.faculty_id;
+  const designation = faculty?.designation || params?.designation;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,6 +73,7 @@ const ConfirmVerify = () => {
     id: apiData?._id || faculty?.id || "Not Available",
     role: faculty?.role || "Not Available",
     department: apiData?.department || faculty?.department || "Not Available",
+    designation: apiData?.designation || faculty?.designation || "Not Available",
   };
 
   const [marksData, setMarksData] = useState({
@@ -183,15 +185,20 @@ const ConfirmVerify = () => {
         extraOrd: parseFloat(marksData.obtained.extraOrd) || 0,
         adminWeight: parseFloat(marksData.obtained.adminWeight) || 0,
       };
+
       const sum = Object.values(values).reduce((acc, curr) => acc + curr, 0);
-      return Math.min(1000, sum);
+      // Only add 50 extra marks if faculty designation is specifically "Associate Dean"
+      const extraDesignationMarks = facultyInfo.designation === "Associate Dean" ? 50 : 0;
+      return Math.min(1000, sum + extraDesignationMarks);
     } else {
       const values = Object.values(marksData[type]);
       const sum = values.reduce(
         (acc, curr) => acc + (parseFloat(curr) || 0),
         0
       );
-      return Math.min(1000, sum);
+      // Only add 50 extra marks if faculty designation is specifically "Associate Dean"
+      const extraDesignationMarks = facultyInfo.designation === "Associate Dean" ? 50 : 0;
+      return Math.min(1000, sum + extraDesignationMarks);
     }
   };
 
@@ -203,30 +210,43 @@ const ConfirmVerify = () => {
     const userConfirmed = window.confirm(
       "Details can't be changed after the final submission. Confirm Submit?"
     );
-
+  
     if (userConfirmed) {
       try {
+        // Get the base marks from each section
+        const academicMarks = parseFloat(marksData.obtained.academic) || 0;
+        const researchMarks = parseFloat(marksData.obtained.research) || 0;
+        const selfDevMarks = parseFloat(marksData.obtained.selfDev) || 0;
+        const portfolioMarks = parseFloat(marksData.obtained.portfolio) || 0;
+        const extraOrdMarks = parseFloat(marksData.obtained.extraOrd) || 0;
+        
+        // Add the extra 50 marks to a relevant section if faculty is Associate Dean
+        // Here we're adding it to section E (extra-ordinary contribution)
+        const adjustedExtraOrdMarks = facultyInfo.designation === "Associate Dean" 
+          ? extraOrdMarks + 50 
+          : extraOrdMarks;
+  
         // Format the data according to the required structure
         const formattedData = {
-          "A": { "verified_marks": parseFloat(marksData.obtained.academic) || 0 },
-          "B": { "verified_marks": parseFloat(marksData.obtained.research) || 0 },
-          "C": { "verified_marks": parseFloat(marksData.obtained.selfDev) || 0 },
-          "D": { "verified_marks": parseFloat(marksData.obtained.portfolio) || 0 },
-          "E": { "verified_marks": parseFloat(marksData.obtained.extraOrd) || 0 }
+          "A": { "verified_marks": academicMarks },
+          "B": { "verified_marks": researchMarks },
+          "C": { "verified_marks": selfDevMarks },
+          "D": { "verified_marks": portfolioMarks },
+          "E": { "verified_marks": adjustedExtraOrdMarks }
         };
-
+  
         // First submit the verified marks
         const markResponse = await axios.post(
           `${import.meta.env.VITE_BASE_URL}/total_marks/${department}/${facultyId}`,
           formattedData
         );
-
+  
         if (markResponse.status === 200) {
           // Then update the status to Interaction_pending
           const statusResponse = await axios.post(
             `${import.meta.env.VITE_BASE_URL}/${department}/${facultyId}/verify-authority`
           );
-
+  
           if (statusResponse.status === 200) {
             alert("Verification submitted successfully!");
             // Redirect to the faculty forms list page
@@ -244,6 +264,8 @@ const ConfirmVerify = () => {
     }
   };
 
+
+  
   const generatePDF = useCallback(
     async (forceUpdate = false) => {
       if (!forceUpdate) {
@@ -335,6 +357,7 @@ const ConfirmVerify = () => {
               { label: "Faculty Name", value: facultyInfo.name },
               { label: "Faculty ID", value: facultyInfo.id },
               { label: "Faculty Role", value: facultyInfo.role },
+              { label: "Designation", value: facultyInfo.designation },
               { label: "Department", value: facultyInfo.department },
             ].map((item, index) => (
               <div
@@ -698,6 +721,13 @@ const ConfirmVerify = () => {
               </tr>
             </tbody>
           </table>
+          {facultyInfo.designation === "Associate Dean" && (
+            <div className="mt-3 p-3 bg-yellow-100 border border-yellow-300 rounded-md text-yellow-800">
+              <p className="font-medium">
+                Note: 50 extra marks have been added for designation "Associate Dean".
+              </p>
+            </div>
+          )}
           <p className="mt-4 text-sm text-gray-600">
             *Please Note: The Total Marks claimed by faculty/ Marks obtained
             after verification can not exceed 1000.
