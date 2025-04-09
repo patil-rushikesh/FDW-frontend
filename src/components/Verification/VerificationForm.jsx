@@ -369,6 +369,7 @@ const VerificationForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [verifiedScores, setVerifiedScores] = useState(initialVerifiedScores);
+  const [finalRemarks, setFinalRemarks] = useState("");
 
   useEffect(() => {
     const transformApiResponse = (data) => {
@@ -887,6 +888,10 @@ const VerificationForm = () => {
 
         newVerifiedScores.internshipPlacement.marks =
           data[17].internshipPlacement?.verified_marks || 0;
+      }
+
+      if (data.final_remarks) {
+        setFinalRemarks(data.final_remarks);
       }
 
       return {
@@ -1483,6 +1488,7 @@ const VerificationForm = () => {
         },
         total_marks: scores.totalScore,
         final_verified_marks: verificationResults.finalTotal,
+        final_remarks: finalRemarks,
         verifier_id: userData._id,
       };
 
@@ -2791,6 +2797,24 @@ const VerificationForm = () => {
           }
         />
       </SectionCard>
+
+      {/* Verifier Remarks */}
+<SectionCard title="Verifier's Remarks" icon="✍️" borderColor="border-purple-500">
+  <div className="space-y-4">
+    <label htmlFor="finalRemarks" className="block text-sm font-medium text-gray-700">
+      Add your remarks about this verification (optional)
+    </label>
+    <textarea
+      id="finalRemarks"
+      value={finalRemarks}
+      onChange={(e) => setFinalRemarks(e.target.value)}
+      rows={4}
+      className="w-full px-3 py-2 text-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+      placeholder="Add any comments, observations or feedback about this verification..."
+    />
+  </div>
+</SectionCard>
+
 
       {/* Total Scores */}
       <SectionCard title="Total Scores" icon="📊" borderColor="border-blue-500">

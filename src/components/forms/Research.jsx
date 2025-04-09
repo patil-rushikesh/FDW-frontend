@@ -585,9 +585,11 @@ const Research = () => {
         };
       }
 
-      if (data.final_verified_marks) {
-        newVerifiedScores.final_verified_marks = data.final_verified_marks;
-      }
+// Add this to your transformApiResponse function where you're processing the API response
+  if (data.final_verified_marks) {
+    newVerifiedScores.final_verified_marks = data.final_verified_marks;
+    newVerifiedScores.final_remarks = data.final_remarks || "";
+  }
 
 
 
@@ -2485,29 +2487,40 @@ const handleSubmitClick = () => {
       {/* Total Scores */}
       {/* Total Scores */}
       <SectionCard title="Total Scores" icon="📊" borderColor="border-blue-500">
-        <div className="space-y-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="text-lg font-semibold text-blue-800">
-              Score before cadre limit: {scores.totalScoreBeforeCadreLimit}
-            </p>
-            <p className="text-lg font-semibold text-blue-800 mt-2">
-              Final Score (after cadre limit): {scores.totalScore}
-            </p>
-          </div>
-          
-          {/* Add Total Marks After Verification */}
-          <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border-2 border-green-200">
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-gray-700">
-                Total Marks After Verification:
-              </span>
-              <span className="text-lg font-bold text-green-600">
-                {verifiedScores.final_verified_marks ? verifiedScores.final_verified_marks : "Pending"}
-              </span>
-            </div>
-          </div>
-        </div>
-      </SectionCard>
+  <div className="space-y-4">
+    <div className="bg-blue-50 p-4 rounded-lg">
+      <p className="text-lg font-semibold text-blue-800">
+        Score before cadre limit: {scores.totalScoreBeforeCadreLimit}
+      </p>
+      <p className="text-lg font-semibold text-blue-800 mt-2">
+        Final Score (after cadre limit): {scores.totalScore}
+      </p>
+    </div>
+    
+    {/* Total Marks After Verification */}
+    <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border-2 border-green-200">
+      <div className="flex items-center justify-between">
+        <span className="font-medium text-gray-700">
+          Total Marks After Verification:
+        </span>
+        <span className="text-lg font-bold text-green-600">
+          {verifiedScores.final_verified_marks ? verifiedScores.final_verified_marks : "Pending"}
+        </span>
+      </div>
+      
+      {/* Verifier's Final Remarks */}
+      <div className="mt-3">
+        <label className="block font-medium text-gray-700 mb-1">Verifier's Remarks:</label>
+        <textarea
+          readOnly
+          value={verifiedScores.final_remarks || "NA"}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-800"
+          rows={3}
+        />
+      </div>
+    </div>
+  </div>
+</SectionCard>
       {/* Submit Button */}
 {/* Submit Button */}
 <div className="flex justify-end mt-8">
