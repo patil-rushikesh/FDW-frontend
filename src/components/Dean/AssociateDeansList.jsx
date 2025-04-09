@@ -37,6 +37,12 @@ const AssociateDeansList = () => {
           `${import.meta.env.VITE_BASE_URL}/dean/${userData._id}/associates`
         );
 
+        if (response.status === 404) {
+          setAssociatesData([]);
+          setError("No associate Dean is added yet");
+          return;
+        }
+
         if (!response.ok) throw new Error("Failed to fetch associates data");
 
         const responseData = await response.json();
@@ -143,13 +149,24 @@ const AssociateDeansList = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center text-red-600 p-4 bg-red-50 rounded-lg">
-          <p>{error}</p>
+        <div className={`text-center p-6 ${error === "No associate Dean is added yet" ? "bg-blue-50 text-blue-800" : "text-red-600 bg-red-50"} rounded-lg shadow-sm border border-gray-200`}>
+          <div className="mb-4">
+            {error === "No associate Dean is added yet" ? (
+              <Users className="h-12 w-12 text-blue-500 mx-auto" />
+            ) : (
+              <div className="text-red-500 mx-auto">
+                <svg className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+            )}
+          </div>
+          <p className="text-lg font-medium">{error}</p>
           <button
-            onClick={() => setError(null)}
-            className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-white rounded-md border border-gray-300 text-sm hover:bg-gray-50"
           >
-            Dismiss
+            Refresh
           </button>
         </div>
       </div>

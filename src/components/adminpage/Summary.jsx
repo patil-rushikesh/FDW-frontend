@@ -21,7 +21,7 @@ const Summary = () => {
         { name: "ENTC" },
         { name: "Computer(Regional)" },
         { name: "AIML" },
-        { name: "ASH" },
+        { name: "AS&H" },
       ];
 
       // For each department, fetch faculty data and calculate status counts
@@ -90,47 +90,47 @@ const Summary = () => {
   });
 
   // Helper function to calculate status summary
-// Helper function to calculate status summary
-const calculateStatusSummary = (facultyList) => {
-  const summary = createEmptySummary();
+  // Helper function to calculate status summary
+  const calculateStatusSummary = (facultyList) => {
+    const summary = createEmptySummary();
 
-  // Filter regular faculty only - exclude Admin role
-  const regularFaculty = facultyList.filter(
-    (faculty) =>
-      (faculty.designation === "Faculty" ||
-        faculty.designation === "Associate Dean") &&
-      faculty.role !== "Admin"
-  );
+    // Filter regular faculty only - exclude Admin role
+    const regularFaculty = facultyList.filter(
+      (faculty) =>
+        (faculty.designation === "Faculty" ||
+          faculty.designation === "Associate Dean") &&
+        faculty.role !== "Admin"
+    );
 
-  summary.total = regularFaculty.length;
+    summary.total = regularFaculty.length;
 
-  regularFaculty.forEach((faculty) => {
-    const status = faculty.status?.toLowerCase() || "pending";
+    regularFaculty.forEach((faculty) => {
+      const status = faculty.status?.toLowerCase() || "pending";
 
-    if (status.includes("done")) {
-      summary.done++;
-    } else if (status.includes("senttodirector") || status.includes("sent_to_director")) {
-      summary.SentToDirector++;
-    } else if (
-      status.includes("verification_pending") &&
-      !status.includes("authority_verification_pending")
-    ) {
-      summary.verification_pending++;
-    } else if (status.includes("authority_verification_pending")) {
-      summary.authority_verification_pending++;
-    } else if (status.includes("interaction_pending")) {
-      summary.interaction_pending++;
-    } else if (status.includes("portfolio_mark_dean_pending")) {
-      summary.portfolio_mark_dean_pending++;
-    } else if (status.includes("portfolio_mark_pending")) {
-      summary.portfolio_mark_pending++;
-    } else {
-      summary.pending++;
-    }
-  });
+      if (status.includes("done")) {
+        summary.done++;
+      } else if (status.includes("senttodirector") || status.includes("sent_to_director")) {
+        summary.SentToDirector++;
+      } else if (
+        status.includes("verification_pending") &&
+        !status.includes("authority_verification_pending")
+      ) {
+        summary.verification_pending++;
+      } else if (status.includes("authority_verification_pending")) {
+        summary.authority_verification_pending++;
+      } else if (status.includes("interaction_pending")) {
+        summary.interaction_pending++;
+      } else if (status.includes("portfolio_mark_dean_pending")) {
+        summary.portfolio_mark_dean_pending++;
+      } else if (status.includes("portfolio_mark_pending")) {
+        summary.portfolio_mark_pending++;
+      } else {
+        summary.pending++;
+      }
+    });
 
-  return summary;
-};
+    return summary;
+  };
 
   // Function to export data to CSV
   const exportToCSV = () => {
@@ -253,8 +253,8 @@ const calculateStatusSummary = (facultyList) => {
                           Total Faculty
                         </th>
                         <th className="px-4 py-3 text-pink-600 font-semibold text-center">
-  Sent To Director
-</th>
+                          Sent To Director
+                        </th>
                         <th className="px-4 py-3 text-green-600 font-semibold text-center">
                           Completed
                         </th>
@@ -289,10 +289,10 @@ const calculateStatusSummary = (facultyList) => {
                             {dept.summary.total}
                           </td>
                           <td className="px-4 py-3 text-center">
-  <span className="inline-block min-w-[40px] px-2.5 py-1 bg-pink-100 text-pink-800 rounded-full font-medium">
-    {dept.summary.SentToDirector}
-  </span>
-</td>
+                            <span className="inline-block min-w-[40px] px-2.5 py-1 bg-pink-100 text-pink-800 rounded-full font-medium">
+                              {dept.summary.SentToDirector}
+                            </span>
+                          </td>
                           <td className="px-4 py-3 text-center">
                             <span className="inline-block min-w-[40px] px-2.5 py-1 bg-green-100 text-green-800 rounded-full font-medium">
                               {dept.summary.done}
