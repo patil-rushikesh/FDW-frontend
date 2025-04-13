@@ -14,6 +14,12 @@ const Profile = () => {
     success: false,
     error: null
   });
+  // Add status for profile update
+  const [updateStatus, setUpdateStatus] = useState({
+    loading: false,
+    success: false,
+    error: null
+  });
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("userData"));
@@ -41,11 +47,65 @@ const Profile = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsEditing(false);
-    // Here you would typically send the updated data to a server
-    console.log("Updated faculty data:", facultyData);
+    
+    // Set loading state
+    setUpdateStatus({loading: true, success: false, error: null});
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/update-profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: facultyData.userId,
+          name: facultyData.name,
+          phone: facultyData.phone
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Update was successful
+        setUpdateStatus({
+          loading: false,
+          success: true,
+          error: null
+        });
+        
+        // Update the localStorage with new data
+        const userData = JSON.parse(localStorage.getItem("userData"));
+        if (userData) {
+          userData.name = facultyData.name;
+          userData.mob = facultyData.phone;
+          localStorage.setItem("userData", JSON.stringify(userData));
+        }
+        
+        // Exit edit mode
+        setIsEditing(false);
+        
+        // Show success message temporarily
+        setTimeout(() => {
+          setUpdateStatus(prev => ({...prev, success: false}));
+        }, 3000);
+      } else {
+        // Handle error
+        setUpdateStatus({
+          loading: false,
+          success: false,
+          error: data.error || 'Failed to update profile'
+        });
+      }
+    } catch (err) {
+      setUpdateStatus({
+        loading: false,
+        success: false,
+        error: 'Network error. Please try again.'
+      });
+    }
   };
 
 
@@ -109,6 +169,20 @@ const Profile = () => {
               <span>{isEditing ? "Cancel" : "Edit Profile"}</span>
             </button>
           </div>
+          
+          {/* Show status messages */}
+          {updateStatus.success && (
+            <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
+              Profile updated successfully!
+            </div>
+          )}
+          
+          {updateStatus.error && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+              {updateStatus.error}
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -151,17 +225,7 @@ const Profile = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Designation
                 </label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    name="designation"
-                    value={facultyData.designation}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border rounded focus:ring focus:ring-indigo-200"
-                  />
-                ) : (
-                  <p className="text-gray-800">{facultyData.designation}</p>
-                )}
+                <p className="text-gray-800">{facultyData.designation}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -190,9 +254,12 @@ const Profile = () => {
               <div className="mt-6">
                 <button
                   type="submit"
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200"
+                  disabled={updateStatus.loading}
+                  className={`bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200 ${
+                    updateStatus.loading ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
                 >
-                  Save Changes
+                  {updateStatus.loading ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             )}
