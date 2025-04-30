@@ -200,7 +200,7 @@ const Dashboard = () => {
                     <BookOpen className="w-6 h-6 text-indigo-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">Academic</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">Academic Involvment</h3>
                     <p className="text-sm text-gray-600">Manage teaching activities</p>
                   </div>
                 </div>
@@ -238,7 +238,7 @@ const Dashboard = () => {
                     <Building2 className="w-6 h-6 text-indigo-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">Development</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">Self Development</h3>
                     <p className="text-sm text-gray-600">Monitor personal growth</p>
                   </div>
                 </div>
@@ -263,6 +263,25 @@ const Dashboard = () => {
                 </div>
               </Link>
 
+              {/* Extra Ordinary Contribution Card */}
+              <Link 
+                to="/extra" 
+                className="group bg-white/90 p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 
+                  transform hover:-translate-y-2 border border-indigo-50 hover:border-indigo-200 animate-fade-in-up"
+                style={{ animationDelay: '700ms' }}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors 
+                    group-hover:rotate-6 transform duration-300">
+                    <FileText className="w-6 h-6 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">Extra Contributions</h3>
+                    <p className="text-sm text-gray-600">Add special achievements</p>
+                  </div>
+                </div>
+              </Link>
+
               {/* Review Card */}
               <Link 
                 to="/review" 
@@ -281,6 +300,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               </Link>
+
             </div>
           </div>
         </div>
