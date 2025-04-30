@@ -41,7 +41,7 @@ const AssignFacultyToVerificationTeam = () => {
   useEffect(() => {
     const fetchCommitteeData = async () => {
       if (!selectedDepartment) return;
-
+    
       try {
         setLoading(true);
         setError(null);
@@ -49,14 +49,16 @@ const AssignFacultyToVerificationTeam = () => {
           `${import.meta.env.VITE_BASE_URL}/${selectedDepartment}/verification-committee`
         );
         if (!response.ok) throw new Error("Failed to fetch committee data");
-
+    
         const data = await response.json();
         setCommitteeData(data);
-
+    
         // Initialize selectedFaculties with empty arrays for each committee member
         const initialSelection = {};
         Object.keys(data.committees).forEach((member) => {
-          initialSelection[member] = data.committees[member] || [];
+          initialSelection[member] = Array.isArray(data.committees[member])
+            ? data.committees[member]
+            : [];
         });
         setSelectedFaculties(initialSelection);
       } catch (err) {
@@ -113,54 +115,55 @@ const AssignFacultyToVerificationTeam = () => {
   const handleFacultySelection = (committeeMember, facultyId) => {
     setSelectedFaculties((prev) => {
       const updatedSelection = { ...prev };
-
+  
+      // Ensure the member's selection is an array
+      const memberSelection = Array.isArray(updatedSelection[committeeMember])
+        ? updatedSelection[committeeMember]
+        : [];
+  
       // Check if faculty is already selected for this committee member
-      if (updatedSelection[committeeMember].includes(facultyId)) {
+      if (memberSelection.includes(facultyId)) {
         // Remove faculty from selection
-        updatedSelection[committeeMember] = updatedSelection[
-          committeeMember
-        ].filter((id) => id !== facultyId);
+        updatedSelection[committeeMember] = memberSelection.filter(
+          (id) => id !== facultyId
+        );
       } else {
         // Add faculty to selection
-        updatedSelection[committeeMember] = [
-          ...updatedSelection[committeeMember],
-          facultyId,
-        ];
+        updatedSelection[committeeMember] = [...memberSelection, facultyId];
       }
-
+  
       return updatedSelection;
     });
   };
-
-  // Add this handler function after the existing handler functions in your component
-const handleSelectAll = (member) => {
-  setSelectedFaculties((prev) => {
-    const updatedSelection = { ...prev };
-    
-    // Get all eligible faculty IDs (ones that aren't already allocated elsewhere)
-    const eligibleFacultyIds = facultyList
-      .filter(faculty => 
-        faculty._id !== extractFacultyId(member) && 
-        !isFacultyAllocated(faculty._id, member)
-      )
-      .map(faculty => faculty._id);
-    
-    // If all eligible faculties are already selected, deselect all
-    const allSelected = eligibleFacultyIds.every(id => 
-      updatedSelection[member].includes(id)
-    );
-    
-    if (allSelected) {
-      // Deselect all
-      updatedSelection[member] = [];
-    } else {
-      // Select all eligible faculties
-      updatedSelection[member] = eligibleFacultyIds;
-    }
-    
-    return updatedSelection;
-  });
-};
+  
+  const handleSelectAll = (member) => {
+    setSelectedFaculties((prev) => {
+      const updatedSelection = { ...prev };
+  
+      // Ensure the member's selection is an array
+      const memberSelection = Array.isArray(updatedSelection[member])
+        ? updatedSelection[member]
+        : [];
+  
+      // Get all eligible faculty IDs
+      const eligibleFacultyIds = facultyList
+        .filter(
+          (faculty) =>
+            faculty._id !== extractFacultyId(member) &&
+            !isFacultyAllocated(faculty._id, member)
+        )
+        .map((faculty) => faculty._id);
+  
+      // If all eligible faculties are already selected, deselect all
+      const allSelected = eligibleFacultyIds.every((id) =>
+        memberSelection.includes(id)
+      );
+  
+      updatedSelection[member] = allSelected ? [] : eligibleFacultyIds;
+  
+      return updatedSelection;
+    });
+  };
 
 // Then modify the table header to add the "Select All" checkbox:
 
@@ -208,17 +211,19 @@ const handleSelectAll = (member) => {
     return match ? match[1] : "";
   };
 
-  // Helper function to check if faculty is allocated
   const isFacultyAllocated = (facultyId, currentMember) => {
     // Check if faculty is allocated to any committee member (including current)
     return Object.entries(selectedFaculties).some(([member, faculties]) => {
+      // Ensure faculties is an array
+      const facultyArray = Array.isArray(faculties) ? faculties : [];
+      
       // If this is the current member's row and the faculty is selected for this member,
       // don't count it as allocated
-      if (member === currentMember && faculties.includes(facultyId)) {
+      if (member === currentMember && facultyArray.includes(facultyId)) {
         return false;
       }
       // For all other cases, if the faculty is in any allocation list, consider it allocated
-      return faculties.includes(facultyId);
+      return facultyArray.includes(facultyId);
     });
   };
 

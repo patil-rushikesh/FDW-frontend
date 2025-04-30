@@ -21,7 +21,7 @@ const Summary = () => {
         { name: "ENTC" },
         { name: "Computer(Regional)" },
         { name: "AIML" },
-        { name: "AS&H" },
+        { name: "ASH" },
       ];
 
       // For each department, fetch faculty data and calculate status counts
