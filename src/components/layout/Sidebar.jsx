@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BookOpen,
   FileText,
@@ -128,6 +128,8 @@ export default function Sidebar({ isOpen, onClose }) {
   const [isPrivilegeOpen, setIsPrivilegeOpen] = useState(false);
   const [isPaperVerificationOpen, setIsPaperVerificationOpen] = useState(false);
   const [isInteractionOpen, setIsInteractionOpen] = useState(false);
+  const [userStatus, setUserStatus] = useState(null);
+  const [statusLoading, setStatusLoading] = useState(false);
 
   // Get user role from localStorage
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
@@ -136,11 +138,55 @@ export default function Sidebar({ isOpen, onClose }) {
   const isExternal = userData.isExternal || false;
   const isAddedForInteraction = userData.isAddedForInteraction || false;
 
-  // Add externalFacultyItems for external faculty members
-  const externalFacultyItems = [
-    { icon: User, label: "Dashboard", path: "/dashboard" },
-    { icon: CheckSquare, label: "Give Marks", path: "/external/give-marks" },
-  ];
+  useEffect(() => {
+    if (userData && userData.dept && userData._id) {
+      fetchUserStatus(userData.dept, userData._id);
+    }
+  }, []);
+
+  const fetchUserStatus = async (department, userId) => {
+    setStatusLoading(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/get-status`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setUserStatus(data.status);
+      }
+    } catch (error) {
+      console.error("Error fetching user status:", error);
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  const getStatusColorClass = (status) => {
+    switch (status) {
+      case "done":
+        return "bg-green-500 text-white";
+      case "Interaction_pending":
+        return "bg-purple-500 text-white";
+      case "authority_verification_pending":
+        return "bg-yellow-500 text-white";
+      case "verification_pending":
+        return "bg-orange-500 text-white";
+      case "Portfolio_Mark_pending":
+        return "bg-blue-500 text-white";
+      case "Portfolio_Mark_Dean_pending":
+        return "bg-indigo-500 text-white";
+      case "SentToDirector":
+        return "bg-teal-500 text-white";
+      default:
+        return "bg-gray-500 text-white";
+    }
+  };
 
   const toggleParts = () => setIsPartsOpen(!isPartsOpen);
   const togglePrivilege = () => setIsPrivilegeOpen(!isPrivilegeOpen);
@@ -392,6 +438,18 @@ export default function Sidebar({ isOpen, onClose }) {
                   Dashboard
                 </p>
               )}
+              
+              {/* Status indicator */}
+              {statusLoading ? (
+                <div className="h-5 w-24 bg-indigo-700 animate-pulse rounded-full mt-2"></div>
+              ) : userStatus ? (
+                <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${getStatusColorClass(userStatus)}`}>
+                  <span className="w-2 h-2 bg-current rounded-full mr-1.5"></span>
+                  {userStatus.split('_').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                  ).join(' ')}
+                </div>
+              ) : null}
             </div>
             <button
               onClick={onClose}
@@ -400,6 +458,8 @@ export default function Sidebar({ isOpen, onClose }) {
               <X size={24} />
             </button>
           </div>
+          
+          {/* Rest of the sidebar content */}
           <nav className="space-y-2">
             {/* For External Faculty: Show only Dashboard and Give Marks options */}
             {isExternal ? (

@@ -172,7 +172,7 @@ const Verify = () => {
                                       Verified
                                     </span>
                                   </div>
-                                ) : (
+                                ) : faculty.status === "verification_pending" ? (
                                   <button
                                     className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition duration-200"
                                     onClick={() =>
@@ -183,6 +183,17 @@ const Verify = () => {
                                   >
                                     Verify and Give Marks
                                   </button>
+                                ) : (
+                                  <div className="flex items-center space-x-2 text-blue-600">
+                                    <span className="font-medium">
+                                      {faculty.status
+                                        .replace("_", " ")
+                                        .replace(
+                                          /(^\w{1})|(\s+\w{1})/g,
+                                          (letter) => letter.toUpperCase()
+                                        )}
+                                    </span>
+                                  </div>
                                 )}
                               </div>
                             </div>

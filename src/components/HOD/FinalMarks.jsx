@@ -257,43 +257,99 @@ const FinalMarks = () => {
     );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <main className="lg:mt-16">
-        <div className="max-w-full mx-auto px-4 space-y-8">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="max-w-full mx-auto px-4 py-6 space-y-8">
+          {/* Header Card */}
+          <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
             {/* Header Section */}
-            <div className="border-b border-gray-200 px-4 lg:px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="border-b border-gray-200 px-6 py-5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                 <div className="flex items-center">
-                  <Users className="mr-2 text-blue-600" />
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    Final Faculty Marks - {department}
+                  <Users className="mr-3 h-7 w-7" />
+                  <h2 className="text-2xl font-bold">
+                    Faculty Performance Assessment - {department}
                   </h2>
                 </div>
 
                 {/* Filters Section */}
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <input
-                    type="text"
-                    placeholder="Search by ID or Name"
-                    value={filters.search}
-                    onChange={(e) =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        search: e.target.value,
-                      }))
-                    }
-                    className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-full sm:w-auto"
-                  />
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="text"
+                      placeholder="Search by ID or Name"
+                      value={filters.search}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          search: e.target.value,
+                        }))
+                      }
+                      className="pl-10 p-2 bg-white/90 border border-indigo-300 rounded-lg text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats & Filters */}
+            <div className="px-6 pt-5 pb-3 bg-gradient-to-r from-blue-50 to-indigo-50">
+              {/* Summary Stats */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-5">
+                <div className="bg-white shadow-sm p-4 rounded-xl border border-blue-100 flex items-center transform transition-all hover:scale-[1.02] hover:shadow-md">
+                  <div className="rounded-full bg-green-100 p-3 mr-4">
+                    <Check className="h-6 w-6 text-green-700" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">Marks Calculated</p>
+                    <p className="text-2xl font-bold text-gray-800">{summary.final_marks_calculated || 0}</p>
+                  </div>
+                </div>
+
+                <div className="bg-white shadow-sm p-4 rounded-xl border border-blue-100 flex items-center transform transition-all hover:scale-[1.02] hover:shadow-md">
+                  <div className="rounded-full bg-blue-100 p-3 mr-4">
+                    <Filter className="h-6 w-6 text-blue-700" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">Faculty Members</p>
+                    <p className="text-2xl font-bold text-gray-800">{filteredData.length}</p>
+                  </div>
+                </div>
+                
+                <div className="bg-white shadow-sm p-4 rounded-xl border border-blue-100 flex items-center transform transition-all hover:scale-[1.02] hover:shadow-md">
+                  <div className="rounded-full bg-indigo-100 p-3 mr-4">
+                    <Send className="h-6 w-6 text-indigo-700" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">Ready to Send</p>
+                    <p className="text-2xl font-bold text-gray-800">{eligibleFaculty.length}</p>
+                  </div>
+                </div>
+
+                <div className="bg-white shadow-sm p-4 rounded-xl border border-blue-100 flex items-center transform transition-all hover:scale-[1.02] hover:shadow-md">
+                  <div className="rounded-full bg-purple-100 p-3 mr-4">
+                    <AlertCircle className="h-6 w-6 text-purple-700" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">Avg. Total Score</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                      {filteredData.length > 0 
+                        ? (filteredData.reduce((sum, faculty) => sum + (faculty.final_marks?.total_marks || 0), 0) / filteredData.length).toFixed(2)
+                        : "0.00"}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Marks Filter Section */}
-              <div className="mt-4 flex flex-wrap gap-4 items-center justify-between">
-                <div className="flex items-center gap-2">
+              {/* Marks filters */}
+              <div className="flex flex-wrap gap-4 items-center justify-between">
+                <div className="flex items-center gap-3 bg-white p-2 px-4 rounded-lg shadow-sm border border-gray-200">
+                  <Filter size={18} className="text-gray-500" />
+                  <span className="text-gray-600 font-medium">Filter by marks:</span>
                   <input
                     type="number"
-                    placeholder="Min Marks"
+                    placeholder="Min"
                     value={filters.minMarks}
                     onChange={(e) =>
                       setFilters((prev) => ({
@@ -301,12 +357,12 @@ const FinalMarks = () => {
                         minMarks: e.target.value,
                       }))
                     }
-                    className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-20 sm:w-24"
+                    className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-20 sm:w-24 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   />
                   <span className="text-gray-500">to</span>
                   <input
                     type="number"
-                    placeholder="Max Marks"
+                    placeholder="Max"
                     value={filters.maxMarks}
                     onChange={(e) =>
                       setFilters((prev) => ({
@@ -314,19 +370,19 @@ const FinalMarks = () => {
                         maxMarks: e.target.value,
                       }))
                     }
-                    className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-20 sm:w-24"
+                    className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-20 sm:w-24 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   />
                 </div>
                 
-                {/* New "Send to Director" button */}
+                {/* Send to Director button */}
                 {eligibleFaculty.length > 0 && (
                   <button
                     onClick={handleSendToDirector}
                     disabled={selectedFaculty.length === 0 || submitting}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition 
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-medium transition 
                       ${selectedFaculty.length === 0 || submitting 
                         ? 'bg-gray-400 cursor-not-allowed' 
-                        : 'bg-blue-600 hover:bg-blue-700'}`}
+                        : 'bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow-md'}`}
                   >
                     <Send size={16} />
                     {submitting ? 'Sending...' : `Send to Director (${selectedFaculty.length})`}
@@ -336,30 +392,21 @@ const FinalMarks = () => {
 
               {/* Success message */}
               {successMessage && (
-                <div className="mt-4 p-3 bg-green-100 border border-green-300 rounded-lg text-green-800 flex items-center gap-2">
+                <div className="mt-4 p-3 bg-green-100 border border-green-300 rounded-lg text-green-800 flex items-center gap-2 animate-fadeIn">
                   <Check size={18} className="text-green-600" />
                   {successMessage}
                 </div>
               )}
-
-              {/* Summary Section */}
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-
-                <div className="bg-green-50 p-3 rounded-lg border border-green-200">
-                  <p className="text-sm text-green-600">Final Marks Calculated</p>
-                  <p className="text-2xl font-bold text-green-800">{summary.final_marks_calculated || 0}</p>
-                </div>
-              </div>
             </div>
 
-            {/* Table Section - Updated with checkboxes */}
+            {/* Table Section - Updated with improved styling */}
             <div className="overflow-x-auto w-full">
               <table className="min-w-full text-md text-left">
-                <thead className="bg-gray-50 text-md">
-                  <tr>
+                <thead>
+                  <tr className="bg-gray-100 text-gray-600 border-b border-gray-200">
                     {/* Checkbox column for selection - show if any faculty has "done" status */}
                     {viewableFacultyStatuses.showCheckboxes && (
-                      <th className="px-3 py-3 text-gray-600 w-10">
+                      <th className="px-4 py-3 w-10">
                         <input
                           type="checkbox"
                           checked={selectedFaculty.length === eligibleFaculty.length && eligibleFaculty.length > 0}
@@ -368,76 +415,81 @@ const FinalMarks = () => {
                         />
                       </th>
                     )}
-                    <th className="px-3 py-3 text-gray-600">ID</th>
-                    <th className="px-3 py-3 text-gray-600">Name</th>
-                    <th className="px-3 py-3 text-gray-600">Designation</th>
-                    <th className="px-3 py-3 text-gray-600 cursor-pointer" onClick={() => toggleSort("verified")}>
+                    <th className="px-4 py-3 font-semibold">ID</th>
+                    <th className="px-4 py-3 font-semibold">Name</th>
+                    <th className="px-4 py-3 font-semibold">Designation</th>
+                    <th className="px-4 py-3 font-semibold cursor-pointer hover:bg-gray-200" onClick={() => toggleSort("verified")}>
                       <div className="flex items-center">
-                        Self Appraisal Marks(Max 1000)
-                        <span className="text-xs ml-1"></span>
+                        Self Appraisal
+                        <span className="text-xs ml-1 text-gray-500">(Max 1000)</span>
                         {sortConfig.key === "verified" && (
                           sortConfig.direction === "asc" ? 
-                            <SortAsc size={14} className="ml-1" /> : 
-                            <SortDesc size={14} className="ml-1" />
+                            <SortAsc size={14} className="ml-1 text-blue-600" /> : 
+                            <SortDesc size={14} className="ml-1 text-blue-600" />
                         )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-gray-600 cursor-pointer" onClick={() => toggleSort("scaled_verified")}>
+                    <th className="px-4 py-3 font-semibold cursor-pointer hover:bg-gray-200" onClick={() => toggleSort("scaled_verified")}>
                       <div className="flex items-center">
-                        Scaled Self Appraisal * 0.85
-                        <span className="text-xs ml-1"></span>
+                        Self Appraisal * 0.85
                         {sortConfig.key === "scaled_verified" && (
                           sortConfig.direction === "asc" ? 
-                            <SortAsc size={14} className="ml-1" /> : 
-                            <SortDesc size={14} className="ml-1" />
+                            <SortAsc size={14} className="ml-1 text-blue-600" /> : 
+                            <SortDesc size={14} className="ml-1 text-blue-600" />
                         )}
                       </div>
                     </th>
                     
-                    <th className="px-3 py-3 text-gray-600 cursor-pointer" onClick={() => toggleSort("interaction_avg")}>
+                    <th className="px-4 py-3 font-semibold cursor-pointer hover:bg-gray-200" onClick={() => toggleSort("interaction_avg")}>
                       <div className="flex items-center">
-                        Interaction Score (Max 100)
-                        <span className="text-xs ml-1"></span>
+                        Interaction Score
+                        <span className="text-xs ml-1 text-gray-500">(Max 100)</span>
                         {sortConfig.key === "interaction_avg" && (
                           sortConfig.direction === "asc" ? 
-                            <SortAsc size={14} className="ml-1" /> : 
-                            <SortDesc size={14} className="ml-1" />
+                            <SortAsc size={14} className="ml-1 text-blue-600" /> : 
+                            <SortDesc size={14} className="ml-1 text-blue-600" />
                         )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-gray-600">
+                    <th className="px-4 py-3 font-semibold">
                       <div className="flex items-center">
-                        Scaled Interaction *1.5
-                        <span className="text-xs ml-1"></span>
+                        Interaction * 1.5
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-gray-600 cursor-pointer" onClick={() => toggleSort("total")}>
+                    <th className="px-4 py-3 font-semibold cursor-pointer hover:bg-gray-200" onClick={() => toggleSort("total")}>
                       <div className="flex items-center">
-                        Total Marks (Max 1000)
-                        <span className="text-xs ml-1"></span>
+                        Total Marks
+                        <span className="text-xs ml-1 text-gray-500">(Max 1000)</span>
                         {sortConfig.key === "total" && (
                           sortConfig.direction === "asc" ? 
-                            <SortAsc size={14} className="ml-1" /> : 
-                            <SortDesc size={14} className="ml-1" />
+                            <SortAsc size={14} className="ml-1 text-blue-600" /> : 
+                            <SortDesc size={14} className="ml-1 text-blue-600" />
                         )}
                       </div>
                     </th>
-                    <th className="px-3 py-3 text-gray-600">Status</th>
+                    <th className="px-4 py-3 font-semibold">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredData.length === 0 ? (
                     <tr>
-                      <td colSpan={viewableFacultyStatuses.showCheckboxes ? "11" : "10"} className="px-6 py-8 text-center text-gray-500">
-                        No faculty marks data available
+                      <td colSpan={viewableFacultyStatuses.showCheckboxes ? "11" : "10"} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center justify-center text-gray-500">
+                          <Search size={48} className="mb-2 text-gray-400" />
+                          <p className="text-lg">No faculty marks data available</p>
+                          <p className="text-sm text-gray-400">Try adjusting your search filters</p>
+                        </div>
                       </td>
                     </tr>
                   ) : (
-                    filteredData.map((faculty) => (
-                      <tr key={faculty.faculty_info.id} className="border-b hover:bg-gray-50">
+                    filteredData.map((faculty, index) => (
+                      <tr 
+                        key={faculty.faculty_info.id} 
+                        className={`border-b hover:bg-blue-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                      >
                         {/* Checkbox for faculty selection - only visible for "done" status faculty */}
                         {viewableFacultyStatuses.showCheckboxes && (
-                          <td className="px-3 py-4">
+                          <td className="px-4 py-4">
                             {faculty.faculty_info.status?.toLowerCase() === "done" && (
                               <input
                                 type="checkbox"
@@ -448,43 +500,43 @@ const FinalMarks = () => {
                             )}
                           </td>
                         )}
-                        <td className="px-3 py-4 font-medium">{faculty.faculty_info.id}</td>
-                        <td className="px-3 py-4">{faculty.faculty_info.name}</td>
-                        <td className="px-3 py-4">{faculty.faculty_info.role}</td>
-                        <td className="px-3 py-4">
+                        <td className="px-4 py-4 font-medium text-gray-700">{faculty.faculty_info.id}</td>
+                        <td className="px-4 py-4 font-medium">{faculty.faculty_info.name}</td>
+                        <td className="px-4 py-4 text-gray-600">{faculty.faculty_info.role}</td>
+                        <td className="px-4 py-4">
                           <span className="font-medium">{formatNumber(faculty.final_marks?.verified_marks)}</span>
                         </td>
-                        <td className="px-3 py-4">
+                        <td className="px-4 py-4">
                           <span className="font-medium text-blue-700">{formatNumber(faculty.final_marks?.scaled_verified_marks)}</span>
                         </td>
-                        <td className="px-3 py-4">
+                        <td className="px-4 py-4">
                           <span className="font-medium">{formatNumber(faculty.final_marks?.interaction_average)}</span>
                         </td>
-                        <td className="px-3 py-4">
+                        <td className="px-4 py-4">
                           <span className="font-medium text-blue-700">{formatNumber(faculty.final_marks?.scaled_interaction_marks)}</span>
                         </td>
-                        <td className="px-3 py-4">
-                          <span className="font-semibold text-lg text-blue-800">
+                        <td className="px-4 py-4">
+                          <span className="font-semibold text-lg text-blue-800 px-3 py-1 bg-blue-50 rounded-lg">
                             {formatNumber(faculty.final_marks?.total_marks)}
                           </span>
                         </td>
-                        <td className="px-3 py-4">
+                        <td className="px-4 py-4">
                           <span
                             className={`inline-block text-center px-3 py-1 rounded-full text-xs font-semibold ${
                               faculty.faculty_info.status === "done"
-                                ? "bg-green-100 text-green-800"
+                                ? "bg-green-100 text-green-800 border border-green-200"
                                 : faculty.faculty_info.status === "pending"
-                                ? "bg-orange-100 text-orange-800"
+                                ? "bg-orange-100 text-orange-800 border border-orange-200"
                                 : faculty.faculty_info.status === "SentToDirector"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-gray-100 text-gray-800"
+                                ? "bg-blue-100 text-blue-800 border border-blue-200"
+                                : "bg-gray-100 text-gray-800 border border-gray-200"
                             }`}
                           >
                             {faculty.faculty_info.status === "done" 
                               ? "Completed" 
                               : faculty.faculty_info.status === "SentToDirector"
                               ? "Sent to Director"
-                              : faculty.faculty_info.status}
+                              : faculty.faculty_info.status || "Unknown"}
                           </span>
                         </td>
                       </tr>

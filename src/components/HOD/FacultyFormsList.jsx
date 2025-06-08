@@ -394,23 +394,25 @@ const FacultyFormsList = () => {
     );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div>
-        <main className="lg:mt-16">
-          <div className="max-w-full mx-auto px-4 space-y-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              {/* Header Section */}
-              <div className="border-b border-gray-200 px-4 lg:px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                  <div className="flex items-center">
-                    <Users className="mr-2 text-blue-600" />
-                    <h2 className="text-xl font-semibold text-gray-800">
-                      Faculty Forms - {department}
-                    </h2>
-                  </div>
+  <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div>
+      <main className="lg:mt-16">
+        <div className="max-w-full mx-auto px-4 py-6 space-y-8">
+          <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+            {/* Enhanced Header Section */}
+            <div className="border-b border-gray-200 px-6 py-5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                <div className="flex items-center">
+                  <Users className="mr-3 h-7 w-7" />
+                  <h2 className="text-2xl font-bold">
+                    Faculty Forms - {department}
+                  </h2>
+                </div>
 
-                  {/* Filters Section */}
-                  <div className="flex flex-col sm:flex-row gap-4">
+                {/* Filters Section */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                     <input
                       type="text"
                       placeholder="Search by ID or Name"
@@ -421,369 +423,374 @@ const FacultyFormsList = () => {
                           search: e.target.value,
                         }))
                       }
-                      className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-full sm:w-auto"
-                    />
-                    <div className="flex gap-2">
-                      <select
-                        value={filters.role}
-                        onChange={(e) =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            role: e.target.value,
-                          }))
-                        }
-                        className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-full sm:w-auto"
-                      >
-                        <option value="">All Roles</option>
-                        {roles.map((role) => (
-                          <option key={role} value={role}>
-                            {role}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Marks Filter Section */}
-                <div className="mt-4 flex flex-wrap gap-4">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      placeholder="Min Marks"
-                      value={filters.minMarks}
-                      onChange={(e) =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          minMarks: e.target.value,
-                        }))
-                      }
-                      className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-20 sm:w-24"
-                    />
-                    <span className="text-gray-500">to</span>
-                    <input
-                      type="number"
-                      placeholder="Max Marks"
-                      value={filters.maxMarks}
-                      onChange={(e) =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          maxMarks: e.target.value,
-                        }))
-                      }
-                      className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-20 sm:w-24"
+                      className="pl-10 p-2 bg-white/90 border border-indigo-300 rounded-lg text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800 placeholder-gray-500"
                     />
                   </div>
-                  <button
-                    onClick={toggleSort}
-                    className="flex items-center gap-2 p-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
-                    aria-label={`Sort by marks ${sortConfig.direction === "asc" ? "ascending" : "descending"}`}
-                    title={`Sort by marks ${sortConfig.direction === "asc" ? "low to high" : "high to low"}`}
+                  <select
+                    value={filters.role}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        role: e.target.value,
+                      }))
+                    }
+                    className="p-2 bg-white/90 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800"
                   >
-                    {sortConfig.direction === "asc" ? (
-                      <SortAsc size={16} className="text-blue-600" />
+                    <option value="">All Roles</option>
+                    {roles.map((role) => (
+                      <option key={role} value={role}>
+                        {role}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Enhanced Filters & Summary Section */}
+            <div className="px-6 pt-5 pb-3 bg-gradient-to-r from-blue-50 to-indigo-50">
+              {/* Marks Filter Section with improved styling */}
+              <div className="flex flex-wrap gap-4 items-center justify-between">
+                <div className="flex items-center gap-3 bg-white p-2 px-4 rounded-lg shadow-sm border border-gray-200">
+                  <Filter size={18} className="text-gray-500" />
+                  <span className="text-gray-600 font-medium">Filter by marks:</span>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={filters.minMarks}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        minMarks: e.target.value,
+                      }))
+                    }
+                    className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-20 sm:w-24 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                  <span className="text-gray-500">to</span>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={filters.maxMarks}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        maxMarks: e.target.value,
+                      }))
+                    }
+                    className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-20 sm:w-24 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                </div>
+                
+                <button
+                  onClick={toggleSort}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 shadow-sm transition-colors"
+                  aria-label={`Sort by marks ${sortConfig.direction === "asc" ? "ascending" : "descending"}`}
+                  title={`Sort by marks ${sortConfig.direction === "asc" ? "low to high" : "high to low"}`}
+                >
+                  {sortConfig.direction === "asc" ? (
+                    <SortAsc size={16} className="text-blue-600" />
+                  ) : (
+                    <SortDesc size={16} className="text-blue-600" />
+                  )}
+                  <span
+                    className={
+                      sortConfig.key === "marks"
+                        ? "font-medium text-blue-700"
+                        : ""
+                    }
+                  >
+                    Sort by Marks{" "}
+                    {sortConfig.key === "marks"
+                      ? sortConfig.direction === "asc"
+                        ? "(Low to High)"
+                        : "(High to Low)"
+                      : ""}
+                  </span>
+                </button>
+              </div>
+
+              {/* Improved Summary Section */}
+              <div className="mt-6">
+                <div className="flex flex-wrap gap-3 items-center">
+                  {/* Primary Status Cards - Always visible */}
+                  <div
+                    className={`bg-blue-50 p-3 rounded-lg border ${
+                      filters.status === ""
+                        ? "border-blue-400 shadow-md"
+                        : "border-blue-200"
+                    } cursor-pointer hover:shadow-md transition-shadow w-44 transform transition-all hover:scale-[1.02]`}
+                    onClick={() => handleStatusFilter("")}
+                  >
+                    <p className="text-xs text-blue-600 mb-1">
+                      Total Faculty
+                    </p>
+                    <p className="text-xl font-bold text-blue-800">
+                      {statusSummary.total}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`bg-green-50 p-3 rounded-lg border ${
+                      filters.status === "done"
+                        ? "border-green-400 shadow-md"
+                        : "border-green-200"
+                    } cursor-pointer hover:shadow-md transition-shadow w-44 transform transition-all hover:scale-[1.02]`}
+                    onClick={() => handleStatusFilter("done")}
+                  >
+                    <p className="text-xs text-green-600 mb-1">Completed</p>
+                    <p className="text-xl font-bold text-green-800">
+                      {statusSummary.done}
+                    </p>
+                  </div>
+
+                  {/* Show More Button with improved styling */}
+                  <button
+                    onClick={() => setShowAllStatuses(!showAllStatuses)}
+                    className="flex items-center gap-1 px-4 py-3 text-sm font-medium text-blue-700 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors shadow-sm hover:shadow"
+                  >
+                    {showAllStatuses ? (
+                      <>
+                        <ChevronUp size={16} />
+                        <span>Hide Details</span>
+                      </>
                     ) : (
-                      <SortDesc size={16} className="text-blue-600" />
+                      <>
+                        <Plus size={16} />
+                        <span>Show Details</span>
+                      </>
                     )}
-                    <span
-                      className={
-                        sortConfig.key === "marks"
-                          ? "font-medium text-blue-700"
-                          : ""
-                      }
-                    >
-                      Sort by Marks{" "}
-                      {sortConfig.key === "marks"
-                        ? sortConfig.direction === "asc"
-                          ? "(Low to High)"
-                          : "(High to Low)"
-                        : ""}
-                    </span>
                   </button>
                 </div>
 
-                {/* Summary Section - Improved UI */}
-                <div className="mt-6">
-                  <div className="flex flex-wrap gap-3 items-center">
-                    {/* Primary Status Cards - Always visible */}
+                {/* Expandable Status Cards */}
+                {showAllStatuses && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mt-3 animate-fadeIn">
+                    <div
+                      className={`bg-gray-50 p-3 rounded-lg border ${
+                        filters.status === "pending"
+                          ? "border-gray-400 shadow-md"
+                          : "border-gray-200"
+                      } cursor-pointer hover:shadow-md transition-shadow`}
+                      onClick={() => handleStatusFilter("pending")}
+                      title="Pending – The faculty member has not yet filled the form."
+                    >
+                      <p className="text-xs text-gray-600 mb-1">Pending</p>
+                      <p className="text-xl font-bold text-gray-800">
+                        {statusSummary.pending}
+                      </p>
+                    </div>
+
+                    <div
+                      className={`bg-yellow-50 p-3 rounded-lg border ${
+                        filters.status === "authority_verification_pending"
+                          ? "border-yellow-400 shadow-md"
+                          : "border-yellow-200"
+                      } cursor-pointer hover:shadow-md transition-shadow`}
+                      onClick={() =>
+                        handleStatusFilter("authority_verification_pending")
+                      }
+                      title="Authority Verification Pending – The Head of Department (HoD) needs to review the form and assign the marks."
+                    >
+                      <p className="text-xs text-yellow-600 mb-1">
+                        Authority Verification
+                      </p>
+                      <p className="text-xl font-bold text-yellow-800">
+                        {statusSummary.authority_verification_pending}
+                      </p>
+                    </div>
+
+                    <div
+                      className={`bg-purple-50 p-3 rounded-lg border ${
+                        filters.status === "interaction_pending"
+                          ? "border-purple-400 shadow-md"
+                          : "border-purple-200"
+                      } cursor-pointer hover:shadow-md transition-shadow`}
+                      onClick={() =>
+                        handleStatusFilter("interaction_pending")
+                      }
+                      title="Interaction Pending – Faculty interaction with another faculty member is pending."
+                    >
+                      <p className="text-xs text-purple-600 mb-1">
+                        Interaction Pending
+                      </p>
+                      <p className="text-xl font-bold text-purple-800">
+                        {statusSummary.interaction_pending}
+                      </p>
+                    </div>
+
+                    <div
+                      className={`bg-orange-50 p-3 rounded-lg border ${
+                        filters.status === "verification_pending"
+                          ? "border-orange-400 shadow-md"
+                          : "border-orange-200"
+                      } cursor-pointer hover:shadow-md transition-shadow`}
+                      onClick={() =>
+                        handleStatusFilter("verification_pending")
+                      }
+                      title="Verification Pending – Verification of the research paper or Part B is still pending."
+                    >
+                      <p className="text-xs text-orange-600 mb-1">
+                        Verification Pending
+                      </p>
+                      <p className="text-xl font-bold text-orange-800">
+                        {statusSummary.verification_pending}
+                      </p>
+                    </div>
+
                     <div
                       className={`bg-blue-50 p-3 rounded-lg border ${
-                        filters.status === ""
+                        filters.status === "portfolio_mark_pending"
                           ? "border-blue-400 shadow-md"
                           : "border-blue-200"
-                      } cursor-pointer hover:shadow-md transition-shadow w-44`}
-                      onClick={() => handleStatusFilter("")}
+                      } cursor-pointer hover:shadow-md transition-shadow`}
+                      onClick={() =>
+                        handleStatusFilter("portfolio_mark_pending")
+                      }
+                      title="Portfolio Mark Pending – The HoD needs to review and assign marks for the faculty's portfolio."
                     >
                       <p className="text-xs text-blue-600 mb-1">
-                        Total Faculty
+                        Portfolio Mark Pending
                       </p>
                       <p className="text-xl font-bold text-blue-800">
-                        {statusSummary.total}
+                        {statusSummary.portfolio_mark_pending}
                       </p>
                     </div>
 
                     <div
-                      className={`bg-green-50 p-3 rounded-lg border ${
-                        filters.status === "done"
-                          ? "border-green-400 shadow-md"
-                          : "border-green-200"
-                      } cursor-pointer hover:shadow-md transition-shadow w-44`}
-                      onClick={() => handleStatusFilter("done")}
+                      className={`bg-indigo-50 p-3 rounded-lg border ${
+                        filters.status === "portfolio_mark_dean_pending"
+                          ? "border-indigo-400 shadow-md"
+                          : "border-indigo-200"
+                      } cursor-pointer hover:shadow-md transition-shadow`}
+                      onClick={() =>
+                        handleStatusFilter("portfolio_mark_dean_pending")
+                      }
+                      title="Portfolio Mark Dean Pending – The Dean has not yet assigned marks for the faculty's portfolio."
                     >
-                      <p className="text-xs text-green-600 mb-1">Completed</p>
-                      <p className="text-xl font-bold text-green-800">
-                        {statusSummary.done}
+                      <p className="text-xs text-indigo-600 mb-1">
+                        Dean Mark Pending
+                      </p>
+                      <p className="text-xl font-bold text-indigo-800">
+                        {statusSummary.portfolio_mark_dean_pending}
                       </p>
                     </div>
-
-                    {/* Show More Button */}
-                    <button
-                      onClick={() => setShowAllStatuses(!showAllStatuses)}
-                      className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-blue-700 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
-                    >
-                      {showAllStatuses ? (
-                        <>
-                          <ChevronUp size={16} />
-                          <span>Hide Details</span>
-                        </>
-                      ) : (
-                        <>
-                          <Plus size={16} />
-                          <span>Show Details</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Expandable Status Cards */}
-                  {showAllStatuses && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mt-3 animate-fadeIn">
-                      <div
-                        className={`bg-gray-50 p-3 rounded-lg border ${
-                          filters.status === "pending"
-                            ? "border-gray-400 shadow-md"
-                            : "border-gray-200"
-                        } cursor-pointer hover:shadow-md transition-shadow`}
-                        onClick={() => handleStatusFilter("pending")}
-                        title="Pending – The faculty member has not yet filled the form."
-                      >
-                        <p className="text-xs text-gray-600 mb-1">Pending</p>
-                        <p className="text-xl font-bold text-gray-800">
-                          {statusSummary.pending}
-                        </p>
-                      </div>
-
-                      <div
-                        className={`bg-yellow-50 p-3 rounded-lg border ${
-                          filters.status === "authority_verification_pending"
-                            ? "border-yellow-400 shadow-md"
-                            : "border-yellow-200"
-                        } cursor-pointer hover:shadow-md transition-shadow`}
-                        onClick={() =>
-                          handleStatusFilter("authority_verification_pending")
-                        }
-                        title="Authority Verification Pending – The Head of Department (HoD) needs to review the form and assign the marks."
-                      >
-                        <p className="text-xs text-yellow-600 mb-1">
-                          Authority Verification
-                        </p>
-                        <p className="text-xl font-bold text-yellow-800">
-                          {statusSummary.authority_verification_pending}
-                        </p>
-                      </div>
-
-                      <div
-                        className={`bg-purple-50 p-3 rounded-lg border ${
-                          filters.status === "interaction_pending"
-                            ? "border-purple-400 shadow-md"
-                            : "border-purple-200"
-                        } cursor-pointer hover:shadow-md transition-shadow`}
-                        onClick={() =>
-                          handleStatusFilter("interaction_pending")
-                        }
-                        title="Interaction Pending – Faculty interaction with another faculty member is pending."
-                      >
-                        <p className="text-xs text-purple-600 mb-1">
-                          Interaction Pending
-                        </p>
-                        <p className="text-xl font-bold text-purple-800">
-                          {statusSummary.interaction_pending}
-                        </p>
-                      </div>
-
-                      <div
-                        className={`bg-orange-50 p-3 rounded-lg border ${
-                          filters.status === "verification_pending"
-                            ? "border-orange-400 shadow-md"
-                            : "border-orange-200"
-                        } cursor-pointer hover:shadow-md transition-shadow`}
-                        onClick={() =>
-                          handleStatusFilter("verification_pending")
-                        }
-                        title="Verification Pending – Verification of the research paper or Part B is still pending."
-                      >
-                        <p className="text-xs text-orange-600 mb-1">
-                          Verification Pending
-                        </p>
-                        <p className="text-xl font-bold text-orange-800">
-                          {statusSummary.verification_pending}
-                        </p>
-                      </div>
-
-                      <div
-                        className={`bg-blue-50 p-3 rounded-lg border ${
-                          filters.status === "portfolio_mark_pending"
-                            ? "border-blue-400 shadow-md"
-                            : "border-blue-200"
-                        } cursor-pointer hover:shadow-md transition-shadow`}
-                        onClick={() =>
-                          handleStatusFilter("portfolio_mark_pending")
-                        }
-                        title="Portfolio Mark Pending – The HoD needs to review and assign marks for the faculty's portfolio."
-                      >
-                        <p className="text-xs text-blue-600 mb-1">
-                          Portfolio Mark Pending
-                        </p>
-                        <p className="text-xl font-bold text-blue-800">
-                          {statusSummary.portfolio_mark_pending}
-                        </p>
-                      </div>
-
-                      <div
-                        className={`bg-indigo-50 p-3 rounded-lg border ${
-                          filters.status === "portfolio_mark_dean_pending"
-                            ? "border-indigo-400 shadow-md"
-                            : "border-indigo-200"
-                        } cursor-pointer hover:shadow-md transition-shadow`}
-                        onClick={() =>
-                          handleStatusFilter("portfolio_mark_dean_pending")
-                        }
-                        title="Portfolio Mark Dean Pending – The Dean has not yet assigned marks for the faculty's portfolio."
-                      >
-                        <p className="text-xs text-indigo-600 mb-1">
-                          Dean Mark Pending
-                        </p>
-                        <p className="text-xl font-bold text-indigo-800">
-                          {statusSummary.portfolio_mark_dean_pending}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Add an indicator if any filter is active */}
-                {filters.status && (
-                  <div className="mt-2 flex items-center">
-                    <span className="text-sm text-gray-600 mr-2">
-                      Filtered by status:
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                      {filters.status
-                        .replace(/_/g, " ")
-                        .replace(/\b\w/g, (l) => l.toUpperCase())}
-                      <button
-                        onClick={() =>
-                          setFilters((prev) => ({ ...prev, status: "" }))
-                        }
-                        className="ml-1 text-blue-500 hover:text-blue-700"
-                      >
-                        ×
-                      </button>
-                    </span>
                   </div>
                 )}
               </div>
 
-              {/* Table Section */}
-              <div className="overflow-x-auto w-full">
-                <table className="min-w-full text-sm text-left">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-gray-600">ID</th>
-                      <th className="px-6 py-3 text-gray-600">Name</th>
-                      <th className="px-6 py-3 text-gray-600">Designation</th>
-                      <th className="px-6 py-3 text-gray-600">Role</th>
-                      <th className="px-6 py-3 text-gray-600">Total Marks</th>
-                      <th className="px-6 py-3 text-gray-600">Final Verified Marks</th>
-                      <th className="px-6 py-3 text-gray-600">Status</th>
-                      <th className="px-6 py-3 text-gray-600">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredData.length > 0 ? (
-                      filteredData.map((faculty) => (
-                        <tr
-                          key={faculty._id}
-                          className="border-b hover:bg-gray-50"
-                        >
-                          <td className="px-6 py-4">{faculty._id}</td>
-                          <td className="px-6 py-4 font-medium">
-                            {faculty.name}
-                          </td>
-                          <td className="px-6 py-4">{faculty.designation}</td>
-                          <td className="px-6 py-4">{faculty.role}</td>
-                          <td className="px-6 py-4">{displayMarks(faculty)}</td>
-                          <td className="px-6 py-4">{faculty.grand_verified_marks}</td>
-                          <td className="px-6 py-4">
+              {/* Add an indicator if any filter is active */}
+              {filters.status && (
+                <div className="mt-2 flex items-center">
+                  <span className="text-sm text-gray-600 mr-2">
+                    Filtered by status:
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                    {filters.status
+                      .replace(/_/g, " ")
+                      .replace(/\b\w/g, (l) => l.toUpperCase())}
+                    <button
+                      onClick={() =>
+                        setFilters((prev) => ({ ...prev, status: "" }))
+                      }
+                      className="ml-1 text-blue-500 hover:text-blue-700"
+                    >
+                      ×
+                    </button>
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Table Section */}
+            <div className="overflow-x-auto w-full">
+              <table className="min-w-full text-sm text-left">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-gray-600">ID</th>
+                    <th className="px-6 py-3 text-gray-600">Name</th>
+                    <th className="px-6 py-3 text-gray-600">Designation</th>
+                    <th className="px-6 py-3 text-gray-600">Role</th>
+                    <th className="px-6 py-3 text-gray-600">Total Marks</th>
+                    <th className="px-6 py-3 text-gray-600">Final Verified Marks</th>
+                    <th className="px-6 py-3 text-gray-600">Status</th>
+                    <th className="px-6 py-3 text-gray-600">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredData.length > 0 ? (
+                    filteredData.map((faculty) => (
+                      <tr
+                        key={faculty._id}
+                        className="border-b hover:bg-gray-50"
+                      >
+                        <td className="px-6 py-4">{faculty._id}</td>
+                        <td className="px-6 py-4 font-medium">
+                          {faculty.name}
+                        </td>
+                        <td className="px-6 py-4">{faculty.designation}</td>
+                        <td className="px-6 py-4">{faculty.role}</td>
+                        <td className="px-6 py-4">{displayMarks(faculty)}</td>
+                        <td className="px-6 py-4">{faculty.grand_verified_marks}</td>
+                        <td className="px-6 py-4">
                           <span
-  className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold ${
-    faculty.status === "done"
-      ? "bg-green-100 text-green-800"
-      : faculty.status === "Interaction_pending"
-        ? "bg-purple-100 text-purple-800"
-        : faculty.status === "authority_verification_pending"
-          ? "bg-yellow-100 text-yellow-800"
-          : faculty.status === "verification_pending"
-            ? "bg-orange-100 text-orange-800"
-            : faculty.status === "Portfolio_Mark_pending"
-              ? "bg-blue-100 text-blue-800"
-              : faculty.status === "Portfolio_Mark_Dean_pending"
-                ? "bg-indigo-100 text-indigo-800"
-                : faculty.status === "SentToDirector"
-                  ? "bg-teal-100 text-teal-800"
-                  : "bg-gray-100 text-gray-800"
-  }`}
->
-  {faculty.status === "done"
-    ? "Done"
-    : faculty.status === "Interaction_pending"
-      ? "Interaction Pending"
-      : faculty.status === "authority_verification_pending"
-        ? "HOD Verification Pending"
-        : faculty.status === "verification_pending"
-          ? "Section B Verification Pending"
-          : faculty.status === "Portfolio_Mark_pending"
-            ? "HOD Portfolio Mark Pending"
-            : faculty.status === "Portfolio_Mark_Dean_pending"
-              ? "Dean Portfolio Mark Pending"
-              : faculty.status === "SentToDirector"
-                ? "Sent To Director"
-                : "Pending"}
-</span>
-                          </td>
-                          <td className="px-6 py-4">
-                            {renderActionButton(faculty)}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan="7"
-                          className="px-6 py-8 text-center text-gray-500"
-                        >
-                          No faculty data available. Try adjusting your filters.
+                            className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold ${
+                              faculty.status === "done"
+                                ? "bg-green-100 text-green-800"
+                                : faculty.status === "Interaction_pending"
+                                  ? "bg-purple-100 text-purple-800"
+                                  : faculty.status === "authority_verification_pending"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : faculty.status === "verification_pending"
+                                      ? "bg-orange-100 text-orange-800"
+                                      : faculty.status === "Portfolio_Mark_pending"
+                                        ? "bg-blue-100 text-blue-800"
+                                        : faculty.status === "Portfolio_Mark_Dean_pending"
+                                          ? "bg-indigo-100 text-indigo-800"
+                                          : faculty.status === "SentToDirector"
+                                            ? "bg-teal-100 text-teal-800"
+                                            : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {faculty.status === "done"
+                              ? "Done"
+                              : faculty.status === "Interaction_pending"
+                                ? "Interaction Pending"
+                                : faculty.status === "authority_verification_pending"
+                                  ? "HOD Verification Pending"
+                                  : faculty.status === "verification_pending"
+                                    ? "Section B Verification Pending"
+                                    : faculty.status === "Portfolio_Mark_pending"
+                                      ? "HOD Portfolio Mark Pending"
+                                      : faculty.status === "Portfolio_Mark_Dean_pending"
+                                        ? "Dean Portfolio Mark Pending"
+                                        : faculty.status === "SentToDirector"
+                                          ? "Sent To Director"
+                                          : "Pending"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {renderActionButton(faculty)}
                         </td>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="7"
+                        className="px-6 py-8 text-center text-gray-500"
+                      >
+                        No faculty data available. Try adjusting your filters.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
+  </div>
   );
 };
 
