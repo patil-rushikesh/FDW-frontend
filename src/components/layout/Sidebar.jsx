@@ -120,6 +120,11 @@ const paperVerificationItems = [
   { icon: ClipboardCheck, label: "Verify", path: "/paper-verification/verify" },
 ];
 
+const externalFacultyItems = [
+  { icon: User, label: "Dashboard", path: "/dashboard" },
+  { icon: Award, label: "Give Marks", path: "/external/give-marks" },
+];
+
 export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
   const navigate = useNavigate(); // Add useNavigate hook
