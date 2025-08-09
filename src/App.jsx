@@ -37,6 +37,7 @@ import AssociateDeansList from "./components/Dean/AssociateDeansList";
 import DeanEvaluationForm from "./components/Dean/DeanEvaluationForm";
 // Import the new component
 import AddExternalFaculty from "./components/HOD/AddExternalFaculty";
+import AddExternal from "./components/Director/AddExternal";
 // Import the new component
 import AssignFacultyToExternal from "./components/HOD/AssignFacultyToExternal";
 // Import the external dashboard component
@@ -340,6 +341,38 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <DirectorVerify />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/director/add-external"
+                    element={
+                      <ProtectedRoute>
+                        <AddExternal />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/director/assign-external"
+                    element={
+                      <ProtectedRoute>
+                        <AssignFacultyToExternal />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/external/give-marks"
+                    element={
+                      <ProtectedRoute>
+                        <ExternalDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/evaluate-faculty/:facultyId"
+                    element={
+                      <ProtectedRoute>
+                        <EvaluateFacultyPage />
                       </ProtectedRoute>
                     }
                   />
