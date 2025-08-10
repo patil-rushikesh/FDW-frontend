@@ -181,7 +181,7 @@ const DirectorInteractionEvaluation = () => {
               Faculty Not Found
             </h1>
             <p className="text-gray-600 mb-4">
-              The faculty member you're trying to evaluate could not be found.
+              The faculty member you&apos;re trying to evaluate could not be found.
             </p>
             <button
               onClick={() => navigate("/hod/assign-faculty-external")}
@@ -281,7 +281,7 @@ const DirectorInteractionEvaluation = () => {
                 Knowledge (Max 20 marks)
               </h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Assess the faculty member's subject knowledge, research
+                Assess the faculty member&apos; subject knowledge, research
                 background, and academic credentials.
               </p>
               <div className="flex items-center">
@@ -305,7 +305,7 @@ const DirectorInteractionEvaluation = () => {
                 Skills (Max 20 marks)
               </h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Assess the faculty member's teaching skills, communication,
+                Assess the faculty member&apos; teaching skills, communication,
                 methodology, and pedagogical approach.
               </p>
               <div className="flex items-center">
@@ -329,7 +329,7 @@ const DirectorInteractionEvaluation = () => {
                 Attributes (Max 10 marks)
               </h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Assess the faculty member's professional behavior, punctuality,
+                Assess the faculty member&apos; professional behavior, punctuality,
                 and interpersonal skills.
               </p>
               <div className="flex items-center">
@@ -353,7 +353,7 @@ const DirectorInteractionEvaluation = () => {
                 Outcomes and Initiatives (Max 20 marks)
               </h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Assess the faculty member's research output, innovative teaching
+                Assess the faculty member&apos; research output, innovative teaching
                 methods, and initiatives taken.
               </p>
               <div className="flex items-center">
@@ -377,7 +377,7 @@ const DirectorInteractionEvaluation = () => {
                 Self Branching (Max 10 marks)
               </h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Assess the faculty member's professional development, continuous
+                Assess the faculty member&apos;s professional development, continuous
                 learning, and self-improvement efforts.
               </p>
               <div className="flex items-center">
@@ -401,7 +401,7 @@ const DirectorInteractionEvaluation = () => {
                 Team Performance (Max 20 marks)
               </h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Assess the faculty member's ability to work within a team,
+                Assess the faculty member&apos; ability to work within a team,
                 collaborate with colleagues, and contribute to team goals.
               </p>
               <div className="flex items-center">
@@ -428,7 +428,7 @@ const DirectorInteractionEvaluation = () => {
                 name="comments"
                 value={evaluation.comments}
                 onChange={handleInputChange}
-                placeholder="Please provide any additional feedback or comments about this faculty member's performance."
+                placeholder="Please provide any additional feedback or comments about this faculty member&apos; performance."
                 className="w-full p-3 border rounded-md h-32"
               ></textarea>
             </div>
