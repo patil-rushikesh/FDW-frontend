@@ -40,6 +40,7 @@ import AddExternalFaculty from "./components/HOD/AddExternalFaculty";
 import AddExternal from "./components/Director/AddExternal";
 // Import the new component
 import AssignFacultyToExternal from "./components/HOD/AssignFacultyToExternal";
+import AssignExternal from "./components/Director/AssignExternal";
 // Import the external dashboard component
 import ExternalDashboard from "./components/External/ExternalDashboard";
 import Extra from "./components/forms/Extra";
@@ -52,6 +53,7 @@ import AssignDeanToDepartment from "./components/adminpage/AssignDeanToDepartmen
 import Interactionmarks from "./components/Dean/Interactionmarks";
 import Interactionevaluation from "./components/Dean/Interactionevaluation";
 import HODInteractionEvaluation from "./components/HOD/HODInteractionEvaluation";
+import DirectorInteractionEvaluation from "./components/Director/DirectorInteractionEvaluation";
 import FinalMarks from "./components/HOD/FinalMarks";
 import ConfirmDirectorVerify from "./components/Director/ConfirmVerifybyDirector";
 import DirectorVerify from "./components/Director/DirectorVerify";
@@ -356,7 +358,15 @@ function AppContent() {
                     path="/director/assign-external"
                     element={
                       <ProtectedRoute>
-                        <AssignFacultyToExternal />
+                        <AssignExternal />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/director-evaluate/:facultyId"
+                    element={
+                      <ProtectedRoute>
+                        <DirectorInteractionEvaluation />
                       </ProtectedRoute>
                     }
                   />

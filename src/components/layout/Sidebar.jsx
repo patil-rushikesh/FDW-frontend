@@ -80,12 +80,12 @@ const directorPrivilegeItems = [
 const directorInteractionItems = [
   {
     icon: Users,
-    label: "Add External Faculty",
+    label: "Add External",
     path: "/director/add-external",
   },
   {
     icon: Users,
-    label: "Assign Faculty to External",
+    label: "Assign External",
     path: "/director/assign-external",
   },
 ];
