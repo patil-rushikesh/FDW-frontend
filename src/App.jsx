@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -42,9 +42,11 @@ import AddExternal from "./components/Director/AddExternal";
 import AssignFacultyToExternal from "./components/HOD/AssignFacultyToExternal";
 import AssignExternal from "./components/Director/AssignExternal";
 // Import the external dashboard component
-import ExternalDashboard from "./components/External/ExternalDashboard";
+import ExternalDashboard from "./components/CollegeExternal/CollegeExternalDashboard";
+import CollegeExternalDashboard from "./components/CollegeExternal/CollegeExternalDashboard";
 import Extra from "./components/forms/Extra";
 import EvaluateFacultyPage from "./components/External/EvaluateFacultyPage";
+import EvaluateAuthoritiesPage from "./components/CollegeExternal/EvaluateAuthoritiesPage";
 import AssignFacultyToVerificationTeam from "./components/adminpage/AssignFacultyToVerificationTeam";
 import HODForms from "./components/Director/HODForms";
 import DeanForms from "./components/Director/DeanForms";
@@ -62,6 +64,7 @@ import ResetPassword from "./components/ResetPassword";
 import Summary from "./components/adminpage/Summary";
 
 // Protected Route component
+// eslint-disable-next-line react/prop-types
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
   if (!isAuthenticated) {
@@ -374,15 +377,15 @@ function AppContent() {
                     path="/external/give-marks"
                     element={
                       <ProtectedRoute>
-                        <ExternalDashboard />
+                        <CollegeExternalDashboard />
                       </ProtectedRoute>
                     }
                   />
                   <Route
-                    path="/evaluate-faculty/:facultyId"
+                    path="/evaluate-authority/:facultyId"
                     element={
                       <ProtectedRoute>
-                        <EvaluateFacultyPage />
+                        <EvaluateAuthoritiesPage />
                       </ProtectedRoute>
                     }
                   />

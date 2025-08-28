@@ -8,6 +8,7 @@ import {
   Search,
   CheckCircle,
   RefreshCw,
+  Lock,
   Trash2,
   FileText,
 } from "lucide-react";
@@ -26,8 +27,8 @@ const AssignExternal = () => {
 
   const navigate = useNavigate();
 
-  // Load assignments from server and localStorage as before
   useEffect(() => {
+    // Only fetch once on mount, not on every internalFacultyList change
     const fetchFaculties = async () => {
       try {
         setLoading(true);
@@ -38,14 +39,26 @@ const AssignExternal = () => {
           (f) =>
             (f.desg === "HOD" || f.desg === "Dean") && ALLOWED_ROLES.includes(f.role)
         );
-        const formatted = filtered.map((f) => ({
-          id: f._id,
-          name: f.name,
-          department: f.dept,
-          designation: f.desg,
-          employeeId: f.empId,
-          role: f.role,
-        }));
+        // Fetch lock status and director marks in parallel for all faculties
+        const facultyPromises = filtered.map(async (f) => {
+          const [isExternalsFinal, directorMarks] = await Promise.all([
+            getLockedStatus(f._id),
+            f.isDirectorMarksGiven ? getDirectorMarks(f._id) : Promise.resolve(null)
+          ]);
+          return {
+            id: f._id,
+            name: f.name,
+            department: f.dept,
+            designation: f.desg,
+            employeeId: f.empId,
+            role: f.role,
+            review_status: f.review_status || "pending",
+            isDirectorMarksGiven: f.isDirectorMarksGiven || false,
+            isExternalsFinal: isExternalsFinal || false,
+            directorMarks: directorMarks
+          };
+        });
+        const formatted = await Promise.all(facultyPromises);
         setInternalFacultyList(formatted);
       } catch (e) {
         toast.error("Failed to load faculty list");
@@ -63,9 +76,9 @@ const AssignExternal = () => {
         const formatted = data.data.map((ext) => ({
           id: ext._id,
           name: ext.full_name,
-          designation: ext.designation,
+          designation: ext.desg,
           organization: ext.organization,
-          email: ext.email,
+          email: ext.mail,
         }));
         setExternalList(formatted);
       } catch (e) {
@@ -86,10 +99,31 @@ const AssignExternal = () => {
       }
     };
 
+    // Only run once on mount
     fetchFaculties();
     fetchExternalFaculty();
     fetchAssignments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const getDirectorMarks = async (facultyId) => {
+    const res = await fetch(`${import.meta.env.VITE_BASE_URL}/director_interaction_marks/${facultyId}`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.marks.director_marks || null;
+    }
+    return null;
+  };
+
+  const getLockedStatus = async (facultyId) => {
+    const res = await fetch(`${import.meta.env.VITE_BASE_URL}/get-external-lock-status/${facultyId}`);
+    if (res.ok) {
+      const data = await res.json();
+      console.log("Lock status data:", data.isLocked);
+      return data.isLocked || false;
+    }
+    return false;
+  };
 
   // Open modal and initialize pending assignments with current assigned externals for that faculty
   const openAssignModal = (internalFaculty) => {
@@ -112,7 +146,26 @@ const AssignExternal = () => {
     setSearchQuery("");
   };
 
-  // Handle toggle assign/unassign external for selected faculty
+  const handleFreezeExternal = async (facultyId) => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/lock-externals/${facultyId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ facultyId }),
+      });
+
+      const data = await res.json();
+      window.location.reload();
+      if (!res.ok) throw new Error(data.error || "Failed to lock externals");
+      toast.success("Externals locked successfully");
+    } catch (error) {
+      toast.error(error.message || "Failed to lock externals");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAssignExternal = (externalId) => {
     if (!selectedInternalFaculty) return;
     const facultyId = selectedInternalFaculty.id;
@@ -262,25 +315,62 @@ const AssignExternal = () => {
                         </p>
                       </div>
                       <div className="flex gap-3">
-                        <button
-                          onClick={() => openAssignModal(internal)}
-                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md flex items-center gap-2 transition-colors"
-                        >
-                          <UserPlus size={16} />
-                          <span>Assign External</span>
-                        </button>
-                        <button
-                          onClick={() =>
-                            navigate(`/director-evaluate/${internal.id}`, {
-                              state: { faculty: internal, department: internal.department },
-                            })
-                          }
-                          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center gap-2 transition-colors"
-                          title="Evaluate faculty"
-                        >
-                          <FileText size={16} />
-                          <span>Evaluate</span>
-                        </button>
+
+                        {
+                          internal.review_status === "completed" ?
+                            (
+                              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-md text-sm font-medium flex items-center">
+                                <CheckCircle size={14} className="mr-1" />
+                                Completed
+                              </span>
+                            ) :
+                            internal.isExternalsFinal ? (
+                              console.log("internal", internal),
+                              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-md text-sm font-medium flex items-center">
+                                <CheckCircle size={14} className="mr-1" />
+                                Freezed
+                              </span>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => openAssignModal(internal)}
+                                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md flex items-center gap-2 transition-colors"
+                                >
+                                  <UserPlus size={16} />
+                                  <span>Assign External</span>
+                                </button>
+                                <button
+                                  onClick={() => handleFreezeExternal(internal.id)}
+                                  className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md flex items-center gap-2 transition-colors"
+                                  title="Freeze externals"
+                                >
+                                  <Lock size={16} />
+                                  <span>Freeze</span>
+                                </button>
+                              </>
+                            )
+                        }
+                        {internal.isDirectorMarksGiven ? (
+                          <div className="flex items-center">
+                            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-md text-sm font-medium flex items-center">
+                              <CheckCircle size={14} className="mr-1" />
+                              Marks : {internal.directorMarks} / 100
+                            </span>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              navigate(`/director-evaluate/${internal.id}`, {
+                                state: { faculty: internal, department: internal.department },
+                              })
+                            }
+                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center gap-2 transition-colors"
+                            title="Evaluate faculty"
+                          >
+                            <FileText size={16} />
+                            <span>Evaluate</span>
+                          </button>
+                        )}
                       </div>
                     </div>
 
@@ -297,7 +387,7 @@ const AssignExternal = () => {
                         <ul className="space-y-2">
                           {assignedExternal.map((external) => (
                             <li
-                              key={external._id}
+                              key={external.external_id}
                               className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-md"
                             >
                               <div className="flex items-center">
@@ -306,15 +396,19 @@ const AssignExternal = () => {
                                   {external.reviewer_info.full_name}
                                 </span>
                               </div>
-                              <button
-                                onClick={() =>
-                                  handleRemoveExternal(internal.id, external.external_id)
-                                }
-                                className="text-red-600 hover:text-red-800"
-                                title="Remove assignment"
-                              >
-                                <Trash2 size={16} />
-                              </button>
+                              {
+                                internal.isExternalsFinal ? null : (
+                                  <button
+                                    onClick={() =>
+                                      handleRemoveExternal(internal.id, external.external_id)
+                                    }
+                                    className="text-red-600 hover:text-red-800"
+                                    title="Remove assignment"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                )
+                              }
                             </li>
                           ))}
                         </ul>
