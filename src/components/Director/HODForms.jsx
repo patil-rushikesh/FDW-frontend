@@ -263,28 +263,41 @@ const HODForms = () => {
   const renderActionButton = (faculty) => {
     if (faculty.status === "authority_verification_pending") {
       return (
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-          onClick={() => {
-            navigate("/ConfirmVerifybyDirector", {
-              state: {
-                faculty: {
-                  name: faculty.name,
-                  id: faculty._id,
-                  role: faculty.role,
-                  department: faculty.department,
-                  status: "authority_verification_pending",
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            onClick={async () => {
+              // Open PDF in new tab
+              const url = `${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}/generate-doc`;
+              window.open(url, "_blank");
+            }}
+          >
+            <span className="font-semibold text-blue-700">View PDF</span>
+          </button>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+            onClick={() => {
+              navigate("/ConfirmVerifybyDirector", {
+                state: {
+                  faculty: {
+                    name: faculty.name,
+                    id: faculty._id,
+                    role: faculty.role,
+                    department: faculty.department,
+                    status: "authority_verification_pending",
+                  },
+                  portfolioData: {},
+                  verifiedMarks: {},
                 },
-                portfolioData: {},
-                verifiedMarks: {},
-              },
-            });
-          }}
-        >
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <span className="font-semibold text-green-700">Verify</span>
-        </button>
+              });
+            }}
+          >
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <span className="font-semibold text-green-700">Verify</span>
+          </button>
+        </div>
       );
     } else if (faculty.status === "Portfolio_Mark_pending") {
       return (

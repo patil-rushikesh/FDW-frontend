@@ -272,28 +272,38 @@ const DeanForms = () => {
   const renderActionButton = (faculty) => {
     if (faculty.status === "authority_verification_pending") {
       return (
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-          onClick={() => {
-            navigate("/ConfirmVerifybyDirector", {
-              state: {
-                faculty: {
-                  name: faculty.name,
-                  id: faculty._id,
-                  role: faculty.role,
-                  department: faculty.department,
-                  status: "authority_verification_pending",
+        <span className="flex gap-2">
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            onClick={() => viewFacultyPDF(faculty)}
+          >
+            <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+            <span className="font-semibold text-blue-700">View PDF</span>
+          </button>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+            onClick={() => {
+              navigate("/ConfirmVerifybyDirector", {
+                state: {
+                  faculty: {
+                    name: faculty.name,
+                    id: faculty._id,
+                    role: faculty.role,
+                    department: faculty.department,
+                    status: "authority_verification_pending",
+                  },
+                  portfolioData: {},
+                  verifiedMarks: {},
                 },
-                portfolioData: {},
-                verifiedMarks: {},
-              },
-            });
-          }}
-        >
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <span className="font-semibold text-green-700">Verify</span>
-        </button>
+              });
+            }}
+          >
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <span className="font-semibold text-green-700">Verify</span>
+          </button>
+        </span>
       );
     } else if (faculty.status === "Portfolio_Mark_pending") {
       return (
