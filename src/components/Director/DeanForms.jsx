@@ -62,12 +62,26 @@ const DeanForms = () => {
         const response = await fetch(`${import.meta.env.VITE_BASE_URL}/all-faculties`);
         if (!response.ok) throw new Error("Failed to fetch faculty data");
         const responseData = await response.json();
-
+          responseData.data.forEach(async (faculty) => {
+          try {
+            const res = await fetch(`${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}`);
+            if (res.ok) {
+              const facultyDetail = await res.json();
+              console.log(`Fetched detail for ${faculty.name} (${faculty._id}):`, facultyDetail);
+            } else {
+              console.warn(`Failed to fetch detail for ${faculty.name} (${faculty._id})`);
+            }
+          } catch (err) {
+            console.error(`Error fetching detail for ${faculty.name} (${faculty._id}):`, err);
+          }
+        });
         if (responseData.status === "success") {
-          // Filter Deans only
+          // Filter Dean and Associate Dean only
           const deanFaculty = responseData.data.filter(
             (faculty) =>
-              faculty.role === "Dean" || faculty.designation === "Dean"
+              faculty.role === "Dean" ||
+              faculty.designation === "Dean" ||
+              faculty.designation === "Associate Dean"
           );
 
           // Calculate status counts for summary
@@ -83,7 +97,6 @@ const DeanForms = () => {
 
           deanFaculty.forEach((faculty) => {
             const status = faculty.status?.toLowerCase() || "pending";
-
             if (status.includes("done")) {
               summary.done++;
             } else if (
@@ -103,20 +116,26 @@ const DeanForms = () => {
           });
 
           setStatusSummary(summary);
+          setDepartments([...new Set(responseData.data.map((f) => f.department))].filter(Boolean));
+          setDesignations([...new Set(responseData.data.map((f) => f.designation))].filter(Boolean));
 
-          // Extract unique departments from the faculty data
-          const uniqueDepartments = [
-            ...new Set(responseData.data.map((f) => f.department)),
-          ].filter(Boolean);
-          setDepartments(uniqueDepartments);
-
-          // Extract unique designations for filter options
-          const uniqueDesignations = [
-            ...new Set(responseData.data.map((f) => f.designation)),
-          ].filter(Boolean);
-          setDesignations(uniqueDesignations);
-
-          setFacultyData(processVerificationStatus(deanFaculty));
+          // Fetch total marks for each Dean from /<department>/<user_id>/total and add to faculty object
+          const deanWithTotals = await Promise.all(deanFaculty.map(async (faculty) => {
+            try {
+              const res = await fetch(`${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}/total`);
+              if (res.ok) {
+                const totalData = await res.json();
+                return {
+                  ...faculty,
+                  grand_total: totalData.grand_total?.grand_total ?? null
+                };
+              }
+            } catch (err) {
+              console.error(`Error fetching total for ${faculty._id}:`, err);
+            }
+            return faculty;
+          }));
+          setFacultyData(processVerificationStatus(deanWithTotals));
         } else {
           throw new Error("API returned an error");
         }
@@ -126,7 +145,6 @@ const DeanForms = () => {
         setLoading(false);
       }
     };
-
     fetchFaculties();
   }, []);
 
@@ -307,11 +325,13 @@ const DeanForms = () => {
   const displayMarks = (faculty) => {
     if (faculty.status === "pending") {
       return "0";
-    } else if (typeof faculty.grand_marks === "object") {
-      return faculty.grand_marks?.grand_total || "N/A";
-    } else {
-      return faculty.grand_marks || "N/A";
     }
+    // Get verified marks and interaction marks
+    const verifiedMarks = faculty.portfolio?.grand_total || 0;
+    const interactionMarks = faculty.interaction_marks || 0;
+    // Get total marks from the data (prefer backend value)
+    const totalMarks = faculty.grand_marks?.grand_total || faculty.grand_total || faculty.total_marks || verifiedMarks + interactionMarks;
+    return totalMarks ? totalMarks.toFixed(2) : "N/A";
   };
 
   const handleStatusFilter = (status) => {

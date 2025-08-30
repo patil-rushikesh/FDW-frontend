@@ -52,7 +52,7 @@ const AssignExternal = () => {
             designation: f.desg,
             employeeId: f.empId,
             role: f.role,
-            review_status: f.review_status || "pending",
+            review_status: f.review_status || "interaction pending",
             isDirectorMarksGiven: f.isDirectorMarksGiven || false,
             isExternalsFinal: isExternalsFinal || false,
             directorMarks: directorMarks
