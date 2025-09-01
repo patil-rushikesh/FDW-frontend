@@ -324,10 +324,18 @@ const HODForms = () => {
     }
   };
 
-  // Update the displayMarks function to handle the object case
+  // Only show marks for authority_verification_pending, interaction_pending, or done; others show 'N/A'
   const displayMarks = (faculty) => {
-    if (faculty.status === "pending") {
-      return "0";
+    const allowedStatuses = [
+      "authority_verification_pending",
+      "interaction_pending",
+      "done",
+      "Done",
+      "Authority_Verification_Pending",
+      "Interaction_pending"
+    ];
+    if (!allowedStatuses.includes((faculty.status || "").toLowerCase())) {
+      return "N/A";
     }
     // Prefer backend total marks if available
     if (faculty.grand_total) {
