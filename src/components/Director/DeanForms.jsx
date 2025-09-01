@@ -80,8 +80,7 @@ const DeanForms = () => {
           const deanFaculty = responseData.data.filter(
             (faculty) =>
               faculty.role === "Dean" ||
-              faculty.designation === "Dean" ||
-              faculty.designation === "Associate Dean"
+              faculty.designation === "Dean" 
           );
 
           // Calculate status counts for summary
