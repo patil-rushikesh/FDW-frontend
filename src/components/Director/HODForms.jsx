@@ -64,9 +64,12 @@ const HODForms = () => {
         const responseData = await response.json();
 
         if (responseData.status === "success") {
-          // Filter HODs only
+          // Filter HOD and Associate HOD only
           const hodFaculty = responseData.data.filter(
-            (faculty) => faculty.role === "HOD" || faculty.designation === "HOD"
+            (faculty) =>
+              faculty.role === "HOD" ||
+              faculty.designation === "HOD" ||
+              faculty.designation === "Associate HOD"
           );
 
           // Calculate status counts for summary
@@ -82,7 +85,6 @@ const HODForms = () => {
 
           hodFaculty.forEach((faculty) => {
             const status = faculty.status?.toLowerCase() || "pending";
-
             if (status.includes("done")) {
               summary.done++;
             } else if (
@@ -102,20 +104,26 @@ const HODForms = () => {
           });
 
           setStatusSummary(summary);
+          setDepartments([...new Set(responseData.data.map((f) => f.department))].filter(Boolean));
+          setDesignations([...new Set(responseData.data.map((f) => f.designation))].filter(Boolean));
 
-          // Extract unique departments from the faculty data
-          const uniqueDepartments = [
-            ...new Set(responseData.data.map((f) => f.department)),
-          ].filter(Boolean);
-          setDepartments(uniqueDepartments);
-
-          // Extract unique designations for filter options
-          const uniqueDesignations = [
-            ...new Set(responseData.data.map((f) => f.designation)),
-          ].filter(Boolean);
-          setDesignations(uniqueDesignations);
-
-          setFacultyData(processVerificationStatus(hodFaculty));
+          // Fetch total marks for each HOD from /<department>/<user_id>/total and add to faculty object
+          const hodWithTotals = await Promise.all(hodFaculty.map(async (faculty) => {
+            try {
+              const res = await fetch(`${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}/total`);
+              if (res.ok) {
+                const totalData = await res.json();
+                return {
+                  ...faculty,
+                  grand_total: totalData.grand_total?.grand_total ?? null
+                };
+              }
+            } catch (err) {
+              console.error(`Error fetching total for ${faculty._id}:`, err);
+            }
+            return faculty;
+          }));
+          setFacultyData(processVerificationStatus(hodWithTotals));
         } else {
           throw new Error("API returned an error");
         }
@@ -125,7 +133,6 @@ const HODForms = () => {
         setLoading(false);
       }
     };
-
     fetchFaculties();
   }, []);
 
@@ -133,7 +140,10 @@ const HODForms = () => {
   const getNumericMarks = (faculty) => {
     if (!faculty) return 0;
     if (faculty.status === "pending") return 0;
-
+    // Prefer backend total marks if available
+    if (faculty.grand_total) {
+      return Number(faculty.grand_total) || 0;
+    }
     if (typeof faculty.grand_marks === "object" && faculty.grand_marks) {
       return Number(faculty.grand_marks.grand_total || 0);
     } else if (typeof faculty.grand_marks === "number") {
@@ -253,28 +263,41 @@ const HODForms = () => {
   const renderActionButton = (faculty) => {
     if (faculty.status === "authority_verification_pending") {
       return (
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-          onClick={() => {
-            navigate("/ConfirmVerifybyDirector", {
-              state: {
-                faculty: {
-                  name: faculty.name,
-                  id: faculty._id,
-                  role: faculty.role,
-                  department: faculty.department,
-                  status: "authority_verification_pending",
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            onClick={async () => {
+              // Open PDF in new tab
+              const url = `${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}/generate-doc`;
+              window.open(url, "_blank");
+            }}
+          >
+            <span className="font-semibold text-blue-700">View PDF</span>
+          </button>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+            onClick={() => {
+              navigate("/ConfirmVerifybyDirector", {
+                state: {
+                  faculty: {
+                    name: faculty.name,
+                    id: faculty._id,
+                    role: faculty.role,
+                    department: faculty.department,
+                    status: "authority_verification_pending",
+                  },
+                  portfolioData: {},
+                  verifiedMarks: {},
                 },
-                portfolioData: {},
-                verifiedMarks: {},
-              },
-            });
-          }}
-        >
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <span className="font-semibold text-green-700">Verify</span>
-        </button>
+              });
+            }}
+          >
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <span className="font-semibold text-green-700">Verify</span>
+          </button>
+        </div>
       );
     } else if (faculty.status === "Portfolio_Mark_pending") {
       return (
@@ -306,7 +329,12 @@ const HODForms = () => {
   const displayMarks = (faculty) => {
     if (faculty.status === "pending") {
       return "0";
-    } else if (typeof faculty.grand_marks === "object") {
+    }
+    // Prefer backend total marks if available
+    if (faculty.grand_total) {
+      return Number(faculty.grand_total).toFixed(2);
+    }
+    if (typeof faculty.grand_marks === "object") {
       return faculty.grand_marks?.grand_total || "N/A";
     } else {
       return faculty.grand_marks || "N/A";
