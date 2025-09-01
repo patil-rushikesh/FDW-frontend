@@ -1,0 +1,2877 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { ClipLoader } from "react-spinners";
+
+const calculateVerifiedTotal = (sectionScores) => {
+  const totals = {};
+
+  // Calculate section totals
+  sectionScores.forEach(({ section, marks }) => {
+    // Skip journalPapers and conferencePapers sections
+    if (
+      section !== "journalPapers" &&
+      section !== "conferencePapers" &&
+      section !== "bookChapters" &&
+      section !== "books" &&
+      section !== "citations" &&
+      section !== "copyrightIndividual" &&
+      section !== "copyrightInstitute" &&
+      section !== "patentIndividual" &&
+      section !== "patentInstitute" &&
+      section !== "researchGrants" &&
+      section !== "trainingPrograms" &&
+      section !== "nonResearchGrants" &&
+      section !== "productDevelopment" &&
+      section !== "startup" &&
+      section !== "awardsAndFellowships" &&
+      section !== "industryInteraction" &&
+      section !== "internshipPlacement"
+    ) {
+      if (!totals[section]) {
+        totals[section] = 0;
+      }
+      totals[section] += marks;
+    }
+  });
+
+  // Apply section-specific limits
+  if (totals.bookChapters > 150) totals.bookChapters = 150;
+  if (totals.books > 200) totals.books = 200;
+  if (totals.citations > 50) totals.citations = 50;
+  if (totals.copyrightIndividual > 30) totals.copyrightIndividual = 30;
+  if (totals.patentIndividual > 100) totals.patentIndividual = 100;
+  if (totals.trainingPrograms > 40) totals.trainingPrograms = 40;
+  if (totals.nonResearchGrants > 40) totals.nonResearchGrants = 40;
+  if (totals.productDevelopment > 100) totals.productDevelopment = 100;
+  if (totals.awardsAndFellowships > 50) totals.awardsAndFellowships = 50;
+
+  return totals;
+};
+
+const calculateTotalVerifiedMarks = (verifiedScores, facultyData) => {
+  const sectionScores = [];
+
+  // Collect all individual scores with their sections
+  Object.entries(verifiedScores).forEach(([key, value]) => {
+    if (value?.marks) {
+      sectionScores.push({
+        section: key,
+        marks: value.marks,
+      });
+    }
+  });
+  console.log(verifiedScores);
+
+  // Calculate section totals with limits
+  const sectionTotals = calculateVerifiedTotal(sectionScores);
+  
+
+  // Calculate final total
+  let totalBeforeCadreLimit = Object.values(sectionTotals).reduce(
+    (sum, val) => sum + val,
+    0
+  );
+
+  // Apply cadre-specific limits
+  let finalTotal;
+  switch (facultyData.role) {
+    case "Professor":
+      finalTotal = Math.min(370, totalBeforeCadreLimit);
+      break;
+    case "Associate Professor":
+      finalTotal = Math.min(300, totalBeforeCadreLimit);
+      break;
+    case "Assistant Professor":
+      finalTotal = Math.min(210, totalBeforeCadreLimit);
+      break;
+    default:
+      finalTotal = totalBeforeCadreLimit;
+  }
+
+  return {
+    sectionTotals,
+    totalBeforeCadreLimit,
+    finalTotal,
+  };
+};
+
+const SectionCard = ({ title, icon, borderColor, children }) => (
+  <div
+    className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${borderColor} hover:shadow-lg transition-all duration-300 mb-8`}
+  >
+    <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-3">
+      <span className="text-2xl">{icon}</span>
+      {title}
+    </h3>
+    {children}
+  </div>
+);
+
+// Update ScoreCard component
+const ScoreCard = ({
+  label,
+  score,
+  total,
+  verifiedScore,
+  onVerifiedScoreChange,
+  sectionVerifiedScores = {},
+}) => {
+  // Calculate running total from subsection scores
+  const runningTotal = Object.entries(sectionVerifiedScores).reduce(
+    (sum, [_, value]) => sum + (value?.marks || 0),
+    0
+  );
+
+  // Display either the manually entered section total or calculated running total
+  const displayTotal = verifiedScore || runningTotal;
+
+  return (
+    <div className="space-y-2">
+      <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg flex items-center justify-between shadow-sm">
+        <span className="font-medium text-gray-700">{label}:</span>
+        <span className="text-lg font-bold text-blue-600">
+          {score} / {total}
+        </span>
+      </div>
+      <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border-2 border-green-200">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-gray-700">
+              Running Verified Total:
+            </span>
+            <span className="text-lg font-bold text-green-600">
+              {runningTotal}
+            </span>
+          </div>
+          <div>
+            <input
+              onWheel={(e) => e.target.blur()} 
+              type="number"
+              value={verifiedScore || ""}
+              onChange={(e) =>
+                onVerifiedScoreChange(parseInt(e.target.value) || 0)
+              }
+              placeholder="Enter section total (optional)"
+              className="w-full px-3 py-2 text-gray-700 bg-white border border-green-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            />
+          </div>
+          <div className="flex items-center justify-between border-t pt-2 mt-2">
+            <span className="font-medium text-gray-700">
+              Final Verified Score:
+            </span>
+            <span className="text-lg font-bold text-green-600">
+              {displayTotal}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Enhanced InputFieldWithProof component with optional calculatedMarks override
+const InputFieldWithProof = ({
+  label,
+  name,
+  value,
+  proofValue,
+  onVerifiedScoreChange,
+  verifiedScore,
+  multiplier = 1,
+  calculatedMarks = null, // Allow override of calculated marks
+}) => {
+  // Calculate marks based on count and multiplier if not explicitly provided
+  const displayMarks = calculatedMarks !== null ? calculatedMarks : value * multiplier;
+  
+  return (
+    <div className="space-y-2 mb-4">
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <div className="flex gap-2 items-center">
+        <input
+          onWheel={(e) => e.target.blur()}
+          type="number"
+          name={name}
+          value={value || 0}
+          disabled={true}
+          className="block w-1/6 px-4 py-2 rounded-md border border-gray-300 bg-gray-100 text-gray-700 cursor-not-allowed"
+        />
+        {proofValue ? (
+          <a
+            href={proofValue}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
+          >
+            View Document
+          </a>
+        ) : (
+          <span className="px-4 py-2 bg-gray-200 text-gray-600 font-medium rounded-md">
+            View
+          </span>
+        )}
+        {/* Display calculated marks with updated background and border color */}
+        <div className="px-4 py-2 bg-blue-50 text-blue-800 font-medium rounded-md border border-blue-300">
+          {displayMarks}
+        </div>
+        <input
+           onWheel={(e) => e.target.blur()} 
+          type="number"
+          value={verifiedScore || ""}
+          onChange={(e) => onVerifiedScoreChange(parseInt(e.target.value) || 0)}
+          min="0"
+          placeholder="Verified Score"
+          className="w-1/6 px-3 py-2 text-gray-700 bg-white border border-green-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        />
+      </div>
+    </div>
+  );
+};
+
+const VerificationForm = () => {
+  const navigate = useNavigate();
+  const { department, facultyId } = useParams();
+  const { isAuthenticated } = useAuth();
+  const userData = JSON.parse(localStorage.getItem("userData"));
+
+  // Add this useEffect to fetch user data
+  useEffect(() => {
+    const fetchfacultyData = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/users/${facultyId}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+        const data = await response.json();
+        // Store the user data in state
+        setfacultyData(data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        alert("Failed to load user data");
+      }
+    };
+
+    if (facultyId) {
+      fetchfacultyData();
+    }
+  }, [facultyId]);
+
+  // Add user data state
+  const [facultyData, setfacultyData] = useState(null);
+
+  console.log(facultyData);
+
+  const initialVerifiedScores = {
+    journalPapers: { marks: 0 },
+    conferencePapers: { marks: 0 },
+    bookChapters: { marks: 0 },
+    books: { marks: 0 },
+    citations: { marks: 0 },
+    copyrightIndividual: { marks: 0 },
+    copyrightInstitute: { marks: 0 },
+    patentIndividual: { marks: 0 },
+    patentInstitute: { marks: 0 },
+    researchGrants: { marks: 0 },
+    trainingPrograms: { marks: 0 },
+    nonResearchGrants: { marks: 0 },
+    productDevelopment: { marks: 0 },
+    startup: { marks: 0 },
+    awardsAndFellowships: { marks: 0 },
+    industryInteraction: { marks: 0 },
+    internshipPlacement: { marks: 0 },
+  };
+
+  const initialState = {
+    // 1. Papers Published in Quality Journal
+    sciJournalPapers: { count: 0, proof: "" },
+    esciJournalPapers: { count: 0, proof: "" },
+    scopusJournalPapers: { count: 0, proof: "" },
+    ugcCareJournalPapers: { count: 0, proof: "" },
+    otherJournalPapers: { count: 0, proof: "" },
+
+    // 2. Papers Published in International Conference
+    scopusWosConferencePapers: { count: 0, proof: "" },
+    otherConferencePapers: { count: 0, proof: "" },
+
+    // 3. Book Chapter Publication
+    scopusWosBooksChapters: { count: 0, proof: "" },
+    otherBooksChapters: { count: 0, proof: "" },
+
+    // 4. Book Publication
+    scopusWosBooks: { count: 0, proof: "" },
+    nonIndexedIntlNationalBooks: { count: 0, proof: "" },
+    localPublisherBooks: { count: 0, proof: "" },
+
+    // 5. Last three Years Citations
+    webOfScienceCitations: { count: 0, proof: "" },
+    scopusCitations: { count: 0, proof: "" },
+    googleScholarCitations: { count: 0, proof: "" },
+
+    // 6. Copyright in Individual Name
+    indianCopyrightRegistered: { count: 0, proof: "" },
+    indianCopyrightGranted: { count: 0, proof: "" },
+
+    // 7. Copyright in Institute Name
+    indianCopyrightRegisteredInstitute: { count: 0, proof: "" },
+    indianCopyrightGrantedInstitute: { count: 0, proof: "" },
+
+    // 8. Patent in Individual name
+    indianPatentRegistered: { count: 0, proof: "" },
+    indianPatentPublished: { count: 0, proof: "" },
+    indianPatentGranted: { count: 0, proof: "" },
+    indianPatentCommercialized: { count: 0, proof: "" },
+
+    // 9. Patent in Institute name
+    indianPatentRegisteredInstitute: { count: 0, proof: "" },
+    indianPatentPublishedInstitute: { count: 0, proof: "" },
+    indianPatentGrantedInstitute: { count: 0, proof: "" },
+    indianPatentCommercializedInstitute: { count: 0, proof: "" },
+
+    // 10. Grants received for research projects
+    researchGrants: { amount: 0, proof: "" },
+
+    // 11. Revenue Generated through Training Programs
+    trainingProgramsRevenue: { amount: 0, proof: "" },
+
+    // 12. Non-research/ Non consultancy Grant
+    nonResearchGrants: { amount: 0, proof: "" },
+
+    // 13. Product Developed with PCCoE-CIIL Stake
+    commercializedProducts: { count: 0, proof: "" },
+    developedProducts: { count: 0, proof: "" },
+    proofOfConcepts: { count: 0, proof: "" },
+
+    // 14. Start Up with PCCoE-CIIL Stake
+    startupRevenueFiftyK: { count: 0, proof: "" },
+    startupFundsFiveLakhs: { count: 0, proof: "" },
+    startupProducts: { count: 0, proof: "" },
+    startupPOCs: { count: 0, proof: "" },
+    startupRegistered: { count: 0, proof: "" },
+
+    // 15. Award/ Fellowship Received
+    internationalAwards: { count: 0, proof: "" },
+    governmentAwards: { count: 0, proof: "" },
+    nationalAwards: { count: 0, proof: "" },
+    internationalFellowships: { count: 0, proof: "" },
+    nationalFellowships: { count: 0, proof: "" },
+
+    // 16. Outcome through National/ International Industry/ University Interaction
+    activeMoUs: { count: 0, proof: "" },
+    industryCollaboration: { count: 0, proof: "" },
+
+    // 17. Industry association for internship/placement
+    internshipPlacementOffers: { count: 0, proof: "" },
+  };
+
+  const [formData, setFormData] = useState(initialState);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [verifiedScores, setVerifiedScores] = useState(initialVerifiedScores);
+  const [finalRemarks, setFinalRemarks] = useState("");
+
+  useEffect(() => {
+    const transformApiResponse = (data) => {
+      const newFormData = { ...initialState };
+      const newVerifiedScores = {
+        // Journal Papers
+        sciJournalPapers: { marks: 0 },
+        esciJournalPapers: { marks: 0 },
+        scopusJournalPapers: { marks: 0 },
+        ugcCareJournalPapers: { marks: 0 },
+        otherJournalPapers: { marks: 0 },
+        journalPapers: { marks: 0 },
+
+        // Conference Papers
+        scopusWosConferencePapers: { marks: 0 },
+        otherConferencePapers: { marks: 0 },
+        conferencePapers: { marks: 0 },
+
+        // Book Chapters
+        scopusWosBooksChapters: { marks: 0 },
+        otherBooksChapters: { marks: 0 },
+        bookChapters: { marks: 0 },
+
+        // Books
+        scopusWosBooks: { marks: 0 },
+        nonIndexedIntlNationalBooks: { marks: 0 },
+        localPublisherBooks: { marks: 0 },
+        books: { marks: 0 },
+
+        // Citations
+        webOfScienceCitations: { marks: 0 },
+        scopusCitations: { marks: 0 },
+        googleScholarCitations: { marks: 0 },
+        citations: { marks: 0 },
+
+        // Copyright Individual
+        indianCopyrightRegistered: { marks: 0 },
+        indianCopyrightGranted: { marks: 0 },
+        copyrightIndividual: { marks: 0 },
+
+        // Copyright Institute
+        indianCopyrightRegisteredInstitute: { marks: 0 },
+        indianCopyrightGrantedInstitute: { marks: 0 },
+        copyrightInstitute: { marks: 0 },
+
+        // Patent Individual
+        indianPatentRegistered: { marks: 0 },
+        indianPatentPublished: { marks: 0 },
+        indianPatentGranted: { marks: 0 },
+        indianPatentCommercialized: { marks: 0 },
+        patentIndividual: { marks: 0 },
+
+        // Patent Institute
+        indianPatentRegisteredInstitute: { marks: 0 },
+        indianPatentPublishedInstitute: { marks: 0 },
+        indianPatentGrantedInstitute: { marks: 0 },
+        indianPatentCommercializedInstitute: { marks: 0 },
+        patentInstitute: { marks: 0 },
+
+        // Grants
+        researchGrantsAmount: { marks: 0 },
+        researchGrants: { marks: 0 },
+        trainingProgramsRevenueAmount: { marks: 0 },
+        trainingPrograms: { marks: 0 },
+        nonResearchGrantsAmount: { marks: 0 },
+        nonResearchGrants: { marks: 0 },
+
+        // Product Development
+        commercializedProducts: { marks: 0 },
+        developedProducts: { marks: 0 },
+        proofOfConcepts: { marks: 0 },
+        productDevelopment: { marks: 0 },
+
+        // Startup
+        startupRevenueFiftyK: { marks: 0 },
+        startupFundsFiveLakhs: { marks: 0 },
+        startupProducts: { marks: 0 },
+        startupPOCs: { marks: 0 },
+        startupRegistered: { marks: 0 },
+        startup: { marks: 0 },
+
+        // Awards and Fellowships
+        internationalAwards: { marks: 0 },
+        governmentAwards: { marks: 0 },
+        nationalAwards: { marks: 0 },
+        internationalFellowships: { marks: 0 },
+        nationalFellowships: { marks: 0 },
+        awardsAndFellowships: { marks: 0 },
+
+        // Industry Interaction
+        activeMoUs: { marks: 0 },
+        industryCollaboration: { marks: 0 },
+        industryInteraction: { marks: 0 },
+
+        // Internship Placement
+        internshipPlacementOffers: { marks: 0 },
+        internshipPlacement: { marks: 0 },
+      };
+
+      if (data[1]) {
+        // Journal Papers
+        newFormData.sciJournalPapers = {
+          count: data[1].journalPapers?.sciCount || 0,
+          proof: data[1].journalPapers?.sciProof || "",
+        };
+        newVerifiedScores.sciJournalPapers.marks =
+          data[1].journalPapers?.ver_sciMarks || 0;
+
+        newFormData.esciJournalPapers = {
+          count: data[1].journalPapers?.esciCount || 0,
+          proof: data[1].journalPapers?.esciProof || "",
+        };
+        newVerifiedScores.esciJournalPapers.marks =
+          data[1].journalPapers?.ver_esciMarks || 0;
+
+        newFormData.scopusJournalPapers = {
+          count: data[1].journalPapers?.scopusCount || 0,
+          proof: data[1].journalPapers?.scopusProof || "",
+        };
+        newVerifiedScores.scopusJournalPapers.marks =
+          data[1].journalPapers?.ver_scopusMarks || 0;
+
+        newFormData.ugcCareJournalPapers = {
+          count: data[1].journalPapers?.ugcCareCount || 0,
+          proof: data[1].journalPapers?.ugcCareProof || "",
+        };
+        newVerifiedScores.ugcCareJournalPapers.marks =
+          data[1].journalPapers?.ver_ugcCareMarks || 0;
+
+        newFormData.otherJournalPapers = {
+          count: data[1].journalPapers?.otherCount || 0,
+          proof: data[1].journalPapers?.otherProof || "",
+        };
+        newVerifiedScores.otherJournalPapers.marks =
+          data[1].journalPapers?.ver_otherMarks || 0;
+
+        newVerifiedScores.journalPapers.marks =
+          data[1].journalPapers?.verified_marks || 0;
+      }
+
+      if (data[2]) {
+        // Conference Papers
+        newFormData.scopusWosConferencePapers = {
+          count: data[2].conferencePapers?.scopusWosCount || 0,
+          proof: data[2].conferencePapers?.scopusWosProof || "",
+        };
+        newVerifiedScores.scopusWosConferencePapers.marks =
+          data[2].conferencePapers?.ver_scopusWosMarks || 0;
+
+        newFormData.otherConferencePapers = {
+          count: data[2].conferencePapers?.otherCount || 0,
+          proof: data[2].conferencePapers?.otherProof || "",
+        };
+        newVerifiedScores.otherConferencePapers.marks =
+          data[2].conferencePapers?.ver_otherMarks || 0;
+
+        newVerifiedScores.conferencePapers.marks =
+          data[2].conferencePapers?.verified_marks || 0;
+      }
+
+      if (data[3]) {
+        // Book Chapters
+        newFormData.scopusWosBooksChapters = {
+          count: data[3].bookChapters?.scopusWosCount || 0,
+          proof: data[3].bookChapters?.scopusWosProof || "",
+        };
+        newVerifiedScores.scopusWosBooksChapters.marks =
+          data[3].bookChapters?.ver_scopusWosMarks || 0;
+
+        newFormData.otherBooksChapters = {
+          count: data[3].bookChapters?.otherCount || 0,
+          proof: data[3].bookChapters?.otherProof || "",
+        };
+        newVerifiedScores.otherBooksChapters.marks =
+          data[3].bookChapters?.ver_otherMarks || 0;
+
+        newVerifiedScores.bookChapters.marks =
+          data[3].bookChapters?.verified_marks || 0;
+      }
+
+      if (data[4]) {
+        // Books
+        newFormData.scopusWosBooks = {
+          count: data[4].books?.scopusWosCount || 0,
+          proof: data[4].books?.scopusWosProof || "",
+        };
+        newVerifiedScores.scopusWosBooks.marks =
+          data[4].books?.ver_scopusWosMarks || 0;
+
+        newFormData.nonIndexedIntlNationalBooks = {
+          count: data[4].books?.nonIndexedCount || 0,
+          proof: data[4].books?.nonIndexedProof || "",
+        };
+        newVerifiedScores.nonIndexedIntlNationalBooks.marks =
+          data[4].books?.ver_nonIndexedMarks || 0;
+
+        newFormData.localPublisherBooks = {
+          count: data[4].books?.localCount || 0,
+          proof: data[4].books?.localProof || "",
+        };
+        newVerifiedScores.localPublisherBooks.marks =
+          data[4].books?.ver_localMarks || 0;
+
+        newVerifiedScores.books.marks = data[4].books?.verified_marks || 0;
+      }
+
+      if (data[5]) {
+        // Citations
+        newFormData.webOfScienceCitations = {
+          count: data[5].citations?.webOfScienceCount || 0,
+          proof: data[5].citations?.webOfScienceProof || "",
+        };
+        newVerifiedScores.webOfScienceCitations.marks =
+          data[5].citations?.ver_webOfScienceMarks || 0;
+
+        newFormData.scopusCitations = {
+          count: data[5].citations?.scopusCount || 0,
+          proof: data[5].citations?.scopusProof || "",
+        };
+        newVerifiedScores.scopusCitations.marks =
+          data[5].citations?.ver_scopusMarks || 0;
+
+        newFormData.googleScholarCitations = {
+          count: data[5].citations?.googleScholarCount || 0,
+          proof: data[5].citations?.googleScholarProof || "",
+        };
+        newVerifiedScores.googleScholarCitations.marks =
+          data[5].citations?.ver_googleScholarMarks || 0;
+
+        newVerifiedScores.citations.marks =
+          data[5].citations?.verified_marks || 0;
+      }
+
+      if (data[6]) {
+        // Copyright Individual
+        newFormData.indianCopyrightRegistered = {
+          count: data[6].copyrightIndividual?.registeredCount || 0,
+          proof: data[6].copyrightIndividual?.registeredProof || "",
+        };
+        newVerifiedScores.indianCopyrightRegistered.marks =
+          data[6].copyrightIndividual?.ver_registeredMarks || 0;
+
+        newFormData.indianCopyrightGranted = {
+          count: data[6].copyrightIndividual?.grantedCount || 0,
+          proof: data[6].copyrightIndividual?.grantedProof || "",
+        };
+        newVerifiedScores.indianCopyrightGranted.marks =
+          data[6].copyrightIndividual?.ver_grantedMarks || 0;
+
+        newVerifiedScores.copyrightIndividual.marks =
+          data[6].copyrightIndividual?.verified_marks || 0;
+      }
+
+      if (data[7]) {
+        // Copyright Institute
+        newFormData.indianCopyrightRegisteredInstitute = {
+          count: data[7].copyrightInstitute?.registeredCount || 0,
+          proof: data[7].copyrightInstitute?.registeredProof || "",
+        };
+        newVerifiedScores.indianCopyrightRegisteredInstitute.marks =
+          data[7].copyrightInstitute?.ver_registeredMarks || 0;
+
+        newFormData.indianCopyrightGrantedInstitute = {
+          count: data[7].copyrightInstitute?.grantedCount || 0,
+          proof: data[7].copyrightInstitute?.grantedProof || "",
+        };
+        newVerifiedScores.indianCopyrightGrantedInstitute.marks =
+          data[7].copyrightInstitute?.ver_grantedMarks || 0;
+
+        newVerifiedScores.copyrightInstitute.marks =
+          data[7].copyrightInstitute?.verified_marks || 0;
+      }
+
+      if (data[8]) {
+        // Patent Individual
+        newFormData.indianPatentRegistered = {
+          count: data[8].patentIndividual?.registeredCount || 0,
+          proof: data[8].patentIndividual?.registeredProof || "",
+        };
+        newVerifiedScores.indianPatentRegistered.marks =
+          data[8].patentIndividual?.ver_registeredMarks || 0;
+
+        newFormData.indianPatentPublished = {
+          count: data[8].patentIndividual?.publishedCount || 0,
+          proof: data[8].patentIndividual?.publishedProof || "",
+        };
+        newVerifiedScores.indianPatentPublished.marks =
+          data[8].patentIndividual?.ver_publishedMarks || 0;
+
+        newFormData.indianPatentGranted = {
+          count: data[8].patentIndividual?.grantedCount || 0,
+          proof: data[8].patentIndividual?.grantedProof || "",
+        };
+        newVerifiedScores.indianPatentGranted.marks =
+          data[8].patentIndividual?.ver_grantedMarks || 0;
+
+        newFormData.indianPatentCommercialized = {
+          count: data[8].patentIndividual?.commercializedCount || 0,
+          proof: data[8].patentIndividual?.commercializedProof || "",
+        };
+        newVerifiedScores.indianPatentCommercialized.marks =
+          data[8].patentIndividual?.ver_commercializedMarks || 0;
+
+        newVerifiedScores.patentIndividual.marks =
+          data[8].patentIndividual?.verified_marks || 0;
+      }
+
+      if (data[9]) {
+        // Patent Institute
+        newFormData.indianPatentRegisteredInstitute = {
+          count: data[9].patentInstitute?.registeredCount || 0,
+          proof: data[9].patentInstitute?.registeredProof || "",
+        };
+        newVerifiedScores.indianPatentRegisteredInstitute.marks =
+          data[9].patentInstitute?.ver_registeredMarks || 0;
+
+        newFormData.indianPatentPublishedInstitute = {
+          count: data[9].patentInstitute?.publishedCount || 0,
+          proof: data[9].patentInstitute?.publishedProof || "",
+        };
+        newVerifiedScores.indianPatentPublishedInstitute.marks =
+          data[9].patentInstitute?.ver_publishedMarks || 0;
+
+        newFormData.indianPatentGrantedInstitute = {
+          count: data[9].patentInstitute?.grantedCount || 0,
+          proof: data[9].patentInstitute?.grantedProof || "",
+        };
+        newVerifiedScores.indianPatentGrantedInstitute.marks =
+          data[9].patentInstitute?.ver_grantedMarks || 0;
+
+        newFormData.indianPatentCommercializedInstitute = {
+          count: data[9].patentInstitute?.commercializedCount || 0,
+          proof: data[9].patentInstitute?.commercializedProof || "",
+        };
+        newVerifiedScores.indianPatentCommercializedInstitute.marks =
+          data[9].patentInstitute?.ver_commercializedMarks || 0;
+
+        newVerifiedScores.patentInstitute.marks =
+          data[9].patentInstitute?.verified_marks || 0;
+      }
+
+      if (data[10]) {
+        // Research Grants
+        newFormData.researchGrants = {
+          amount: data[10].researchGrants?.amount || 0,
+          proof: data[10].researchGrants?.proof || "",
+        };
+        newVerifiedScores.researchGrantsAmount.marks =
+          data[10].researchGrants?.ver_amountMarks || 0;
+        newVerifiedScores.researchGrants.marks =
+          data[10].researchGrants?.verified_marks || 0;
+      }
+
+      if (data[11]) {
+        // Training Programs
+        newFormData.trainingProgramsRevenue = {
+          amount: data[11].trainingPrograms?.amount || 0,
+          proof: data[11].trainingPrograms?.proof || "",
+        };
+        newVerifiedScores.trainingProgramsRevenueAmount.marks =
+          data[11].trainingPrograms?.ver_amountMarks || 0;
+        newVerifiedScores.trainingPrograms.marks =
+          data[11].trainingPrograms?.verified_marks || 0;
+      }
+
+      if (data[12]) {
+        // Non-Research Grants
+        newFormData.nonResearchGrants = {
+          amount: data[12].nonResearchGrants?.amount || 0,
+          proof: data[12].nonResearchGrants?.proof || "",
+        };
+        newVerifiedScores.nonResearchGrantsAmount.marks =
+          data[12].nonResearchGrants?.ver_amountMarks || 0;
+        newVerifiedScores.nonResearchGrants.marks =
+          data[12].nonResearchGrants?.verified_marks || 0;
+      }
+
+      if (data[13]) {
+        // Product Development
+        newFormData.commercializedProducts = {
+          count: data[13].productDevelopment?.commercializedCount || 0,
+          proof: data[13].productDevelopment?.commercializedProof || "",
+        };
+        newVerifiedScores.commercializedProducts.marks =
+          data[13].productDevelopment?.ver_commercializedMarks || 0;
+
+        newFormData.developedProducts = {
+          count: data[13].productDevelopment?.developedCount || 0,
+          proof: data[13].productDevelopment?.developedProof || "",
+        };
+        newVerifiedScores.developedProducts.marks =
+          data[13].productDevelopment?.ver_developedMarks || 0;
+
+        newFormData.proofOfConcepts = {
+          count: data[13].productDevelopment?.pocCount || 0,
+          proof: data[13].productDevelopment?.pocProof || "",
+        };
+        newVerifiedScores.proofOfConcepts.marks =
+          data[13].productDevelopment?.ver_pocMarks || 0;
+
+        newVerifiedScores.productDevelopment.marks =
+          data[13].productDevelopment?.verified_marks || 0;
+      }
+
+      if (data[14]) {
+        // Startup
+        newFormData.startupRevenueFiftyK = {
+          count: data[14].startup?.revenueFiftyKCount || 0,
+          proof: data[14].startup?.revenueFiftyKProof || "",
+        };
+        newVerifiedScores.startupRevenueFiftyK.marks =
+          data[14].startup?.ver_revenueFiftyKMarks || 0;
+
+        newFormData.startupFundsFiveLakhs = {
+          count: data[14].startup?.fundsFiveLakhsCount || 0,
+          proof: data[14].startup?.fundsFiveLakhsProof || "",
+        };
+        newVerifiedScores.startupFundsFiveLakhs.marks =
+          data[14].startup?.ver_fundsFiveLakhsMarks || 0;
+
+        newFormData.startupProducts = {
+          count: data[14].startup?.productsCount || 0,
+          proof: data[14].startup?.productsProof || "",
+        };
+        newVerifiedScores.startupProducts.marks =
+          data[14].startup?.ver_productsMarks || 0;
+
+        newFormData.startupPOCs = {
+          count: data[14].startup?.pocCount || 0,
+          proof: data[14].startup?.pocProof || "",
+        };
+        newVerifiedScores.startupPOCs.marks =
+          data[14].startup?.ver_pocMarks || 0;
+
+        newFormData.startupRegistered = {
+          count: data[14].startup?.registeredCount || 0,
+          proof: data[14].startup?.registeredProof || "",
+        };
+        newVerifiedScores.startupRegistered.marks =
+          data[14].startup?.ver_registeredMarks || 0;
+
+        newVerifiedScores.startup.marks = data[14].startup?.verified_marks || 0;
+      }
+
+      if (data[15]) {
+        // Awards and Fellowships
+        newFormData.internationalAwards = {
+          count: data[15].awardsAndFellowships?.internationalAwardsCount || 0,
+          proof: data[15].awardsAndFellowships?.internationalAwardsProof || "",
+        };
+        newVerifiedScores.internationalAwards.marks =
+          data[15].awardsAndFellowships?.ver_internationalAwardsMarks || 0;
+
+        newFormData.governmentAwards = {
+          count: data[15].awardsAndFellowships?.governmentAwardsCount || 0,
+          proof: data[15].awardsAndFellowships?.governmentAwardsProof || "",
+        };
+        newVerifiedScores.governmentAwards.marks =
+          data[15].awardsAndFellowships?.ver_governmentAwardsMarks || 0;
+
+        newFormData.nationalAwards = {
+          count: data[15].awardsAndFellowships?.nationalAwardsCount || 0,
+          proof: data[15].awardsAndFellowships?.nationalAwardsProof || "",
+        };
+        newVerifiedScores.nationalAwards.marks =
+          data[15].awardsAndFellowships?.ver_nationalAwardsMarks || 0;
+
+        newFormData.internationalFellowships = {
+          count:
+            data[15].awardsAndFellowships?.internationalFellowshipsCount || 0,
+          proof:
+            data[15].awardsAndFellowships?.internationalFellowshipsProof || "",
+        };
+        newVerifiedScores.internationalFellowships.marks =
+          data[15].awardsAndFellowships?.ver_internationalFellowshipsMarks || 0;
+
+        newFormData.nationalFellowships = {
+          count: data[15].awardsAndFellowships?.nationalFellowshipsCount || 0,
+          proof: data[15].awardsAndFellowships?.nationalFellowshipsProof || "",
+        };
+        newVerifiedScores.nationalFellowships.marks =
+          data[15].awardsAndFellowships?.ver_nationalFellowshipsMarks || 0;
+
+        newVerifiedScores.awardsAndFellowships.marks =
+          data[15].awardsAndFellowships?.verified_marks || 0;
+      }
+
+      if (data[16]) {
+        // Industry Interaction
+        newFormData.activeMoUs = {
+          count: data[16].industryInteraction?.moUsCount || 0,
+          proof: data[16].industryInteraction?.moUsProof || "",
+        };
+        newVerifiedScores.activeMoUs.marks =
+          data[16].industryInteraction?.ver_moUsMarks || 0;
+
+        newFormData.industryCollaboration = {
+          count: data[16].industryInteraction?.collaborationCount || 0,
+          proof: data[16].industryInteraction?.collaborationProof || "",
+        };
+        newVerifiedScores.industryCollaboration.marks =
+          data[16].industryInteraction?.ver_collaborationMarks || 0;
+
+        newVerifiedScores.industryInteraction.marks =
+          data[16].industryInteraction?.verified_marks || 0;
+      }
+
+      if (data[17]) {
+        // Internship Placement
+        newFormData.internshipPlacementOffers = {
+          count: data[17].internshipPlacement?.offersCount || 0,
+          proof: data[17].internshipPlacement?.offersProof || "",
+        };
+        newVerifiedScores.internshipPlacementOffers.marks =
+          data[17].internshipPlacement?.ver_offersMarks || 0;
+
+        newVerifiedScores.internshipPlacement.marks =
+          data[17].internshipPlacement?.verified_marks || 0;
+      }
+
+      if (data.final_remarks) {
+        setFinalRemarks(data.final_remarks);
+      }
+
+      return {
+        formData: newFormData,
+        verifiedScores: newVerifiedScores,
+      };
+    };
+
+    // Update the fetchExistingData function to use the transformed verified scores
+    const fetchExistingData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/${department}/${facultyId}/B`
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data) {
+            const transformedData = transformApiResponse(data);
+            setFormData(transformedData.formData);
+            setVerifiedScores(transformedData.verifiedScores);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        alert("Failed to load existing data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchExistingData();
+  }, []);
+
+  const handleInputChange = (field, subfield, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: {
+        ...prev[field],
+        [subfield]: value,
+      },
+    }));
+  };
+
+  // Calculate scores for each section
+  const calculateScores = () => {
+    // 1. Papers Published in Quality Journal (No Maximum)
+    const journalPapersScore =
+      formData.sciJournalPapers.count * 100 +
+      formData.esciJournalPapers.count * 50 +
+      formData.scopusJournalPapers.count * 50 +
+      formData.ugcCareJournalPapers.count * 10 +
+      formData.otherJournalPapers.count * 5;
+
+    // 2. Papers Published in International Conference (Max 180)
+    const conferencePapersScore = Math.min(
+      180,
+      formData.scopusWosConferencePapers.count * 30 +
+        formData.otherConferencePapers.count * 5
+    );
+
+    // 3. Book Chapter Publication (Max 150)
+    const bookChaptersScore = Math.min(
+      150,
+      formData.scopusWosBooksChapters.count * 30 +
+        formData.otherBooksChapters.count * 5
+    );
+
+    // 4. Book Publication (Max 200)
+    const booksScore = Math.min(
+      200,
+      formData.scopusWosBooks.count * 100 +
+        formData.nonIndexedIntlNationalBooks.count * 30 +
+        formData.localPublisherBooks.count * 10
+    );
+
+    // 5. Last three Years Citations (Max 50)
+    const citationsScore = Math.min(
+      50,
+      Math.floor(formData.webOfScienceCitations.count / 3) * 3 +
+        Math.floor(formData.scopusCitations.count / 3) * 3 +
+        Math.floor(formData.googleScholarCitations.count / 3)
+    );
+
+    // 6. Copyright in Individual Name (Max 30)
+    const copyrightIndividualScore = Math.min(
+      30,
+      formData.indianCopyrightRegistered.count * 5 +
+        formData.indianCopyrightGranted.count * 15
+    );
+
+    // 7. Copyright in Institute Name (No Max)
+    const copyrightInstituteScore =
+      formData.indianCopyrightRegisteredInstitute.count * 10 +
+      formData.indianCopyrightGrantedInstitute.count * 30;
+
+    // 8. Patent in Individual name (Max 100)
+    const patentIndividualScore = Math.min(
+      100,
+      formData.indianPatentRegistered.count * 15 +
+        formData.indianPatentPublished.count * 30 +
+        formData.indianPatentGranted.count * 50 +
+        formData.indianPatentCommercialized.count * 100
+    );
+
+    // 9. Patent in Institute name (No Max)
+    const patentInstituteScore =
+      formData.indianPatentRegisteredInstitute.count * 30 +
+      formData.indianPatentPublishedInstitute.count * 60 +
+      formData.indianPatentGrantedInstitute.count * 100 +
+      formData.indianPatentCommercializedInstitute.count * 200;
+
+    // 10. Grants received for research projects (No Max)
+    const researchGrantsScore =
+      Math.floor(formData.researchGrants.amount / 200000) * 10;
+
+    // 11. Revenue Generated through Training Programs (Max 40)
+    const trainingRevenueScore = Math.min(
+      40,
+      Math.floor(formData.trainingProgramsRevenue.amount / 10000) * 5
+    );
+
+    // 12. Non-research/ Non consultancy Grant (Max 40)
+    const nonResearchGrantsScore = Math.min(
+      40,
+      Math.floor(formData.nonResearchGrants.amount / 10000) * 5
+    );
+
+    // 13. Product Developed with PCCoE-CIIL Stake (Max 100)
+    const productDevelopedScore = Math.min(
+      100,
+      formData.commercializedProducts.count * 100 +
+        formData.developedProducts.count * 40 +
+        formData.proofOfConcepts.count * 10
+    );
+
+    // 14. Start Up with PCCoE-CIIL Stake (No Max)
+    const startupScore =
+      formData.startupRevenueFiftyK.count * 100 +
+      formData.startupFundsFiveLakhs.count * 100 +
+      formData.startupProducts.count * 40 +
+      formData.startupPOCs.count * 10 +
+      formData.startupRegistered.count * 5;
+
+    // 15. Award/ Fellowship Received (Max 50)
+    const awardFellowshipScore = Math.min(
+      50,
+      formData.internationalAwards.count * 30 +
+        formData.governmentAwards.count * 20 +
+        formData.nationalAwards.count * 5 +
+        formData.internationalFellowships.count * 50 +
+        formData.nationalFellowships.count * 30
+    );
+
+    // 16. Outcome through National/ International Industry/ University Interaction (No Max)
+    const interactionScore =
+      formData.activeMoUs.count * 10 +
+      formData.industryCollaboration.count * 20;
+
+    // 17. Industry association for internship/placement (No Max)
+    const internshipPlacementScore =
+      formData.internshipPlacementOffers.count * 10;
+
+    // Calculate total score before applying cadre limits
+    const totalScoreBeforeCadreLimit =
+      journalPapersScore +
+      conferencePapersScore +
+      bookChaptersScore +
+      booksScore +
+      citationsScore +
+      copyrightIndividualScore +
+      copyrightInstituteScore +
+      patentIndividualScore +
+      patentInstituteScore +
+      researchGrantsScore +
+      trainingRevenueScore +
+      nonResearchGrantsScore +
+      productDevelopedScore +
+      startupScore +
+      awardFellowshipScore +
+      interactionScore +
+      internshipPlacementScore;
+
+    console.log("Total Score Before Cadre Limit: ", totalScoreBeforeCadreLimit);
+
+    let totalScore = totalScoreBeforeCadreLimit; // default to total before limit
+
+    if (facultyData && facultyData.role) {
+      switch (facultyData.role) {
+        case "Professor":
+          totalScore = Math.min(370, totalScoreBeforeCadreLimit);
+          break;
+        case "Associate Professor":
+          totalScore = Math.min(300, totalScoreBeforeCadreLimit);
+          break;
+        case "Assistant Professor":
+          totalScore = Math.min(210, totalScoreBeforeCadreLimit);
+          break;
+        default:
+          totalScore = totalScoreBeforeCadreLimit;
+      }
+    }
+
+    return {
+      journalPapersScore,
+      conferencePapersScore,
+      bookChaptersScore,
+      booksScore,
+      citationsScore,
+      copyrightIndividualScore,
+      copyrightInstituteScore,
+      patentIndividualScore,
+      patentInstituteScore,
+      researchGrantsScore,
+      trainingRevenueScore,
+      nonResearchGrantsScore,
+      productDevelopedScore,
+      startupScore,
+      awardFellowshipScore,
+      interactionScore,
+      internshipPlacementScore,
+      totalScoreBeforeCadreLimit,
+      totalScore,
+    };
+  };
+  if (isLoading || !facultyData) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <ClipLoader color="#4F46E5" size={50} />
+      </div>
+    );
+  }
+
+  const scores = calculateScores();
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+
+    try {
+      const verificationResults = calculateTotalVerifiedMarks(
+        verifiedScores,
+        facultyData
+      );
+
+      const calculateSectionVerifiedTotal = (sectionKey, verifiedScores) => {
+        const relevantScores = Object.entries(verifiedScores)
+          .filter(([key]) =>
+            key.toLowerCase().includes(sectionKey.toLowerCase())
+          )
+          .map(([, value]) => value?.marks || 0);
+        return relevantScores.reduce((sum, marks) => sum + marks, 0);
+      };
+
+      const calculatePatentInstituteTotal = (verifiedScores) => {
+        return (
+          (verifiedScores.indianPatentRegisteredInstitute?.marks || 0) +
+          (verifiedScores.indianPatentPublishedInstitute?.marks || 0) +
+          (verifiedScores.indianPatentGrantedInstitute?.marks || 0) +
+          (verifiedScores.indianPatentCommercializedInstitute?.marks || 0)
+        );
+      };
+
+      const calculateAwardsAndFellowshipsTotal = (verifiedScores) => {
+        return (
+          (verifiedScores.internationalAwards?.marks || 0) +
+          (verifiedScores.governmentAwards?.marks || 0) +
+          (verifiedScores.nationalAwards?.marks || 0) +
+          (verifiedScores.internationalFellowships?.marks || 0) +
+          (verifiedScores.nationalFellowships?.marks || 0)
+        );
+      };
+
+      const payload = {
+        1: {
+          journalPapers: {
+            sciCount: formData.sciJournalPapers.count,
+            sciProof: formData.sciJournalPapers.proof,
+            ver_sciMarks: verifiedScores.sciJournalPapers?.marks || 0,
+            esciCount: formData.esciJournalPapers.count,
+            esciProof: formData.esciJournalPapers.proof,
+            ver_esciMarks: verifiedScores.esciJournalPapers?.marks || 0,
+            scopusCount: formData.scopusJournalPapers.count,
+            scopusProof: formData.scopusJournalPapers.proof,
+            ver_scopusMarks: verifiedScores.scopusJournalPapers?.marks || 0,
+            ugcCareCount: formData.ugcCareJournalPapers.count,
+            ugcCareProof: formData.ugcCareJournalPapers.proof,
+            ver_ugcCareMarks: verifiedScores.ugcCareJournalPapers?.marks || 0,
+            otherCount: formData.otherJournalPapers.count,
+            otherProof: formData.otherJournalPapers.proof,
+            ver_otherMarks: verifiedScores.otherJournalPapers?.marks || 0,
+            marks: scores.journalPapersScore,
+            verified_marks:
+              verifiedScores.journalPapers?.marks ||
+              calculateSectionVerifiedTotal("journalPapers", verifiedScores),
+          },
+        },
+        2: {
+          conferencePapers: {
+            scopusWosCount: formData.scopusWosConferencePapers.count,
+            scopusWosProof: formData.scopusWosConferencePapers.proof,
+            ver_scopusWosMarks:
+              verifiedScores.scopusWosConferencePapers?.marks || 0,
+            otherCount: formData.otherConferencePapers.count,
+            otherProof: formData.otherConferencePapers.proof,
+            ver_otherMarks: verifiedScores.otherConferencePapers?.marks || 0,
+            marks: scores.conferencePapersScore,
+            verified_marks:
+              verifiedScores.conferencePapers?.marks ||
+              calculateSectionVerifiedTotal("conferencePapers", verifiedScores),
+          },
+        },
+        3: {
+          bookChapters: {
+            scopusWosCount: formData.scopusWosBooksChapters.count,
+            scopusWosProof: formData.scopusWosBooksChapters.proof,
+            ver_scopusWosMarks:
+              verifiedScores.scopusWosBooksChapters?.marks || 0,
+            otherCount: formData.otherBooksChapters.count,
+            otherProof: formData.otherBooksChapters.proof,
+            ver_otherMarks: verifiedScores.otherBooksChapters?.marks || 0,
+            marks: scores.bookChaptersScore,
+            verified_marks:
+              verifiedScores.bookChapters?.marks ||
+              (verifiedScores.scopusWosBooksChapters?.marks || 0) +
+                (verifiedScores.otherBooksChapters?.marks || 0),
+          },
+        },
+        4: {
+          books: {
+            scopusWosCount: formData.scopusWosBooks.count,
+            scopusWosProof: formData.scopusWosBooks.proof,
+            ver_scopusWosMarks: verifiedScores.scopusWosBooks?.marks || 0,
+            nonIndexedCount: formData.nonIndexedIntlNationalBooks.count,
+            nonIndexedProof: formData.nonIndexedIntlNationalBooks.proof,
+            ver_nonIndexedMarks:
+              verifiedScores.nonIndexedIntlNationalBooks?.marks || 0,
+            localCount: formData.localPublisherBooks.count,
+            localProof: formData.localPublisherBooks.proof,
+            ver_localMarks: verifiedScores.localPublisherBooks?.marks || 0,
+            marks: scores.booksScore,
+            verified_marks:
+              verifiedScores.books?.marks ||
+              calculateSectionVerifiedTotal("books", verifiedScores),
+          },
+        },
+        5: {
+          citations: {
+            webOfScienceCount: formData.webOfScienceCitations.count,
+            webOfScienceProof: formData.webOfScienceCitations.proof,
+            ver_webOfScienceMarks:
+              verifiedScores.webOfScienceCitations?.marks || 0,
+            scopusCount: formData.scopusCitations.count,
+            scopusProof: formData.scopusCitations.proof,
+            ver_scopusMarks: verifiedScores.scopusCitations?.marks || 0,
+            googleScholarCount: formData.googleScholarCitations.count,
+            googleScholarProof: formData.googleScholarCitations.proof,
+            ver_googleScholarMarks:
+              verifiedScores.googleScholarCitations?.marks || 0,
+            marks: scores.citationsScore,
+            verified_marks:
+              verifiedScores.citations?.marks ||
+              calculateSectionVerifiedTotal("citations", verifiedScores),
+          },
+        },
+        6: {
+          copyrightIndividual: {
+            registeredCount: formData.indianCopyrightRegistered.count,
+            registeredProof: formData.indianCopyrightRegistered.proof,
+            ver_registeredMarks:
+              verifiedScores.indianCopyrightRegistered?.marks || 0,
+            grantedCount: formData.indianCopyrightGranted.count,
+            grantedProof: formData.indianCopyrightGranted.proof,
+            ver_grantedMarks: verifiedScores.indianCopyrightGranted?.marks || 0,
+            marks: scores.copyrightIndividualScore,
+            verified_marks:
+              verifiedScores.copyrightIndividual?.marks ||
+              (verifiedScores.indianCopyrightRegistered?.marks || 0) +
+                (verifiedScores.indianCopyrightGranted?.marks || 0),
+          },
+        },
+        7: {
+          copyrightInstitute: {
+            registeredCount: formData.indianCopyrightRegisteredInstitute.count,
+            registeredProof: formData.indianCopyrightRegisteredInstitute.proof,
+            ver_registeredMarks:
+              verifiedScores.indianCopyrightRegisteredInstitute?.marks || 0,
+            grantedCount: formData.indianCopyrightGrantedInstitute.count,
+            grantedProof: formData.indianCopyrightGrantedInstitute.proof,
+            ver_grantedMarks:
+              verifiedScores.indianCopyrightGrantedInstitute?.marks || 0,
+            marks: scores.copyrightInstituteScore,
+            verified_marks:
+              verifiedScores.copyrightInstitute?.marks ||
+              calculateSectionVerifiedTotal(
+                "copyrightInstitute",
+                verifiedScores
+              ),
+          },
+        },
+        8: {
+          patentIndividual: {
+            registeredCount: formData.indianPatentRegistered.count,
+            registeredProof: formData.indianPatentRegistered.proof,
+            ver_registeredMarks:
+              verifiedScores.indianPatentRegistered?.marks || 0,
+            publishedCount: formData.indianPatentPublished.count,
+            publishedProof: formData.indianPatentPublished.proof,
+            ver_publishedMarks:
+              verifiedScores.indianPatentPublished?.marks || 0,
+            grantedCount: formData.indianPatentGranted.count,
+            grantedProof: formData.indianPatentGranted.proof,
+            ver_grantedMarks: verifiedScores.indianPatentGranted?.marks || 0,
+            commercializedCount: formData.indianPatentCommercialized.count,
+            commercializedProof: formData.indianPatentCommercialized.proof,
+            ver_commercializedMarks:
+              verifiedScores.indianPatentCommercialized?.marks || 0,
+            marks: scores.patentIndividualScore,
+            verified_marks:
+              verifiedScores.patentIndividual?.marks ||
+              calculateSectionVerifiedTotal("patentIndividual", verifiedScores),
+          },
+        },
+        9: {
+          patentInstitute: {
+            registeredCount: formData.indianPatentRegisteredInstitute.count,
+            registeredProof: formData.indianPatentRegisteredInstitute.proof,
+            ver_registeredMarks:
+              verifiedScores.indianPatentRegisteredInstitute?.marks || 0,
+            publishedCount: formData.indianPatentPublishedInstitute.count,
+            publishedProof: formData.indianPatentPublishedInstitute.proof,
+            ver_publishedMarks:
+              verifiedScores.indianPatentPublishedInstitute?.marks || 0,
+            grantedCount: formData.indianPatentGrantedInstitute.count,
+            grantedProof: formData.indianPatentGrantedInstitute.proof,
+            ver_grantedMarks:
+              verifiedScores.indianPatentGrantedInstitute?.marks || 0,
+            commercializedCount:
+              formData.indianPatentCommercializedInstitute.count,
+            commercializedProof:
+              formData.indianPatentCommercializedInstitute.proof,
+            ver_commercializedMarks:
+              verifiedScores.indianPatentCommercializedInstitute?.marks || 0,
+            marks: scores.patentInstituteScore,
+            verified_marks:
+              verifiedScores.patentInstitute?.marks ||
+              calculatePatentInstituteTotal(verifiedScores),
+          },
+        },
+        10: {
+          researchGrants: {
+            amount: formData.researchGrants.amount,
+            proof: formData.researchGrants.proof,
+            ver_amountMarks: verifiedScores.researchGrantsAmount?.marks || 0,
+            marks: scores.researchGrantsScore,
+            verified_marks:
+              verifiedScores.researchGrants?.marks ||
+              calculateSectionVerifiedTotal("researchGrants", verifiedScores),
+          },
+        },
+        11: {
+          trainingPrograms: {
+            amount: formData.trainingProgramsRevenue.amount,
+            proof: formData.trainingProgramsRevenue.proof,
+            ver_amountMarks:
+              verifiedScores.trainingProgramsRevenueAmount?.marks || 0,
+            marks: scores.trainingRevenueScore,
+            verified_marks:
+              verifiedScores.trainingPrograms?.marks ||
+              calculateSectionVerifiedTotal("trainingPrograms", verifiedScores),
+          },
+        },
+        12: {
+          nonResearchGrants: {
+            amount: formData.nonResearchGrants.amount,
+            proof: formData.nonResearchGrants.proof,
+            ver_amountMarks: verifiedScores.nonResearchGrantsAmount?.marks || 0,
+            marks: scores.nonResearchGrantsScore,
+            verified_marks:
+              verifiedScores.nonResearchGrants?.marks ||
+              calculateSectionVerifiedTotal(
+                "nonResearchGrants",
+                verifiedScores
+              ),
+          },
+        },
+        13: {
+          productDevelopment: {
+            commercializedCount: formData.commercializedProducts.count,
+            commercializedProof: formData.commercializedProducts.proof,
+            ver_commercializedMarks:
+              verifiedScores.commercializedProducts?.marks || 0,
+            developedCount: formData.developedProducts.count,
+            developedProof: formData.developedProducts.proof,
+            ver_developedMarks: verifiedScores.developedProducts?.marks || 0,
+            pocCount: formData.proofOfConcepts.count,
+            pocProof: formData.proofOfConcepts.proof,
+            ver_pocMarks: verifiedScores.proofOfConcepts?.marks || 0,
+            marks: scores.productDevelopedScore,
+            verified_marks:
+              verifiedScores.productDevelopment?.marks ||
+              calculateSectionVerifiedTotal(
+                "productDevelopment",
+                verifiedScores
+              ),
+          },
+        },
+        14: {
+          startup: {
+            revenueFiftyKCount: formData.startupRevenueFiftyK.count,
+            revenueFiftyKProof: formData.startupRevenueFiftyK.proof,
+            ver_revenueFiftyKMarks:
+              verifiedScores.startupRevenueFiftyK?.marks || 0,
+            fundsFiveLakhsCount: formData.startupFundsFiveLakhs.count,
+            fundsFiveLakhsProof: formData.startupFundsFiveLakhs.proof,
+            ver_fundsFiveLakhsMarks:
+              verifiedScores.startupFundsFiveLakhs?.marks || 0,
+            productsCount: formData.startupProducts.count,
+            productsProof: formData.startupProducts.proof,
+            ver_productsMarks: verifiedScores.startupProducts?.marks || 0,
+            pocCount: formData.startupPOCs.count,
+            pocProof: formData.startupPOCs.proof,
+            ver_pocMarks: verifiedScores.startupPOCs?.marks || 0,
+            registeredCount: formData.startupRegistered.count,
+            registeredProof: formData.startupRegistered.proof,
+            ver_registeredMarks: verifiedScores.startupRegistered?.marks || 0,
+            marks: scores.startupScore,
+            verified_marks:
+              verifiedScores.startup?.marks ||
+              calculateSectionVerifiedTotal("startup", verifiedScores),
+          },
+        },
+        15: {
+          awardsAndFellowships: {
+            internationalAwardsCount: formData.internationalAwards.count,
+            internationalAwardsProof: formData.internationalAwards.proof,
+            ver_internationalAwardsMarks:
+              verifiedScores.internationalAwards?.marks || 0,
+            governmentAwardsCount: formData.governmentAwards.count,
+            governmentAwardsProof: formData.governmentAwards.proof,
+            ver_governmentAwardsMarks:
+              verifiedScores.governmentAwards?.marks || 0,
+            nationalAwardsCount: formData.nationalAwards.count,
+            nationalAwardsProof: formData.nationalAwards.proof,
+            ver_nationalAwardsMarks: verifiedScores.nationalAwards?.marks || 0,
+            internationalFellowshipsCount:
+              formData.internationalFellowships.count,
+            internationalFellowshipsProof:
+              formData.internationalFellowships.proof,
+            ver_internationalFellowshipsMarks:
+              verifiedScores.internationalFellowships?.marks || 0,
+            nationalFellowshipsCount: formData.nationalFellowships.count,
+            nationalFellowshipsProof: formData.nationalFellowships.proof,
+            ver_nationalFellowshipsMarks:
+              verifiedScores.nationalFellowships?.marks || 0,
+            marks: scores.awardFellowshipScore,
+            verified_marks:
+              verifiedScores.awardsAndFellowships?.marks ||
+              calculateAwardsAndFellowshipsTotal(verifiedScores),
+          },
+        },
+        16: {
+          industryInteraction: {
+            moUsCount: formData.activeMoUs.count,
+            moUsProof: formData.activeMoUs.proof,
+            ver_moUsMarks: verifiedScores.activeMoUs?.marks || 0,
+            collaborationCount: formData.industryCollaboration.count,
+            collaborationProof: formData.industryCollaboration.proof,
+            ver_collaborationMarks:
+              verifiedScores.industryCollaboration?.marks || 0,
+            marks: scores.interactionScore,
+            verified_marks:
+              verifiedScores.industryInteraction?.marks ||
+              calculateSectionVerifiedTotal(
+                "industryInteraction",
+                verifiedScores
+              ),
+          },
+        },
+        17: {
+          internshipPlacement: {
+            offersCount: formData.internshipPlacementOffers.count,
+            offersProof: formData.internshipPlacementOffers.proof,
+            ver_offersMarks:
+              verifiedScores.internshipPlacementOffers?.marks || 0,
+            marks: scores.internshipPlacementScore,
+            verified_marks:
+              verifiedScores.internshipPlacement?.marks ||
+              calculateSectionVerifiedTotal(
+                "internshipPlacement",
+                verifiedScores
+              ),
+          },
+        },
+        total_marks: scores.totalScore,
+        final_verified_marks: verificationResults.finalTotal,
+        final_remarks: finalRemarks,
+        verifier_id: userData._id,
+      };
+
+      async function verifyResearch(department, userId, verifierId) {
+        try {
+          const verifyResponse = await fetch(
+            `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/${verifierId}/verify-research`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                verified: true,
+                timestamp: new Date().toISOString(),
+              }),
+            }
+          );
+
+          if (verifyResponse.ok) {
+            console.log("Research verification successful");
+            return await verifyResponse.json();
+          } else {
+            console.error(
+              console.log(verifyResponse.body),
+              "Research verification failed:",
+              verifyResponse.status
+            );
+            throw new Error(
+              `Verification failed with status: ${verifyResponse.status}`
+            );
+          }
+        } catch (error) {
+          console.error("Error during research verification:", error);
+          throw error;
+        }
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/${department}/${facultyId}/B`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (response.ok) {
+        await verifyResearch(department, userData._id, facultyId);
+      }
+
+      if (response.ok) {
+        navigate("/submission-status", {
+          state: {
+            status: "success",
+            formName: "Research and Development Form",
+            message: "Your research details have been successfully submitted!",
+          },
+        });
+      } else {
+        throw new Error("Failed to submit data");
+      }
+    } catch (error) {
+      navigate("/submission-status", {
+        state: {
+          status: "error",
+          formName: "Research and Development Form",
+          error: error.message,
+        },
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <ClipLoader color="#4F46E5" size={50} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
+      {/* Papers Published in Quality Journal */}
+      <SectionCard
+        title="1. Papers Published in Quality Journal (Being among First Two Authors)"
+        icon="📝"
+        borderColor="border-blue-500"
+      >
+        <div className="space-y-4">
+          {/* For Papers Published in Quality Journal section */}
+          <InputFieldWithProof
+            label="SCI/SCIE Journal (WoS) Papers (100 marks per paper)"
+            name="sciJournalPapers"
+            value={formData.sciJournalPapers.count}
+            proofValue={formData.sciJournalPapers.proof}
+            verifiedScore={verifiedScores.sciJournalPapers?.marks}
+            multiplier={100} // Add multiplier based on the marks per paper
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                sciJournalPapers: { marks: value },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="ESCI Journal (WoS) Papers (50 marks per paper)"
+            name="esciJournalPapers"
+            value={formData.esciJournalPapers.count}
+            proofValue={formData.esciJournalPapers.proof}
+            verifiedScore={verifiedScores.esciJournalPapers?.marks}
+            multiplier={50} // Add multiplier
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                esciJournalPapers: { marks: value },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Scopus Journal Papers (50 marks per paper)"
+            name="scopusJournalPapers"
+            value={formData.scopusJournalPapers.count}
+            proofValue={formData.scopusJournalPapers.proof}
+            verifiedScore={verifiedScores.scopusJournalPapers?.marks}
+            multiplier={50}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                scopusJournalPapers: { marks: value },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="UGC CARE Listed Journal Papers (10 marks per paper)"
+            name="ugcCareJournalPapers"
+            value={formData.ugcCareJournalPapers.count}
+            proofValue={formData.ugcCareJournalPapers.proof}
+            verifiedScore={verifiedScores.ugcCareJournalPapers?.marks}
+            multiplier={10}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                ugcCareJournalPapers: { marks: value },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Other Journal Papers (5 marks per paper)"
+            name="otherJournalPapers"
+            value={formData.otherJournalPapers.count}
+            proofValue={formData.otherJournalPapers.proof}
+            verifiedScore={verifiedScores.otherJournalPapers?.marks}
+            multiplier={5}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                otherJournalPapers: { marks: value },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Quality Journal Papers Score"
+          score={scores.journalPapersScore}
+          total="No limit"
+          verifiedScore={verifiedScores.journalPapers?.marks}
+          sectionVerifiedScores={{
+            sciJournalPapers: verifiedScores.sciJournalPapers,
+            esciJournalPapers: verifiedScores.esciJournalPapers,
+            scopusJournalPapers: verifiedScores.scopusJournalPapers,
+            ugcCareJournalPapers: verifiedScores.ugcCareJournalPapers,
+            otherJournalPapers: verifiedScores.otherJournalPapers,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              journalPapers: { marks: value },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* Paper Publication in International Conference */}
+      <SectionCard
+        title="2. Paper Publication in International Conference (Being among First Two Authors)"
+        icon="🎤"
+        borderColor="border-green-500"
+      >
+        <div className="space-y-4">
+          <InputFieldWithProof
+            label="Papers Indexed in Scopus/WoS (30 marks per paper)"
+            name="scopusWosConferencePapers"
+            value={formData.scopusWosConferencePapers.count}
+            proofValue={formData.scopusWosConferencePapers.proof}
+            verifiedScore={verifiedScores.scopusWosConferencePapers?.marks}
+            multiplier={30}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                scopusWosConferencePapers: {
+                  ...prev.scopusWosConferencePapers,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Other Conference Papers (5 marks per paper)"
+            name="otherConferencePapers"
+            value={formData.otherConferencePapers.count}
+            proofValue={formData.otherConferencePapers.proof}
+            verifiedScore={verifiedScores.otherConferencePapers?.marks}
+            multiplier={5}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                otherConferencePapers: {
+                  ...prev.otherConferencePapers,
+                  marks: value,
+                },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Conference Papers Score"
+          score={scores.conferencePapersScore}
+          total="180"
+          verifiedScore={verifiedScores.conferencePapers?.marks}
+          sectionVerifiedScores={{
+            scopusWosConferencePapers: verifiedScores.scopusWosConferencePapers,
+            otherConferencePapers: verifiedScores.otherConferencePapers,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              conferencePapers: { marks: value },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* Book Chapter Publication */}
+      <SectionCard
+        title="3. Book Chapter Publication (Being among First Two Authors)"
+        icon="📚"
+        borderColor="border-purple-500"
+      >
+        <div className="space-y-4">
+          <InputFieldWithProof
+            label="Book Chapters Indexed in Scopus/WoS (30 marks per chapter)"
+            name="scopusWosBooksChapters"
+            value={formData.scopusWosBooksChapters.count}
+            proofValue={formData.scopusWosBooksChapters.proof}
+            verifiedScore={verifiedScores.scopusWosBooksChapters?.marks}
+            multiplier={30}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                scopusWosBooksChapters: {
+                  ...prev.scopusWosBooksChapters,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Other Book Chapters (5 marks per chapter)"
+            name="otherBooksChapters"
+            value={formData.otherBooksChapters.count}
+            proofValue={formData.otherBooksChapters.proof}
+            verifiedScore={verifiedScores.otherBooksChapters?.marks}
+            multiplier={5}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                otherBooksChapters: {
+                  ...prev.otherBooksChapters,
+                  marks: value,
+                },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Book Chapters Score"
+          score={scores.bookChaptersScore}
+          total="150"
+          verifiedScore={verifiedScores.bookChapters?.marks}
+          sectionVerifiedScores={{
+            scopusWosBooksChapters: verifiedScores.scopusWosBooksChapters,
+            otherBooksChapters: verifiedScores.otherBooksChapters,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              bookChapters: { marks: value },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* Book Publication */}
+      <SectionCard
+        title="4. Book Publication (as Author)"
+        icon="📖"
+        borderColor="border-yellow-500"
+      >
+        <div className="space-y-4">
+          <InputFieldWithProof
+            label="Books Published with International Publisher and Indexed in Scopus/WoS (100 marks per book)"
+            name="scopusWosBooks"
+            value={formData.scopusWosBooks.count}
+            proofValue={formData.scopusWosBooks.proof}
+            verifiedScore={verifiedScores.scopusWosBooks?.marks}
+            multiplier={100}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                scopusWosBooks: { ...prev.scopusWosBooks, marks: value },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Books Published with International/National Publisher (non-indexed) (30 marks per book)"
+            name="nonIndexedIntlNationalBooks"
+            value={formData.nonIndexedIntlNationalBooks.count}
+            proofValue={formData.nonIndexedIntlNationalBooks.proof}
+            verifiedScore={verifiedScores.nonIndexedIntlNationalBooks?.marks}
+            multiplier={30}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                nonIndexedIntlNationalBooks: {
+                  ...prev.nonIndexedIntlNationalBooks,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Books Published with Local Publisher (10 marks per book)"
+            name="localPublisherBooks"
+            value={formData.localPublisherBooks.count}
+            proofValue={formData.localPublisherBooks.proof}
+            verifiedScore={verifiedScores.localPublisherBooks?.marks}
+            multiplier={10}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                localPublisherBooks: {
+                  ...prev.localPublisherBooks,
+                  marks: value,
+                },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Books Score"
+          score={scores.booksScore}
+          total="200"
+          verifiedScore={verifiedScores.books?.marks}
+          sectionVerifiedScores={{
+            scopusWosBooks: verifiedScores.scopusWosBooks,
+            nonIndexedIntlNationalBooks:
+              verifiedScores.nonIndexedIntlNationalBooks,
+            localPublisherBooks: verifiedScores.localPublisherBooks,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              books: { marks: value },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* Last three Years Citations */}
+{/* Last three Years Citations */}
+<SectionCard
+  title="5. Last three Years Citations"
+  icon="📊"
+  borderColor="border-red-500"
+>
+  <div className="space-y-4">
+    <InputFieldWithProof
+      label="Web of Science Citations (3 marks per 3 citations)"
+      name="webOfScienceCitations"
+      value={formData.webOfScienceCitations.count}
+      proofValue={formData.webOfScienceCitations.proof}
+      verifiedScore={verifiedScores.webOfScienceCitations?.marks}
+      calculatedMarks={Math.floor(formData.webOfScienceCitations.count / 3) * 3}
+      onVerifiedScoreChange={(value) =>
+        setVerifiedScores((prev) => ({
+          ...prev,
+          webOfScienceCitations: {
+            ...prev.webOfScienceCitations,
+            marks: value,
+          },
+        }))
+      }
+    />
+    <InputFieldWithProof
+      label="Scopus Citations (3 marks per 3 citations)"
+      name="scopusCitations"
+      value={formData.scopusCitations.count}
+      proofValue={formData.scopusCitations.proof}
+      verifiedScore={verifiedScores.scopusCitations?.marks}
+      calculatedMarks={Math.floor(formData.scopusCitations.count / 3) * 3}
+      onVerifiedScoreChange={(value) =>
+        setVerifiedScores((prev) => ({
+          ...prev,
+          scopusCitations: { ...prev.scopusCitations, marks: value },
+        }))
+      }
+    />
+    <InputFieldWithProof
+      label="Google Scholar Citations (1 mark per 3 citations)"
+      name="googleScholarCitations"
+      value={formData.googleScholarCitations.count}
+      proofValue={formData.googleScholarCitations.proof}
+      verifiedScore={verifiedScores.googleScholarCitations?.marks}
+      calculatedMarks={Math.floor(formData.googleScholarCitations.count / 3)}
+      onVerifiedScoreChange={(value) =>
+        setVerifiedScores((prev) => ({
+          ...prev,
+          googleScholarCitations: {
+            ...prev.googleScholarCitations,
+            marks: value,
+          },
+        }))
+      }
+    />
+  </div>
+  <ScoreCard
+    label="Citations Score"
+    score={scores.citationsScore}
+    total="50"
+    verifiedScore={verifiedScores.citations?.marks}
+    sectionVerifiedScores={{
+      webOfScienceCitations: verifiedScores.webOfScienceCitations,
+      scopusCitations: verifiedScores.scopusCitations,
+      googleScholarCitations: verifiedScores.googleScholarCitations,
+    }}
+    onVerifiedScoreChange={(value) =>
+      setVerifiedScores((prev) => ({
+        ...prev,
+        citations: { marks: value },
+      }))
+    }
+  />
+</SectionCard>
+      {/* Copyright in Individual Name */}
+      <SectionCard
+        title="6. Copyright in Individual Name (Being Among first Three Inventors)"
+        icon="©️"
+        borderColor="border-indigo-500"
+      >
+        <div className="space-y-4">
+          <InputFieldWithProof
+            label="Indian Copyright Registered/Filed (5 marks per copyright)"
+            name="indianCopyrightRegistered"
+            value={formData.indianCopyrightRegistered.count}
+            proofValue={formData.indianCopyrightRegistered.proof}
+            verifiedScore={verifiedScores.indianCopyrightRegistered?.marks}
+            multiplier={5}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianCopyrightRegistered: {
+                  ...prev.indianCopyrightRegistered,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Indian Copyright Granted (15 marks per copyright)"
+            name="indianCopyrightGranted"
+            value={formData.indianCopyrightGranted.count}
+            proofValue={formData.indianCopyrightGranted.proof}
+            verifiedScore={verifiedScores.indianCopyrightGranted?.marks}
+            multiplier={15}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianCopyrightGranted: {
+                  ...prev.indianCopyrightGranted,
+                  marks: value,
+                },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Copyright Individual Score"
+          score={scores.copyrightIndividualScore}
+          total="30"
+          verifiedScore={verifiedScores.copyrightIndividual?.marks}
+          sectionVerifiedScores={{
+            indianCopyrightRegistered: verifiedScores.indianCopyrightRegistered,
+            indianCopyrightGranted: verifiedScores.indianCopyrightGranted,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              copyrightIndividual: {
+                ...prev.copyrightIndividual,
+                marks: value,
+              },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* Copyright in Institute Name */}
+      <SectionCard
+        title="7. Copyright in Institute Name (Being Among first Three Authors)"
+        icon="©️"
+        borderColor="border-blue-500"
+      >
+        <div className="space-y-4">
+          <InputFieldWithProof
+            label="Indian Copyright Registered/Filed (10 marks per copyright)"
+            name="indianCopyrightRegisteredInstitute"
+            value={formData.indianCopyrightRegisteredInstitute.count}
+            proofValue={formData.indianCopyrightRegisteredInstitute.proof}
+            multiplier={10}
+            verifiedScore={
+              verifiedScores.indianCopyrightRegisteredInstitute?.marks
+            }
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianCopyrightRegisteredInstitute: {
+                  ...prev.indianCopyrightRegisteredInstitute,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Indian Copyright Granted (30 marks per copyright)"
+            name="indianCopyrightGrantedInstitute"
+            value={formData.indianCopyrightGrantedInstitute.count}
+            proofValue={formData.indianCopyrightGrantedInstitute.proof}
+            verifiedScore={
+              verifiedScores.indianCopyrightGrantedInstitute?.marks
+            }
+            multiplier={30}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianCopyrightGrantedInstitute: {
+                  ...prev.indianCopyrightGrantedInstitute,
+                  marks: value,
+                },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Copyright Institute Score"
+          score={scores.copyrightInstituteScore}
+          total="No limit"
+          verifiedScore={verifiedScores.copyrightInstitute?.marks}
+          sectionVerifiedScores={{
+            indianCopyrightRegisteredInstitute:
+              verifiedScores.indianCopyrightRegisteredInstitute,
+            indianCopyrightGrantedInstitute:
+              verifiedScores.indianCopyrightGrantedInstitute,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              copyrightInstitute: { marks: value },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* Patent in Individual name */}
+      <SectionCard
+        title="8. Patent in Individual name (Being among First Three inventors)"
+        icon="🔖"
+        borderColor="border-green-500"
+      >
+        <div className="space-y-4">
+          <InputFieldWithProof
+            label="Indian Patent Registered/Filed (15 marks per patent)"
+            name="indianPatentRegistered"
+            value={formData.indianPatentRegistered.count}
+            proofValue={formData.indianPatentRegistered.proof}
+            verifiedScore={verifiedScores.indianPatentRegistered?.marks}
+            multiplier={15}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentRegistered: {
+                  ...prev.indianPatentRegistered,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Indian Patent Published (30 marks per patent)"
+            name="indianPatentPublished"
+            value={formData.indianPatentPublished.count}
+            proofValue={formData.indianPatentPublished.proof}
+            verifiedScore={verifiedScores.indianPatentPublished?.marks}
+            multiplier={30}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentPublished: {
+                  ...prev.indianPatentPublished,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Indian Patent Granted (50 marks per patent)"
+            name="indianPatentGranted"
+            value={formData.indianPatentGranted.count}
+            proofValue={formData.indianPatentGranted.proof}
+            verifiedScore={verifiedScores.indianPatentGranted?.marks}
+            multiplier={50}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentGranted: {
+                  ...prev.indianPatentGranted,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Indian Patent Commercialized (100 marks per patent)"
+            name="indianPatentCommercialized"
+            value={formData.indianPatentCommercialized.count}
+            proofValue={formData.indianPatentCommercialized.proof}
+            verifiedScore={verifiedScores.indianPatentCommercialized?.marks}
+            multiplier={100}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentCommercialized: {
+                  ...prev.indianPatentCommercialized,
+                  marks: value,
+                },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Patent Individual Score"
+          score={scores.patentIndividualScore}
+          total="100"
+          verifiedScore={verifiedScores.patentIndividual?.marks}
+          sectionVerifiedScores={{
+            indianPatentRegistered: verifiedScores.indianPatentRegistered,
+            indianPatentPublished: verifiedScores.indianPatentPublished,
+            indianPatentGranted: verifiedScores.indianPatentGranted,
+            indianPatentCommercialized:
+              verifiedScores.indianPatentCommercialized,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              patentIndividual: { marks: value },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* Patent in Institute name */}
+      <SectionCard
+        title="9. Patent in Institute name (Being among First Three inventors)"
+        icon="🔖"
+        borderColor="border-purple-500"
+      >
+        <div className="space-y-4">
+          <InputFieldWithProof
+            label="Indian Patent Registered/Filed (30 marks per patent)"
+            name="indianPatentRegisteredInstitute"
+            value={formData.indianPatentRegisteredInstitute.count}
+            proofValue={formData.indianPatentRegisteredInstitute.proof}
+            verifiedScore={
+              verifiedScores.indianPatentRegisteredInstitute?.marks
+            }
+            multiplier={30}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentRegisteredInstitute: {
+                  ...prev.indianPatentRegisteredInstitute,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Indian Patent Published (60 marks per patent)"
+            name="indianPatentPublishedInstitute"
+            value={formData.indianPatentPublishedInstitute.count}
+            proofValue={formData.indianPatentPublishedInstitute.proof}
+            multiplier={60}
+            verifiedScore={verifiedScores.indianPatentPublishedInstitute?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentPublishedInstitute: {
+                  ...prev.indianPatentPublishedInstitute,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Indian Patent Granted (100 marks per patent)"
+            name="indianPatentGrantedInstitute"
+            value={formData.indianPatentGrantedInstitute.count}
+            proofValue={formData.indianPatentGrantedInstitute.proof}
+            verifiedScore={verifiedScores.indianPatentGrantedInstitute?.marks}
+            multiplier={100}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentGrantedInstitute: {
+                  ...prev.indianPatentGrantedInstitute,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Indian Patent Commercialized (200 marks per patent)"
+            name="indianPatentCommercializedInstitute"
+            value={formData.indianPatentCommercializedInstitute.count}
+            multiplier={200}
+            proofValue={formData.indianPatentCommercializedInstitute.proof}
+            verifiedScore={
+              verifiedScores.indianPatentCommercializedInstitute?.marks
+            }
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                indianPatentCommercializedInstitute: {
+                  ...prev.indianPatentCommercializedInstitute,
+                  marks: value,
+                },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Patent Institute Score"
+          score={scores.patentInstituteScore}
+          total="No limit"
+          verifiedScore={verifiedScores.patentInstitute?.marks}
+          sectionVerifiedScores={{
+            indianPatentRegisteredInstitute:
+              verifiedScores.indianPatentRegisteredInstitute,
+            indianPatentPublishedInstitute:
+              verifiedScores.indianPatentPublishedInstitute,
+            indianPatentGrantedInstitute:
+              verifiedScores.indianPatentGrantedInstitute,
+            indianPatentCommercializedInstitute:
+              verifiedScores.indianPatentCommercializedInstitute,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              patentInstitute: { marks: value },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* Grants received for research projects */}
+      <SectionCard
+        title="10. Grants received for research projects"
+        icon="💰"
+        borderColor="border-yellow-500"
+      >
+        <div className="space-y-4">
+          <InputFieldWithProof
+            label="Research Grants (10 marks per Two Lakh Rupees)"
+            name="researchGrants"
+            value={formData.researchGrants.amount}
+            proofValue={formData.researchGrants.proof}
+            verifiedScore={verifiedScores.researchGrants?.marks}
+            calculatedMarks={Math.floor(formData.researchGrants.amount / 200000) * 10} // Override calculated marks
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                researchGrants: { ...prev.researchGrants, marks: value },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Research Grants Score"
+          score={scores.researchGrantsScore}
+          total="No limit"
+          verifiedScore={verifiedScores.researchGrants?.marks}
+          sectionVerifiedScores={{
+            researchGrants: verifiedScores.researchGrants,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              researchGrants: { marks: value },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* Revenue Generated through Training Programs */}
+      <SectionCard
+        title="11. Revenue Generated through Training Programs"
+        icon="💲"
+        borderColor="border-red-500"
+      >
+        <div className="space-y-4">
+          <InputFieldWithProof
+            label="Training Programs Revenue (5 marks per 10,000 Rupees)"
+            name="trainingProgramsRevenue"
+            value={formData.trainingProgramsRevenue.amount}
+            proofValue={formData.trainingProgramsRevenue.proof}
+            calculatedMarks={Math.floor(formData.trainingProgramsRevenue.amount / 10000) * 5} // Override calculated marks
+            verifiedScore={verifiedScores.trainingProgramsRevenue?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                trainingProgramsRevenue: {
+                  ...prev.trainingProgramsRevenue,
+                  marks: value,
+                },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Training Programs Revenue Score"
+          score={scores.trainingRevenueScore}
+          total="40"
+          verifiedScore={verifiedScores.trainingPrograms?.marks}
+          sectionVerifiedScores={{
+            trainingProgramsRevenue: verifiedScores.trainingProgramsRevenue,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              trainingPrograms: { marks: value },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* Non-research/ Non consultancy Grant */}
+      <SectionCard
+        title="12. Non-research/ Non consultancy Grant"
+        icon="💵"
+        borderColor="border-indigo-500"
+      >
+        <div className="space-y-4">
+          <InputFieldWithProof
+            label="Non-Research Grants (5 marks per 10,000 Rupees)"
+            name="nonResearchGrants"
+            value={formData.nonResearchGrants.amount}
+            proofValue={formData.nonResearchGrants.proof}
+            verifiedScore={verifiedScores.nonResearchGrants?.marks}
+            calculatedMarks={Math.floor(formData.nonResearchGrants.amount / 10000) * 5} // Override calculated marks
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                nonResearchGrants: {
+                  ...prev.nonResearchGrants,
+                  marks: value,
+                },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Non-Research Grants Score"
+          score={scores.nonResearchGrantsScore}
+          total="40"
+          verifiedScore={verifiedScores.nonResearchGrants?.marks}
+          sectionVerifiedScores={{
+            nonResearchGrants: verifiedScores.nonResearchGrants,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              nonResearchGrants: { marks: value },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* Product Developed with PCCoE-CIIL Stake */}
+      <SectionCard
+        title="13. Product Developed with PCCoE-CIIL Stake"
+        icon="🛠️"
+        borderColor="border-blue-500"
+      >
+        <div className="space-y-4">
+          <InputFieldWithProof
+            label="Commercialized Products (100 marks per product)"
+            name="commercializedProducts"
+            value={formData.commercializedProducts.count}
+            proofValue={formData.commercializedProducts.proof}
+            verifiedScore={verifiedScores.commercializedProducts?.marks}
+            multiplier={100}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                commercializedProducts: {
+                  ...prev.commercializedProducts,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Developed Products (40 marks per product)"
+            name="developedProducts"
+            value={formData.developedProducts.count}
+            proofValue={formData.developedProducts.proof}
+            verifiedScore={verifiedScores.developedProducts?.marks}
+            multiplier={40}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                developedProducts: {
+                  ...prev.developedProducts,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Proof of Concepts (10 marks per POC)"
+            name="proofOfConcepts"
+            value={formData.proofOfConcepts.count}
+            proofValue={formData.proofOfConcepts.proof}
+            verifiedScore={verifiedScores.proofOfConcepts?.marks}
+            multiplier={10}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                proofOfConcepts: { ...prev.proofOfConcepts, marks: value },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Product Development Score"
+          score={scores.productDevelopedScore}
+          total="100"
+          verifiedScore={verifiedScores.productDevelopment?.marks}
+          sectionVerifiedScores={{
+            commercializedProducts: verifiedScores.commercializedProducts,
+            developedProducts: verifiedScores.developedProducts,
+            proofOfConcepts: verifiedScores.proofOfConcepts,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              productDevelopment: { marks: value },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* Start Up with PCCoE-CIIL Stake */}
+      <SectionCard
+  title="14. Start Up with PCCoE-CIIL Stake"
+  icon="🚀"
+  borderColor="border-green-500"
+>
+  <div className="space-y-4">
+    <InputFieldWithProof
+      label="Startup with Revenue > 50k (100 marks per startup)"
+      name="startupRevenueFiftyK"
+      value={formData.startupRevenueFiftyK.count}
+      proofValue={formData.startupRevenueFiftyK.proof}
+      verifiedScore={verifiedScores.startupRevenueFiftyK?.marks}
+      multiplier={100}
+      calculatedMarks={formData.startupRevenueFiftyK.count * 100}
+      onVerifiedScoreChange={(value) =>
+        setVerifiedScores((prev) => ({
+          ...prev,
+          startupRevenueFiftyK: {
+            ...prev.startupRevenueFiftyK,
+            marks: value,
+          },
+        }))
+      }
+    />
+    <InputFieldWithProof
+      label="Startup with Funds > 5 Lakhs (100 marks per startup)"
+      name="startupFundsFiveLakhs"
+      value={formData.startupFundsFiveLakhs.count}
+      proofValue={formData.startupFundsFiveLakhs.proof}
+      verifiedScore={verifiedScores.startupFundsFiveLakhs?.marks}
+      multiplier={100}
+      calculatedMarks={formData.startupFundsFiveLakhs.count * 100}
+      onVerifiedScoreChange={(value) =>
+        setVerifiedScores((prev) => ({
+          ...prev,
+          startupFundsFiveLakhs: {
+            ...prev.startupFundsFiveLakhs,
+            marks: value,
+          },
+        }))
+      }
+    />
+    <InputFieldWithProof
+      label="Startup Products (40 marks per product)"
+      name="startupProducts"
+      value={formData.startupProducts.count}
+      proofValue={formData.startupProducts.proof}
+      verifiedScore={verifiedScores.startupProducts?.marks}
+      multiplier={40}
+      calculatedMarks={formData.startupProducts.count * 40}
+      onVerifiedScoreChange={(value) =>
+        setVerifiedScores((prev) => ({
+          ...prev,
+          startupProducts: { ...prev.startupProducts, marks: value },
+        }))
+      }
+    />
+    <InputFieldWithProof
+      label="Startup POCs (10 marks per POC)"
+      name="startupPOCs"
+      value={formData.startupPOCs.count}
+      proofValue={formData.startupPOCs.proof}
+      verifiedScore={verifiedScores.startupPOCs?.marks}
+      multiplier={10}
+      calculatedMarks={formData.startupPOCs.count * 10}
+      onVerifiedScoreChange={(value) =>
+        setVerifiedScores((prev) => ({
+          ...prev,
+          startupPOCs: { ...prev.startupPOCs, marks: value },
+        }))
+      }
+    />
+    <InputFieldWithProof
+      label="Registered Startups (5 marks per startup)"
+      name="startupRegistered"
+      value={formData.startupRegistered.count}
+      proofValue={formData.startupRegistered.proof}
+      verifiedScore={verifiedScores.startupRegistered?.marks}
+      multiplier={5}
+      calculatedMarks={formData.startupRegistered.count * 5}
+      onVerifiedScoreChange={(value) =>
+        setVerifiedScores((prev) => ({
+          ...prev,
+          startupRegistered: { ...prev.startupRegistered, marks: value },
+        }))
+      }
+    />
+  </div>
+  <ScoreCard
+    label="Startup Score"
+    score={scores.startupScore}
+    total="No limit"
+    verifiedScore={verifiedScores.startup?.marks}
+    sectionVerifiedScores={{
+      startupRevenueFiftyK: verifiedScores.startupRevenueFiftyK,
+      startupFundsFiveLakhs: verifiedScores.startupFundsFiveLakhs,
+      startupProducts: verifiedScores.startupProducts,
+      startupPOCs: verifiedScores.startupPOCs,
+      startupRegistered: verifiedScores.startupRegistered,
+    }}
+    onVerifiedScoreChange={(value) =>
+      setVerifiedScores((prev) => ({
+        ...prev,
+        startup: { marks: value },
+      }))
+    }
+  />
+</SectionCard>
+
+      {/* Award/ Fellowship Received */}
+      <SectionCard
+        title="15. Award/ Fellowship Received"
+        icon="🏆"
+        borderColor="border-purple-500"
+      >
+        <div className="space-y-4">
+          <InputFieldWithProof
+            label="International Awards (30 marks per award)"
+            name="internationalAwards"
+            value={formData.internationalAwards.count}
+            proofValue={formData.internationalAwards.proof}
+            multiplier={30}
+            verifiedScore={verifiedScores.internationalAwards?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                internationalAwards: {
+                  ...prev.internationalAwards,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Government Awards (20 marks per award)"
+            name="governmentAwards"
+            value={formData.governmentAwards.count}
+            proofValue={formData.governmentAwards.proof}
+            verifiedScore={verifiedScores.governmentAwards?.marks}
+            multiplier={20}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                governmentAwards: { ...prev.governmentAwards, marks: value },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="National Awards (5 marks per award)"
+            name="nationalAwards"
+            value={formData.nationalAwards.count}
+            proofValue={formData.nationalAwards.proof}
+            verifiedScore={verifiedScores.nationalAwards?.marks}
+            multiplier={5}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                nationalAwards: { ...prev.nationalAwards, marks: value },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="International Fellowships (50 marks per fellowship)"
+            name="internationalFellowships"
+            value={formData.internationalFellowships.count}
+            proofValue={formData.internationalFellowships.proof}
+            verifiedScore={verifiedScores.internationalFellowships?.marks}
+            multiplier={50}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                internationalFellowships: {
+                  ...prev.internationalFellowships,
+                  marks: value,
+                },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="National Fellowships (30 marks per fellowship)"
+            name="nationalFellowships"
+            value={formData.nationalFellowships.count}
+            proofValue={formData.nationalFellowships.proof}
+            multiplier={30}
+            verifiedScore={verifiedScores.nationalFellowships?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                nationalFellowships: {
+                  ...prev.nationalFellowships,
+                  marks: value,
+                },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Awards & Fellowships Score"
+          score={scores.awardFellowshipScore}
+          total="50"
+          verifiedScore={verifiedScores.awardsAndFellowships?.marks}
+          sectionVerifiedScores={{
+            internationalAwards: verifiedScores.internationalAwards,
+            governmentAwards: verifiedScores.governmentAwards,
+            nationalAwards: verifiedScores.nationalAwards,
+            internationalFellowships: verifiedScores.internationalFellowships,
+            nationalFellowships: verifiedScores.nationalFellowships,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              awardsAndFellowships: { marks: value },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* National/International Industry/University Interaction */}
+      <SectionCard
+        title="16. Outcome through National/International Industry/University Interaction"
+        icon="🤝"
+        borderColor="border-yellow-500"
+      >
+        <div className="space-y-4">
+          <InputFieldWithProof
+            label="Active MoUs (10 marks per MoU)"
+            name="activeMoUs"
+            value={formData.activeMoUs.count}
+            proofValue={formData.activeMoUs.proof}
+            verifiedScore={verifiedScores.activeMoUs?.marks}
+            multiplier={10}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                activeMoUs: { ...prev.activeMoUs, marks: value },
+              }))
+            }
+          />
+          <InputFieldWithProof
+            label="Industry Collaboration (20 marks per collaboration)"
+            name="industryCollaboration"
+            value={formData.industryCollaboration.count}
+            proofValue={formData.industryCollaboration.proof}
+            verifiedScore={verifiedScores.industryCollaboration?.marks}
+            multiplier={20}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                industryCollaboration: {
+                  ...prev.industryCollaboration,
+                  marks: value,
+                },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Industry/University Interaction Score"
+          score={scores.interactionScore}
+          total="No limit"
+          verifiedScore={verifiedScores.industryInteraction?.marks}
+          sectionVerifiedScores={{
+            activeMoUs: verifiedScores.activeMoUs,
+            industryCollaboration: verifiedScores.industryCollaboration,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              industryInteraction: {
+                ...prev.industryInteraction,
+                marks: value,
+              },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* Industry association for internship/placement */}
+      <SectionCard
+        title="17. Industry association for internship/placement"
+        icon="🎯"
+        borderColor="border-red-500"
+      >
+        <div className="space-y-4">
+          <InputFieldWithProof
+            label="Internship/Placement Offers (10 marks per offer)"
+            name="internshipPlacementOffers"
+            value={formData.internshipPlacementOffers.count}
+            proofValue={formData.internshipPlacementOffers.proof}
+            multiplier={10}
+            verifiedScore={verifiedScores.internshipPlacementOffers?.marks}
+            onVerifiedScoreChange={(value) =>
+              setVerifiedScores((prev) => ({
+                ...prev,
+                internshipPlacementOffers: {
+                  ...prev.internshipPlacementOffers,
+                  marks: value,
+                },
+              }))
+            }
+          />
+        </div>
+        <ScoreCard
+          label="Internship/Placement Score"
+          score={scores.internshipPlacementScore}
+          total="No limit"
+          verifiedScore={verifiedScores.internshipPlacement?.marks}
+          sectionVerifiedScores={{
+            internshipPlacementOffers: verifiedScores.internshipPlacementOffers,
+          }}
+          onVerifiedScoreChange={(value) =>
+            setVerifiedScores((prev) => ({
+              ...prev,
+              internshipPlacement: {
+                ...prev.internshipPlacement,
+                marks: value,
+              },
+            }))
+          }
+        />
+      </SectionCard>
+
+      {/* Verifier Remarks */}
+<SectionCard title="Verifier's Remarks" icon="✍️" borderColor="border-purple-500">
+  <div className="space-y-4">
+    <label htmlFor="finalRemarks" className="block text-sm font-medium text-gray-700">
+      Add your remarks about this verification (optional)
+    </label>
+    <textarea
+      id="finalRemarks"
+      value={finalRemarks}
+      onChange={(e) => setFinalRemarks(e.target.value)}
+      rows={4}
+      className="w-full px-3 py-2 text-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+      placeholder="Add any comments, observations or feedback about this verification..."
+    />
+  </div>
+</SectionCard>
+
+
+      {/* Total Scores */}
+      <SectionCard title="Total Scores" icon="📊" borderColor="border-blue-500">
+        <div className="space-y-4">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <p className="text-lg font-semibold text-blue-800">
+              Score before cadre limit: {scores.totalScoreBeforeCadreLimit}
+            </p>
+            <p className="text-lg font-semibold text-blue-800 mt-2">
+              Final Score (after cadre limit): {scores.totalScore}
+            </p>
+            <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border-2 border-green-200">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700">
+                  Total Score After Verification:
+                </span>
+                <span className="text-xl font-bold text-green-600">
+                  {
+                    calculateTotalVerifiedMarks(verifiedScores, facultyData)
+                      .finalTotal
+                  }
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* Submit Button */}
+      <div className="flex justify-end mt-8">
+        <button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          {isSubmitting ? (
+            <>
+              <ClipLoader color="#ffffff" size={20} />
+              Submitting...
+            </>
+          ) : (
+            "Submit After Varification"
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const getJournalPapersVerifiedTotal = () => {
+  return (
+    (verifiedScores.sciJournalPapers?.marks || 0) +
+    (verifiedScores.esciJournalPapers?.marks || 0) +
+    (verifiedScores.scopusJournalPapers?.marks || 0) +
+    (verifiedScores.ugcCareJournalPapers?.marks || 0) +
+    (verifiedScores.otherJournalPapers?.marks || 0)
+  );
+};
+
+export default VerificationForm;
