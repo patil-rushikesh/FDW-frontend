@@ -41,8 +41,9 @@ const AssignExternal = () => {
         );
         // Fetch lock status and director marks in parallel for all faculties
         const facultyPromises = filtered.map(async (f) => {
-          const [isExternalsFinal, directorMarks] = await Promise.all([
+          const [isExternalsFinal, evaluationStatus, directorMarks] = await Promise.all([
             getLockedStatus(f._id),
+            getEvaluationStatus(f._id, f.dept),
             f.isDirectorMarksGiven ? getDirectorMarks(f._id) : Promise.resolve(null)
           ]);
           return {
@@ -50,9 +51,8 @@ const AssignExternal = () => {
             name: f.name,
             department: f.dept,
             designation: f.desg,
-            employeeId: f.empId,
             role: f.role,
-            review_status: f.review_status || "interaction pending",
+            status: evaluationStatus,
             isDirectorMarksGiven: f.isDirectorMarksGiven || false,
             isExternalsFinal: isExternalsFinal || false,
             directorMarks: directorMarks
@@ -114,12 +114,18 @@ const AssignExternal = () => {
     }
     return null;
   };
-
+  const getEvaluationStatus = async (facultyId, department) => {
+    const res = await fetch(`${import.meta.env.VITE_BASE_URL}/getEvaluationStatus/${facultyId}/${department}`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.status || null;
+    }
+    return null;
+  };
   const getLockedStatus = async (facultyId) => {
     const res = await fetch(`${import.meta.env.VITE_BASE_URL}/get-external-lock-status/${facultyId}`);
     if (res.ok) {
       const data = await res.json();
-      console.log("Lock status data:", data.isLocked);
       return data.isLocked || false;
     }
     return false;
@@ -248,7 +254,7 @@ const AssignExternal = () => {
       if (!refreshRes.ok) throw new Error("Failed to refresh assignment data");
       const refreshData = await refreshRes.json();
       setAssignments(refreshData.data || {});
-
+      handleFreezeExternal(facultyId);
       toast.success("Faculty assignments updated successfully");
       closeModal();
     } catch (error) {
@@ -299,124 +305,117 @@ const AssignExternal = () => {
             </div>
           ) : (
             <div className="space-y-8">
-              {internalFacultyList.map((internal) => {
-                const assignedExternal = getAssignedExternalDetails(internal.id);
-                return (
-                  <div
-                    key={internal.id}
-                    className="border border-gray-200 rounded-lg overflow-hidden"
-                  >
-                    {/* Internal Faculty Header */}
-                    <div className="bg-gray-50 px-6 py-4 flex justify-between items-center">
-                      <div>
-                        <h3 className="text-lg font-semibold">{internal.name}</h3>
-                        <p className="text-sm text-gray-600">
-                          {internal.designation} • {internal.department}
-                        </p>
-                      </div>
-                      <div className="flex gap-3">
+              {internalFacultyList
+                .filter((internal) => internal.status === "Interaction_pending" || internal.status === "done")
+                .map((internal) => {
+                  const assignedExternal = getAssignedExternalDetails(internal.id);
+                  return (
+                    <div
+                      key={internal.id}
+                      className="border border-gray-200 rounded-lg overflow-hidden"
+                    >
+                      {/* Internal Faculty Header */}
+                      <div className="bg-gray-50 px-6 py-4 flex justify-between items-center">
+                        <div>
+                          <h3 className="text-lg font-semibold">{internal.name}</h3>
+                          <p className="text-sm text-gray-600">
+                            {internal.designation} • {internal.department}
+                          </p>
+                        </div>
+                        <div className="flex gap-3">
 
-                        {
-                          internal.review_status === "completed" ?
-                            (
+                          {
+                            internal.review_status === "completed" ?
+                              (
+                                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-md text-sm font-medium flex items-center">
+                                  <CheckCircle size={14} className="mr-1" />
+                                  Completed
+                                </span>
+                              ) :
+                              internal.isExternalsFinal ? (
+                                <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-md text-sm font-medium flex items-center">
+                                  <CheckCircle size={14} className="mr-1" />
+                                  Freezed
+                                </span>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => openAssignModal(internal)}
+                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md flex items-center gap-2 transition-colors"
+                                  >
+                                    <UserPlus size={16} />
+                                    <span>Assign External</span>
+                                  </button>
+                                </>
+                              )
+                          }
+                          {internal.isDirectorMarksGiven ? (
+                            <div className="flex items-center">
                               <span className="bg-green-100 text-green-800 px-3 py-1 rounded-md text-sm font-medium flex items-center">
                                 <CheckCircle size={14} className="mr-1" />
-                                Completed
+                                Marks : {internal.directorMarks} / 100
                               </span>
-                            ) :
-                            internal.isExternalsFinal ? (
-                              console.log("internal", internal),
-                              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-md text-sm font-medium flex items-center">
-                                <CheckCircle size={14} className="mr-1" />
-                                Freezed
-                              </span>
-                            ) : (
-                              <>
-                                <button
-                                  onClick={() => openAssignModal(internal)}
-                                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md flex items-center gap-2 transition-colors"
-                                >
-                                  <UserPlus size={16} />
-                                  <span>Assign External</span>
-                                </button>
-                                <button
-                                  onClick={() => handleFreezeExternal(internal.id)}
-                                  className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md flex items-center gap-2 transition-colors"
-                                  title="Freeze externals"
-                                >
-                                  <Lock size={16} />
-                                  <span>Freeze</span>
-                                </button>
-                              </>
-                            )
-                        }
-                        {internal.isDirectorMarksGiven ? (
-                          <div className="flex items-center">
-                            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-md text-sm font-medium flex items-center">
-                              <CheckCircle size={14} className="mr-1" />
-                              Marks : {internal.directorMarks} / 100
-                            </span>
-                          </div>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() =>
+                                navigate(`/director-evaluate/${internal.id}`, {
+                                  state: { faculty: internal, department: internal.department },
+                                })
+                              }
+                              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center gap-2 transition-colors"
+                              title="Evaluate faculty"
+                            >
+                              <FileText size={16} />
+                              <span>Evaluate</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Assigned External List */}
+                      <div className="p-4">
+                        <h4 className="text-sm font-medium text-gray-700 mb-3">
+                          Assigned External Members
+                        </h4>
+                        {assignedExternal.length === 0 ? (
+                          <p className="text-gray-500 italic text-sm">
+                            No external members assigned yet
+                          </p>
                         ) : (
-                          <button
-                            onClick={() =>
-                              navigate(`/director-evaluate/${internal.id}`, {
-                                state: { faculty: internal, department: internal.department },
-                              })
-                            }
-                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center gap-2 transition-colors"
-                            title="Evaluate faculty"
-                          >
-                            <FileText size={16} />
-                            <span>Evaluate</span>
-                          </button>
+                          <ul className="space-y-2">
+                            {assignedExternal.map((external) => (
+                              <li
+                                key={external.external_id}
+                                className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-md"
+                              >
+                                <div className="flex items-center">
+                                  <User size={16} className="text-gray-500 mr-2" />
+                                  <span className="text-gray-800">
+                                    {external.reviewer_info.full_name}
+                                  </span>
+                                </div>
+                                {
+                                  internal.isExternalsFinal ? null : (
+                                    <button
+                                      onClick={() =>
+                                        handleRemoveExternal(internal.id, external.external_id)
+                                      }
+                                      className="text-red-600 hover:text-red-800"
+                                      title="Remove assignment"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
+                                  )
+                                }
+                              </li>
+                            ))}
+                          </ul>
                         )}
                       </div>
                     </div>
-
-                    {/* Assigned External List */}
-                    <div className="p-4">
-                      <h4 className="text-sm font-medium text-gray-700 mb-3">
-                        Assigned External Members
-                      </h4>
-                      {assignedExternal.length === 0 ? (
-                        <p className="text-gray-500 italic text-sm">
-                          No external members assigned yet
-                        </p>
-                      ) : (
-                        <ul className="space-y-2">
-                          {assignedExternal.map((external) => (
-                            <li
-                              key={external.external_id}
-                              className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-md"
-                            >
-                              <div className="flex items-center">
-                                <User size={16} className="text-gray-500 mr-2" />
-                                <span className="text-gray-800">
-                                  {external.reviewer_info.full_name}
-                                </span>
-                              </div>
-                              {
-                                internal.isExternalsFinal ? null : (
-                                  <button
-                                    onClick={() =>
-                                      handleRemoveExternal(internal.id, external.external_id)
-                                    }
-                                    className="text-red-600 hover:text-red-800"
-                                    title="Remove assignment"
-                                  >
-                                    <Trash2 size={16} />
-                                  </button>
-                                )
-                              }
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           )}
         </div>

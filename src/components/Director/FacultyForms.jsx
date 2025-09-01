@@ -1,10 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Users,
-  Search,
-  Filter,
-  CheckCircle2,
   SortAsc,
   SortDesc,
   FileText,
@@ -12,7 +9,6 @@ import {
 } from "lucide-react";
 
 const FacultyForms = () => {
-  const navigate = useNavigate();
   const [facultyData, setFacultyData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -767,16 +763,16 @@ const FacultyForms = () => {
                                 {faculty.status === "done" || faculty.status === "Done"
                                   ? "Done"
                                   : faculty.status === "Interaction_pending"
-                                  ? "Interaction Pending"
-                                  : faculty.status === "authority_verification_pending"
-                                  ? "Authority Verification Pending"
-                                  : faculty.status === "verification_pending"
-                                  ? "Verification Pending"
-                                  : faculty.status === "Portfolio_Mark_pending"
-                                  ? "Portfolio Mark Pending"
-                                  : faculty.status === "Portfolio_Mark_Dean_pending"
-                                  ? "Portfolio Dean Mark Pending"
-                                  : "Pending"}
+                                    ? "Interaction Pending"
+                                    : faculty.status === "authority_verification_pending"
+                                      ? "Authority Verification Pending"
+                                      : faculty.status === "verification_pending"
+                                        ? "Verification Pending"
+                                        : faculty.status === "Portfolio_Mark_pending"
+                                          ? "Portfolio Mark Pending"
+                                          : faculty.status === "Portfolio_Mark_Dean_pending"
+                                            ? "Portfolio Dean Mark Pending"
+                                            : "Pending"}
                               </span>
                             )}
                           </td>
