@@ -77,7 +77,18 @@ const directorPrivilegeItems = [
     path: "/director/faculty-forms",
   },
 ];
-
+const directorInteractionItems = [
+  {
+    icon: Users,
+    label: "Add External",
+    path: "/director/add-external",
+  },
+  {
+    icon: Users,
+    label: "Assign External",
+    path: "/director/assign-external",
+  },
+];
 // Add this after hodPrivilegeItems
 const hodInteractionItems = [
   {
@@ -132,7 +143,8 @@ export default function Sidebar({ isOpen, onClose }) {
   const [isPartsOpen, setIsPartsOpen] = useState(false);
   const [isPrivilegeOpen, setIsPrivilegeOpen] = useState(false);
   const [isPaperVerificationOpen, setIsPaperVerificationOpen] = useState(false);
-  const [isInteractionOpen, setIsInteractionOpen] = useState(false);
+  const [isHodInteractionOpen, setIsHodInteractionOpen] = useState(false); // Separate state for HOD
+  const [isDirectorInteractionOpen, setIsDirectorInteractionOpen] = useState(false); // Separate state for Director
   const [userStatus, setUserStatus] = useState(null);
   const [statusLoading, setStatusLoading] = useState(false);
 
@@ -195,9 +207,9 @@ export default function Sidebar({ isOpen, onClose }) {
 
   const toggleParts = () => setIsPartsOpen(!isPartsOpen);
   const togglePrivilege = () => setIsPrivilegeOpen(!isPrivilegeOpen);
-  const togglePaperVerification = () =>
-    setIsPaperVerificationOpen(!isPaperVerificationOpen);
-  const toggleInteraction = () => setIsInteractionOpen(!isInteractionOpen);
+  const togglePaperVerification = () => setIsPaperVerificationOpen(!isPaperVerificationOpen);
+  const toggleHodInteraction = () => setIsHodInteractionOpen(!isHodInteractionOpen);
+  const toggleDirectorInteraction = () => setIsDirectorInteractionOpen(!isDirectorInteractionOpen);
 
   // Add handleLogout function
   const handleLogout = () => {
@@ -370,37 +382,87 @@ export default function Sidebar({ isOpen, onClose }) {
     return (
       <div className="mb-3">
         <button
-          onClick={toggleInteraction}
+          onClick={toggleHodInteraction}
           className="w-full flex items-center justify-between p-4 rounded-lg text-indigo-100 hover:bg-indigo-700/70"
         >
           <div className="flex items-center space-x-4">
             <Users size={24} strokeWidth={2} />
             <span className="text-base font-medium">Interaction</span>
           </div>
-          {isInteractionOpen ? (
+          {isHodInteractionOpen ? (
             <ChevronDown size={20} />
           ) : (
             <ChevronRight size={20} />
           )}
         </button>
 
-        {isInteractionOpen && (
+        {isHodInteractionOpen && (
           <div
             className={`
-            relative pl-4 mt-2
-            before:content-[""]
-            before:absolute
-            before:left-0
-            before:top-0
-            before:bottom-4
-            before:w-[2px]
-            before:bg-indigo-500
-            space-y-2
-            transition-all
-            duration-200
-          `}
+              relative pl-4 mt-2
+              before:content-[""]
+              before:absolute
+              before:left-0
+              before:top-0
+              before:bottom-4
+              before:w-[2px]
+              before:bg-indigo-500
+              space-y-2
+              transition-all
+              duration-200
+            `}
           >
             {hodInteractionItems.map((item) => (
+              <NavLink
+                key={item.path}
+                item={item}
+                isActive={location.pathname === item.path}
+                isDropdownItem={true}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderDirectorInteractionSection = () => {
+    if (userRole !== "director") return null;
+
+    return (
+      <div className="mb-3">
+        <button
+          onClick={toggleDirectorInteraction}
+          className="w-full flex items-center justify-between p-4 rounded-lg text-indigo-100 hover:bg-indigo-700/70"
+        >
+          <div className="flex items-center space-x-4">
+            <Users size={24} strokeWidth={2} />
+            <span className="text-base font-medium">Interaction</span>
+          </div>
+          {isDirectorInteractionOpen ? (
+            <ChevronDown size={20} />
+          ) : (
+            <ChevronRight size={20} />
+          )}
+        </button>
+
+        {isDirectorInteractionOpen && (
+          <div
+            className={`
+              relative pl-4 mt-2
+              before:content-[""]
+              before:absolute
+              before:left-0
+              before:top-0
+              before:bottom-4
+              before:w-[2px]
+              before:bg-indigo-500
+              space-y-2
+              transition-all
+              duration-200
+            `}
+          >
+            {directorInteractionItems.map((item) => (
               <NavLink
                 key={item.path}
                 item={item}
@@ -540,6 +602,9 @@ export default function Sidebar({ isOpen, onClose }) {
 
                 {/* Interaction Section for HOD */}
                 {renderInteractionSection()}
+
+                {/* Director Interaction Section */}
+                {renderDirectorInteractionSection()}
 
                 {/* Paper Verification Section */}
                 {renderPaperVerificationSection()}

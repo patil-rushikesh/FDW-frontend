@@ -43,5 +43,10 @@
     "shadcn-ui": "^0.9.4",
     "tailwindcss": "^4.0.5",
     "vite": "^6.1.0"
-  }
+  },
+  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
+  "main": "eslint.config.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

@@ -1,19 +1,14 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
-  Search,
-  Filter,
-  CheckCircle2,
   SortAsc,
   SortDesc,
   FileText,
   Eye,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 const FacultyForms = () => {
-  const navigate = useNavigate();
   const [facultyData, setFacultyData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -63,10 +58,10 @@ const FacultyForms = () => {
     return facultyList.map((faculty) => ({
       ...faculty,
       status:
-        faculty.status === "authority_verification_pending"
-          ? "authority_verification_pending"
+        faculty.status === "SentToDirector"
+          ? "SentToDirector"
           : verifiedFaculty[faculty._id]
-            ? "authority_verification_pending"
+            ? "SentToDirector"
             : faculty.status,
     }));
   };
@@ -76,19 +71,52 @@ const FacultyForms = () => {
     const fetchFaculties = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/all-faculties`);
+        const response = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/all-faculties`
+        );
         if (!response.ok) throw new Error("Failed to fetch faculty data");
         const responseData = await response.json();
 
+        // Log the raw data fetched from the database
+        // console.log('Fetched faculty data from /all-faculties:', responseData.data);
+        // Additionally, fetch and log data for each faculty from /<department>/<user_id>
+        responseData.data.forEach(async (faculty) => {
+          try {
+            const res = await fetch(
+              `${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}`
+            );
+            if (res.ok) {
+              const facultyDetail = await res.json();
+              console.log(
+                `Fetched detail for ${faculty.name} (${faculty._id}):`,
+                facultyDetail
+              );
+            } else {
+              console.warn(
+                `Failed to fetch detail for ${faculty.name} (${faculty._id})`
+              );
+            }
+          } catch (err) {
+            console.error(
+              `Error fetching detail for ${faculty.name} (${faculty._id}):`,
+              err
+            );
+          }
+        });
+
         if (responseData.status === "success") {
-          // Filter regular faculty only (not HODs)
+          // Only show faculties whose status is 'SentToDirector'
           const regularFaculty = responseData.data.filter(
-            (faculty) =>
-              faculty.role !== "HOD" &&
-              faculty.designation !== "HOD" &&
-              (faculty.designation === "Faculty" ||
-                faculty.designation === "Associate Dean")
+            (faculty) => faculty.status === "SentToDirector" && faculty.designation === "Faculty"
           );
+          // Previous filter (commented out):
+          // const regularFaculty = responseData.data.filter(
+          //   (faculty) =>
+          //     faculty.role !== "HOD" &&
+          //     faculty.designation !== "HOD" &&
+          //     (faculty.designation === "Faculty" ||
+          //       faculty.designation === "Associate Dean")
+          // );
 
           // Calculate summary statistics for each status type
           const summary = {
@@ -123,27 +151,43 @@ const FacultyForms = () => {
           });
 
           setStatusSummary(summary);
+          setDepartments(
+            [...new Set(responseData.data.map((f) => f.department))].filter(
+              Boolean
+            )
+          );
+          setDesignations(
+            [...new Set(responseData.data.map((f) => f.designation))].filter(
+              Boolean
+            )
+          );
+          setRoles(
+            [...new Set(responseData.data.map((f) => f.role))]
+              .filter(Boolean)
+              .filter((role) => role !== "HOD")
+          );
 
-          // Extract unique departments from the faculty data
-          const uniqueDepartments = [
-            ...new Set(responseData.data.map((f) => f.department)),
-          ].filter(Boolean);
-          setDepartments(uniqueDepartments);
-
-          // Extract unique designations for filter options
-          const uniqueDesignations = [
-            ...new Set(responseData.data.map((f) => f.designation)),
-          ].filter(Boolean);
-          setDesignations(uniqueDesignations);
-
-          // Extract unique roles for filter options
-          const uniqueRoles = [...new Set(responseData.data.map((f) => f.role))]
-            .filter(Boolean)
-            .filter((role) => role !== "HOD");
-          setRoles(uniqueRoles);
-
-          // Process and set all faculty data (not just Done status)
-          setFacultyData(processVerificationStatus(regularFaculty));
+          // Fetch total marks for each faculty from /<department>/<user_id>/total and add to faculty object
+          const facultyWithTotals = await Promise.all(
+            regularFaculty.map(async (faculty) => {
+              try {
+                const res = await fetch(
+                  `${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}/total`
+                );
+                if (res.ok) {
+                  const totalData = await res.json();
+                  return {
+                    ...faculty,
+                    grand_total: totalData.grand_total?.grand_total ?? null,
+                  };
+                }
+              } catch (err) {
+                console.error(`Error fetching total for ${faculty._id}:`, err);
+              }
+              return faculty;
+            })
+          );
+          setFacultyData(processVerificationStatus(facultyWithTotals));
         } else {
           throw new Error("API returned an error");
         }
@@ -153,7 +197,6 @@ const FacultyForms = () => {
         setLoading(false);
       }
     };
-
     fetchFaculties();
   }, []);
 
@@ -178,50 +221,12 @@ const FacultyForms = () => {
   // Update the filteredData useMemo function
   const filteredData = useMemo(() => {
     return facultyData
-      .filter((faculty) => {
-        const searchMatch =
-          faculty._id.toLowerCase().includes(filters.search.toLowerCase()) ||
-          (faculty.name &&
-            faculty.name.toLowerCase().includes(filters.search.toLowerCase()));
-
-        const departmentMatch =
-          !filters.department || faculty.department === filters.department;
-
-        const designationMatch =
-          !filters.designation || faculty.designation === filters.designation;
-
-        const roleMatch = !filters.role || faculty.role === filters.role;
-
-        const statusMatch =
-          !filters.status ||
-          faculty.status?.toLowerCase() === filters.status?.toLowerCase();
-
-        const facultyMarks = getNumericMarks(faculty);
-
-        const marksMatch =
-          (!filters.minMarks ||
-            filters.minMarks === "" ||
-            facultyMarks >= Number(filters.minMarks)) &&
-          (!filters.maxMarks ||
-            filters.maxMarks === "" ||
-            facultyMarks <= Number(filters.maxMarks));
-
-        return (
-          searchMatch &&
-          departmentMatch &&
-          designationMatch &&
-          roleMatch &&
-          statusMatch &&
-          marksMatch
-        );
-      })
+      .filter((faculty) => faculty.status === "SentToDirector" && faculty.designation === "Faculty")
       .sort((a, b) => {
         if (!sortConfig.key) return 0;
-
         if (sortConfig.key === "marks") {
           const marksA = getNumericMarks(a);
           const marksB = getNumericMarks(b);
-
           return sortConfig.direction === "asc"
             ? marksA - marksB
             : marksB - marksA;
@@ -291,77 +296,71 @@ const FacultyForms = () => {
 
   // Function to determine what to display in the action column
   const renderActionButton = (faculty) => {
-    if (faculty.status?.toLowerCase() === "done") {
+    if (faculty.status === "SentToDirector") {
       return (
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-          onClick={() => viewFacultyPDF(faculty)}
-        >
-          <Eye className="h-4 w-4 text-green-600" />
-          <span className="font-semibold text-green-700">View PDF</span>
-        </button>
-      );
-    } else if (faculty.status === "authority_verification_pending") {
-      return (
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-          onClick={() => {
-            navigate("/ConfirmVerifybyDirector", {
-              state: {
-                faculty: {
-                  name: faculty.name,
-                  id: faculty._id,
-                  role: faculty.role,
-                  department: faculty.department,
-                  status: "authority_verification_pending",
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            onClick={() => viewFacultyPDF(faculty)}
+          >
+            <Eye className="h-4 w-4 text-blue-600" />
+            <span className="font-semibold text-blue-700">View PDF</span>
+          </button>
+          {/* Verify Button */}
+          {/* <button
+            type="button"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+            onClick={() => {
+              navigate("/ConfirmVerifybyDirector", {
+                state: {
+                  faculty: {
+                    name: faculty.name,
+                    id: faculty._id,
+                    role: faculty.role,
+                    department: faculty.department,
+                    status: "authority_verification_pending",
+                  },
+                  portfolioData: {},
+                  verifiedMarks: {},
                 },
-                portfolioData: {},
-                verifiedMarks: {},
-              },
-            });
-          }}
-        >
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <span className="font-semibold text-green-700">Verify</span>
-        </button>
-      );
-    } else if (faculty.status === "Portfolio_Mark_pending") {
-      return (
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-          onClick={() =>
-            navigate("/DirectorVerify", {
-              state: {
-                faculty: {
-                  name: faculty.name,
-                  id: faculty._id,
-                  role: faculty.role,
-                  department: faculty.department,
-                },
-              },
-            })
-          }
-        >
-          <span className="font-semibold text-blue-700">Give Marks</span>
-        </button>
+              });
+            }}
+          >
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <span className="font-semibold text-green-700">Verify</span>
+          </button> */}
+        </div>
       );
     } else {
-      return <span className="text-gray-400">-</span>;
+      return null;
     }
   };
 
-  // Update the displayMarks function to handle the object case
+  // Only show marks for authority_verification_pending, interaction_pending, or done; others show 'N/A'
   const displayMarks = (faculty) => {
-    if (faculty.status === "pending") {
-      return "0";
-    } else if (typeof faculty.grand_marks === "object") {
-      return faculty.grand_marks?.grand_total || "N/A";
-    } else {
-      return faculty.grand_marks || "N/A";
+    const allowedStatuses = [
+      "authority_verification_pending",
+      "interaction_pending",
+      "done",
+      "Done",
+      "Authority_Verification_Pending",
+      "Interaction_pending"
+    ];
+    if (!allowedStatuses.includes((faculty.status || "").toLowerCase())) {
+      return "N/A";
     }
+    // Get verified marks and interaction marks
+    const verifiedMarks = faculty.portfolio?.grand_total || 0;
+    const interactionMarks = faculty.interaction_marks || 0;
+    // Get total marks from the data
+    const totalMarks =
+      faculty.grand_marks?.grand_total ||
+      faculty.grand_total ||
+      faculty.total_marks ||
+      verifiedMarks + interactionMarks;
+    // Format and display the total marks
+    return totalMarks ? totalMarks.toFixed(2) : "N/A";
   };
 
   // Calculate counts for status types
@@ -588,7 +587,7 @@ const FacultyForms = () => {
 
                 {/* Summary Section */}
                 {/* Summary Section - Improved UI */}
-                <div className="mt-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+                {/* <div className="mt-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
                   <div
                     className={`bg-blue-50 p-4 rounded-lg border ${
                       filters.status === ""
@@ -657,7 +656,19 @@ const FacultyForms = () => {
                         ? "border-orange-400 shadow-md"
                         : "border-orange-200"
                     } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("verification_pending")}
+                  if (faculty.status === "SentToDirector") {
+                    return (
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                        onClick={() => viewFacultyPDF(faculty)}
+                      >
+                        <Eye className="h-4 w-4 text-blue-600" />
+                        <span className="font-semibold text-blue-700">View PDF</span>
+                      </button>
+                    );
+                  }
+                  return null;
                   >
                     <p className="text-sm text-orange-600 mb-1">
                       Verification Pending
@@ -714,7 +725,7 @@ const FacultyForms = () => {
                       {statusSummary.pending}
                     </p>
                   </div>
-                </div>
+                </div> */}
               </div>
 
               {/* Table Section */}
@@ -748,46 +759,27 @@ const FacultyForms = () => {
                           <td className="px-6 py-4">{faculty.role}</td>
                           <td className="px-6 py-4">{displayMarks(faculty)}</td>
                           <td className="px-6 py-4">
-                            <span
-                              className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold ${
-                                faculty.status === "done" ||
-                                faculty.status === "Done"
-                                  ? "bg-green-100 text-green-800"
+                            {faculty.status === "SentToDirector" ? (
+                              <span className="inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold bg-blue-100 text-blue-800">
+                                Sent to Director
+                              </span>
+                            ) : (
+                              <span className="inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold bg-gray-100 text-gray-800">
+                                {faculty.status === "done" || faculty.status === "Done"
+                                  ? "Done"
                                   : faculty.status === "Interaction_pending"
-                                    ? "bg-purple-100 text-purple-800"
-                                    : faculty.status ===
-                                        "authority_verification_pending"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : faculty.status ===
-                                          "verification_pending"
-                                        ? "bg-orange-100 text-orange-800"
-                                        : faculty.status ===
-                                            "Portfolio_Mark_pending"
-                                          ? "bg-blue-100 text-blue-800"
-                                          : faculty.status ===
-                                              "Portfolio_Mark_Dean_pending"
-                                            ? "bg-indigo-100 text-indigo-800"
-                                            : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {faculty.status === "done" ||
-                              faculty.status === "Done"
-                                ? "Done"
-                                : faculty.status === "Interaction_pending"
-                                  ? "Interaction Pending"
-                                  : faculty.status ===
-                                      "authority_verification_pending"
-                                    ? "Authority Verification Pending"
-                                    : faculty.status === "verification_pending"
-                                      ? "Verification Pending"
-                                      : faculty.status ===
-                                          "Portfolio_Mark_pending"
-                                        ? "Portfolio Mark Pending"
-                                        : faculty.status ===
-                                            "Portfolio_Mark_Dean_pending"
-                                          ? "Portfolio Dean Mark Pending"
-                                          : "Pending"}
-                            </span>
+                                    ? "Interaction Pending"
+                                    : faculty.status === "authority_verification_pending"
+                                      ? "Authority Verification Pending"
+                                      : faculty.status === "verification_pending"
+                                        ? "Verification Pending"
+                                        : faculty.status === "Portfolio_Mark_pending"
+                                          ? "Portfolio Mark Pending"
+                                          : faculty.status === "Portfolio_Mark_Dean_pending"
+                                            ? "Portfolio Dean Mark Pending"
+                                            : "Pending"}
+                              </span>
+                            )}
                           </td>
                           <td className="px-6 py-4">
                             {renderActionButton(faculty)}

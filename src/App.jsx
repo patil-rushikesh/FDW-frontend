@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -37,12 +37,16 @@ import AssociateDeansList from "./components/Dean/AssociateDeansList";
 import DeanEvaluationForm from "./components/Dean/DeanEvaluationForm";
 // Import the new component
 import AddExternalFaculty from "./components/HOD/AddExternalFaculty";
+import AddExternal from "./components/Director/AddExternal";
 // Import the new component
 import AssignFacultyToExternal from "./components/HOD/AssignFacultyToExternal";
+import AssignExternal from "./components/Director/AssignExternal";
 // Import the external dashboard component
-import ExternalDashboard from "./components/External/ExternalDashboard";
+import ExternalDashboard from "./components/CollegeExternal/CollegeExternalDashboard";
+import CollegeExternalDashboard from "./components/CollegeExternal/CollegeExternalDashboard";
 import Extra from "./components/forms/Extra";
 import EvaluateFacultyPage from "./components/External/EvaluateFacultyPage";
+import EvaluateAuthoritiesPage from "./components/CollegeExternal/EvaluateAuthoritiesPage";
 import AssignFacultyToVerificationTeam from "./components/adminpage/AssignFacultyToVerificationTeam";
 import HODForms from "./components/Director/HODForms";
 import DeanForms from "./components/Director/DeanForms";
@@ -51,6 +55,7 @@ import AssignDeanToDepartment from "./components/adminpage/AssignDeanToDepartmen
 import Interactionmarks from "./components/Dean/Interactionmarks";
 import Interactionevaluation from "./components/Dean/Interactionevaluation";
 import HODInteractionEvaluation from "./components/HOD/HODInteractionEvaluation";
+import DirectorInteractionEvaluation from "./components/Director/DirectorInteractionEvaluation";
 import FinalMarks from "./components/HOD/FinalMarks";
 import ConfirmDirectorVerify from "./components/Director/ConfirmVerifybyDirector";
 import DirectorVerify from "./components/Director/DirectorVerify";
@@ -59,6 +64,7 @@ import ResetPassword from "./components/ResetPassword";
 import Summary from "./components/adminpage/Summary";
 
 // Protected Route component
+// eslint-disable-next-line react/prop-types
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
   if (!isAuthenticated) {
@@ -340,6 +346,46 @@ function AppContent() {
                     element={
                       <ProtectedRoute>
                         <DirectorVerify />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/director/add-external"
+                    element={
+                      <ProtectedRoute>
+                        <AddExternal />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/director/assign-external"
+                    element={
+                      <ProtectedRoute>
+                        <AssignExternal />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/director-evaluate/:facultyId"
+                    element={
+                      <ProtectedRoute>
+                        <DirectorInteractionEvaluation />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/external/give-marks"
+                    element={
+                      <ProtectedRoute>
+                        <CollegeExternalDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/evaluate-authority/:facultyId"
+                    element={
+                      <ProtectedRoute>
+                        <EvaluateAuthoritiesPage />
                       </ProtectedRoute>
                     }
                   />
