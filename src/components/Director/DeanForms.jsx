@@ -330,10 +330,18 @@ const DeanForms = () => {
     }
   };
 
-  // Update the displayMarks function to handle the object case
+  // Only show marks for authority_verification_pending, interaction_pending, or done; others show 'N/A'
   const displayMarks = (faculty) => {
-    if (faculty.status === "pending") {
-      return "0";
+    const allowedStatuses = [
+      "authority_verification_pending",
+      "interaction_pending",
+      "done",
+      "Done",
+      "Authority_Verification_Pending",
+      "Interaction_pending"
+    ];
+    if (!allowedStatuses.includes((faculty.status || "").toLowerCase())) {
+      return "N/A";
     }
     // Get verified marks and interaction marks
     const verifiedMarks = faculty.portfolio?.grand_total || 0;
