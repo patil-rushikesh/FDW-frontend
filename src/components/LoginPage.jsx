@@ -62,7 +62,7 @@ const LoginPage = () => {
         // Wait for 1.5 seconds to show the success message before redirecting
         setTimeout(() => {
           if (data.role === "external") {
-            navigate("/external/dashboard");
+            navigate("/dashboard");
           } else {
             navigate("/dashboard"); // Regular users
           }

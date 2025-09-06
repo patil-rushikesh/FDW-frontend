@@ -131,10 +131,19 @@ const paperVerificationItems = [
   { icon: ClipboardCheck, label: "Verify", path: "/paper-verification/verify" },
 ];
 
-const externalFacultyItems = [
-  { icon: User, label: "Dashboard", path: "/dashboard" },
-  { icon: Award, label: "Give Marks", path: "/external/give-marks" },
-];
+// Updated external faculty items function to handle different paths based on ID
+const getExternalFacultyItems = (userId) => {
+  const dashboardItem = { icon: User, label: "Dashboard", path: "/dashboard" };
+  
+  // Check if the user ID starts with "EXTPCCO"
+  const giveMarksPath = userId && userId.startsWith("EXTPCCO") 
+    ? "/director/external/give-marks" 
+    : "/external/give-marks";
+  
+  const giveMarksItem = { icon: Award, label: "Give Marks", path: giveMarksPath };
+  
+  return [dashboardItem, giveMarksItem];
+};
 
 export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
@@ -154,6 +163,7 @@ export default function Sidebar({ isOpen, onClose }) {
   const isInVerificationPanel = userData.isInVerificationPanel || false;
   const isExternal = userData.isExternal || false;
   const isAddedForInteraction = userData.isAddedForInteraction || false;
+  const userId = userData._id || userData.id || ""; // Get the user ID
 
   useEffect(() => {
     if (userData && userData.dept && userData._id) {
@@ -530,7 +540,7 @@ export default function Sidebar({ isOpen, onClose }) {
           <nav className="space-y-2">
             {/* For External Faculty: Show only Dashboard and Give Marks options */}
             {isExternal ? (
-              externalFacultyItems.map((item) => (
+              getExternalFacultyItems(userId).map((item) => (
                 <NavLink
                   key={item.path}
                   item={item}

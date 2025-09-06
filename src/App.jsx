@@ -42,7 +42,7 @@ import AddExternal from "./components/Director/AddExternal";
 import AssignFacultyToExternal from "./components/HOD/AssignFacultyToExternal";
 import AssignExternal from "./components/Director/AssignExternal";
 // Import the external dashboard component
-import ExternalDashboard from "./components/CollegeExternal/CollegeExternalDashboard";
+
 import CollegeExternalDashboard from "./components/CollegeExternal/CollegeExternalDashboard";
 import Extra from "./components/forms/Extra";
 import EvaluateFacultyPage from "./components/External/EvaluateFacultyPage";
@@ -62,6 +62,7 @@ import DirectorVerify from "./components/Director/DirectorVerify";
 import ResetPassword from "./components/ResetPassword";
 // Add this to your routes configuration
 import Summary from "./components/adminpage/Summary";
+import ExternalDashboard from "./components/External/ExternalDashboard";
 
 // Protected Route component
 // eslint-disable-next-line react/prop-types
@@ -374,7 +375,7 @@ function AppContent() {
                     }
                   />
                   <Route
-                    path="/external/give-marks"
+                    path="/director/external/give-marks"
                     element={
                       <ProtectedRoute>
                         <CollegeExternalDashboard />
