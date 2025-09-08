@@ -7,10 +7,10 @@ const DirectorInteractionEvaluation = () => {
   const { facultyId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);  const [saving, setSaving] = useState(false);
   const [faculty, setFaculty] = useState(null);
   const [facultyDepartment, setFacultyDepartment] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // Evaluation form data
   const [evaluation, setEvaluation] = useState({
@@ -142,12 +142,13 @@ const DirectorInteractionEvaluation = () => {
         
         if (!apiResponse.ok) {
           const errorData = await apiResponse.json();
-          throw new Error(errorData.error || 'Failed to submit evaluation to server');
-        }
+          throw new Error(errorData.error || 'Failed to submit evaluation to server');        }
         
         toast.success("Evaluation submitted successfully!");
-        // Refresh page data after submit
-        window.location.reload();
+        // Redirect to director dashboard after successful submission
+        setTimeout(() => {
+          navigate("/director/assign-external");
+        }, 1500);
       } else {
         toast.success("Progress saved successfully!");
         // Optionally, you can refresh data here as well if needed
@@ -198,6 +199,37 @@ const DirectorInteractionEvaluation = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Confirm Submission
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to submit this evaluation? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowConfirmModal(false);
+                  handleSave(true);
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+              >
+                Submit Evaluation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Back Button */}
       <button
         onClick={() => {
@@ -455,11 +487,9 @@ const DirectorInteractionEvaluation = () => {
                 className="inline-flex items-center px-4 py-2 rounded-md bg-gray-200 text-gray-800 hover:bg-gray-300"
               >
                 <Save size={16} className="mr-2" /> Save Progress
-              </button>
-
-              <button
+              </button>              <button
                 type="button"
-                onClick={() => handleSave(true)}
+                onClick={() => setShowConfirmModal(true)}
                 disabled={saving}
                 className="inline-flex items-center px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
               >

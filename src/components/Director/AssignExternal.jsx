@@ -24,6 +24,7 @@ const AssignExternal = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [pendingAssignments, setPendingAssignments] = useState({});
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const navigate = useNavigate();
 
@@ -231,10 +232,10 @@ const AssignExternal = () => {
   const getAssignedExternalDetails = (internalId) => {
     return assignments[internalId]?.assigned_externals || [];
   };
-
   // Submit updated assignments for the selected faculty
   const submitAssignments = async () => {
     if (!selectedInternalFaculty) return;
+    setShowConfirmModal(false);
     setLoading(true);
     try {
       const facultyId = selectedInternalFaculty.id;
@@ -286,6 +287,35 @@ const AssignExternal = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-100 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Confirm Assignment
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to save these external assignments? 
+              <span className="font-medium text-red-600"> Once saved, you cannot change the assignments later.</span>
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitAssignments}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              >
+                Confirm & Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
         {/* Header */}
         <div className="bg-indigo-700 px-6 py-4">
@@ -546,9 +576,8 @@ const AssignExternal = () => {
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
               >
                 Cancel
-              </button>
-              <button
-                onClick={submitAssignments}
+              </button>              <button
+                onClick={() => setShowConfirmModal(true)}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors flex items-center gap-2"
                 disabled={loading}
               >
