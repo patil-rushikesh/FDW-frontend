@@ -1,10 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Users,
-  Search,
-  Filter,
-  CheckCircle2,
   SortAsc,
   SortDesc,
   FileText,
@@ -12,7 +9,6 @@ import {
 } from "lucide-react";
 
 const FacultyForms = () => {
-  const navigate = useNavigate();
   const [facultyData, setFacultyData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -81,9 +77,7 @@ const FacultyForms = () => {
         if (!response.ok) throw new Error("Failed to fetch faculty data");
         const responseData = await response.json();
 
-        // Log the raw data fetched from the database
-        // console.log('Fetched faculty data from /all-faculties:', responseData.data);
-        // Additionally, fetch and log data for each faculty from /<department>/<user_id>
+        
         responseData.data.forEach(async (faculty) => {
           try {
             const res = await fetch(
@@ -113,14 +107,7 @@ const FacultyForms = () => {
           const regularFaculty = responseData.data.filter(
             (faculty) => faculty.status === "SentToDirector" && faculty.designation === "Faculty"
           );
-          // Previous filter (commented out):
-          // const regularFaculty = responseData.data.filter(
-          //   (faculty) =>
-          //     faculty.role !== "HOD" &&
-          //     faculty.designation !== "HOD" &&
-          //     (faculty.designation === "Faculty" ||
-          //       faculty.designation === "Associate Dean")
-          // );
+          
 
           // Calculate summary statistics for each status type
           const summary = {
@@ -311,29 +298,6 @@ const FacultyForms = () => {
             <Eye className="h-4 w-4 text-blue-600" />
             <span className="font-semibold text-blue-700">View PDF</span>
           </button>
-          {/* Verify Button */}
-          {/* <button
-            type="button"
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-green-700 bg-white border-2 border-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-            onClick={() => {
-              navigate("/ConfirmVerifybyDirector", {
-                state: {
-                  faculty: {
-                    name: faculty.name,
-                    id: faculty._id,
-                    role: faculty.role,
-                    department: faculty.department,
-                    status: "authority_verification_pending",
-                  },
-                  portfolioData: {},
-                  verifiedMarks: {},
-                },
-              });
-            }}
-          >
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <span className="font-semibold text-green-700">Verify</span>
-          </button> */}
         </div>
       );
     } else {
@@ -341,7 +305,6 @@ const FacultyForms = () => {
     }
   };
 
-  // Only show marks for authority_verification_pending, interaction_pending, or done; others show 'N/A'
   const displayMarks = (faculty) => {
     const allowedStatuses = [
       "authority_verification_pending",
@@ -354,20 +317,20 @@ const FacultyForms = () => {
     if (!allowedStatuses.includes((faculty.status || "").toLowerCase())) {
       return "N/A";
     }
-    // Get verified marks and interaction marks
+
     const verifiedMarks = faculty.portfolio?.grand_total || 0;
     const interactionMarks = faculty.interaction_marks || 0;
-    // Get total marks from the data
+
     const totalMarks =
       faculty.grand_marks?.grand_total ||
       faculty.grand_total ||
       faculty.total_marks ||
       verifiedMarks + interactionMarks;
-    // Format and display the total marks
+
     return totalMarks ? totalMarks.toFixed(2) : "N/A";
   };
 
-  // Calculate counts for status types
+
   const statusLabels = {
     done: "Completed",
     verification_pending: "Verification Pending",
@@ -419,7 +382,6 @@ const FacultyForms = () => {
         <main className="lg:mt-16">
           <div className="max-w-full mx-auto px-4 space-y-8">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              {/* Header Section */}
               <div className="border-b border-gray-200 px-4 lg:px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                   <div className="flex items-center">
@@ -429,7 +391,7 @@ const FacultyForms = () => {
                     </h2>
                   </div>
 
-                  {/* Filters Section */}
+
                   <div className="flex flex-col sm:flex-row gap-4">
                     <input
                       type="text"
@@ -498,7 +460,6 @@ const FacultyForms = () => {
                         ))}
                       </select>
 
-                      {/* Status filter */}
                       <select
                         value={filters.status}
                         onChange={(e) =>
@@ -532,7 +493,6 @@ const FacultyForms = () => {
                   </div>
                 </div>
 
-                {/* Marks Filter Section */}
                 <div className="mt-4 flex flex-wrap gap-4">
                   <div className="flex items-center gap-2">
                     <input
@@ -588,151 +548,8 @@ const FacultyForms = () => {
                     </span>
                   </button>
                 </div>
-
-                {/* Summary Section */}
-                {/* Summary Section - Improved UI */}
-                {/* <div className="mt-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-                  <div
-                    className={`bg-blue-50 p-4 rounded-lg border ${
-                      filters.status === ""
-                        ? "border-blue-400 shadow-md"
-                        : "border-blue-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("")}
-                  >
-                    <p className="text-sm text-blue-600 mb-1">Total Faculty</p>
-                    <p className="text-2xl font-bold text-blue-800 mt-auto">
-                      {statusSummary.total}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`bg-green-50 p-4 rounded-lg border ${
-                      filters.status === "done"
-                        ? "border-green-400 shadow-md"
-                        : "border-green-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("done")}
-                  >
-                    <p className="text-sm text-green-600 mb-1">Completed</p>
-                    <p className="text-2xl font-bold text-green-800 mt-auto">
-                      {statusSummary.done}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`bg-yellow-50 p-4 rounded-lg border ${
-                      filters.status === "authority_verification_pending"
-                        ? "border-yellow-400 shadow-md"
-                        : "border-yellow-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() =>
-                      handleStatusFilter("authority_verification_pending")
-                    }
-                  >
-                    <p className="text-sm text-yellow-600 mb-1">
-                      Authority Verification
-                    </p>
-                    <p className="text-2xl font-bold text-yellow-800 mt-auto">
-                      {statusSummary.authority_verification_pending}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`bg-purple-50 p-4 rounded-lg border ${
-                      filters.status === "interaction_pending"
-                        ? "border-purple-400 shadow-md"
-                        : "border-purple-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("interaction_pending")}
-                  >
-                    <p className="text-sm text-purple-600 mb-1">
-                      Interaction Pending
-                    </p>
-                    <p className="text-2xl font-bold text-purple-800 mt-auto">
-                      {statusSummary.interaction_pending}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`bg-orange-50 p-4 rounded-lg border ${
-                      filters.status === "verification_pending"
-                        ? "border-orange-400 shadow-md"
-                        : "border-orange-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                  if (faculty.status === "SentToDirector") {
-                    return (
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                        onClick={() => viewFacultyPDF(faculty)}
-                      >
-                        <Eye className="h-4 w-4 text-blue-600" />
-                        <span className="font-semibold text-blue-700">View PDF</span>
-                      </button>
-                    );
-                  }
-                  return null;
-                  >
-                    <p className="text-sm text-orange-600 mb-1">
-                      Verification Pending
-                    </p>
-                    <p className="text-2xl font-bold text-orange-800 mt-auto">
-                      {statusSummary.verification_pending}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`bg-blue-50 p-4 rounded-lg border ${
-                      filters.status === "portfolio_mark_pending"
-                        ? "border-blue-400 shadow-md"
-                        : "border-blue-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("portfolio_mark_pending")}
-                  >
-                    <p className="text-sm text-blue-600 mb-1">
-                      Portfolio Mark Pending
-                    </p>
-                    <p className="text-2xl font-bold text-blue-800 mt-auto">
-                      {statusSummary.portfolio_mark_pending}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`bg-indigo-50 p-4 rounded-lg border ${
-                      filters.status === "portfolio_mark_dean_pending"
-                        ? "border-indigo-400 shadow-md"
-                        : "border-indigo-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() =>
-                      handleStatusFilter("portfolio_mark_dean_pending")
-                    }
-                  >
-                    <p className="text-sm text-indigo-600 mb-1">
-                      Dean Mark Pending
-                    </p>
-                    <p className="text-2xl font-bold text-indigo-800 mt-auto">
-                      {statusSummary.portfolio_mark_dean_pending}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`bg-gray-50 p-4 rounded-lg border ${
-                      filters.status === "pending"
-                        ? "border-gray-400 shadow-md"
-                        : "border-gray-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("pending")}
-                  >
-                    <p className="text-sm text-gray-600 mb-1">Pending</p>
-                    <p className="text-2xl font-bold text-gray-800 mt-auto">
-                      {statusSummary.pending}
-                    </p>
-                  </div>
-                </div> */}
               </div>
 
-              {/* Table Section */}
               <div className="overflow-x-auto w-full">
                 <table className="min-w-full text-sm text-left">
                   <thead className="bg-gray-50">
@@ -772,16 +589,16 @@ const FacultyForms = () => {
                                 {faculty.status === "done" || faculty.status === "Done"
                                   ? "Done"
                                   : faculty.status === "Interaction_pending"
-                                  ? "Interaction Pending"
-                                  : faculty.status === "authority_verification_pending"
-                                  ? "Authority Verification Pending"
-                                  : faculty.status === "verification_pending"
-                                  ? "Verification Pending"
-                                  : faculty.status === "Portfolio_Mark_pending"
-                                  ? "Portfolio Mark Pending"
-                                  : faculty.status === "Portfolio_Mark_Dean_pending"
-                                  ? "Portfolio Dean Mark Pending"
-                                  : "Pending"}
+                                    ? "Interaction Pending"
+                                    : faculty.status === "authority_verification_pending"
+                                      ? "Authority Verification Pending"
+                                      : faculty.status === "verification_pending"
+                                        ? "Verification Pending"
+                                        : faculty.status === "Portfolio_Mark_pending"
+                                          ? "Portfolio Mark Pending"
+                                          : faculty.status === "Portfolio_Mark_Dean_pending"
+                                            ? "Portfolio Dean Mark Pending"
+                                            : "Pending"}
                               </span>
                             )}
                           </td>
@@ -808,7 +625,6 @@ const FacultyForms = () => {
         </main>
       </div>
 
-      {/* PDF Modal */}
       {pdfModal.isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl">

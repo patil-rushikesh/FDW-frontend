@@ -179,7 +179,7 @@ const AssociateDeansList = () => {
         <main className="lg:mt-16">
           <div className="max-w-7xl mx-auto space-y-8">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              {/* Header Section */}
+              
               <div className="border-b border-gray-200 px-4 lg:px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                   <div className="flex items-center">
@@ -189,7 +189,7 @@ const AssociateDeansList = () => {
                     </h2>
                   </div>
 
-                  {/* Filters Section */}
+                  
                   <div className="flex flex-col sm:flex-row gap-4">
                     <input
                       type="text"
@@ -224,7 +224,7 @@ const AssociateDeansList = () => {
                 </div>
               </div>
 
-              {/* Table Section */}
+              
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
                   <thead className="bg-gray-50">

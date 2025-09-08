@@ -139,14 +139,14 @@ const DeanEvaluationForm = () => {
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="bg-white rounded-lg shadow-lg p-6">
-        {/* Header */}
+        
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
             Faculty Portfolio Evaluation - Dean Review
           </h1>
         </div>
 
-        {/* Faculty Information Section */}
+        
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-6 border border-blue-200">
           <h2 className="text-xl font-semibold text-blue-800 mb-4">
             Faculty Information
@@ -174,7 +174,7 @@ const DeanEvaluationForm = () => {
           </div>
         </div>
 
-        {/* Portfolio Type and Documents Section */}
+        
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
             Portfolio Type: {portfolioData?.portfolioType?.toUpperCase() || "Not Specified"}
@@ -191,7 +191,7 @@ const DeanEvaluationForm = () => {
           </div>
         </div>
 
-        {/* Dean Marks Input Section */}
+        
         <div className="mb-6 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
         <div className="flex flex-col space-y-4">
   <label className="text-gray-700 font-medium">
@@ -211,7 +211,7 @@ const DeanEvaluationForm = () => {
 </div>
         </div>
 
-        {/* Summary Table */}
+        
         <div className="overflow-x-auto mb-6">
           <table className="w-full border-collapse border border-gray-300">
             <thead>
@@ -255,7 +255,7 @@ const DeanEvaluationForm = () => {
           </table>
         </div>
 
-        {/* Submit Button */}
+        
         <div className="flex justify-end">
           <button
             onClick={handleSubmit}
@@ -266,7 +266,7 @@ const DeanEvaluationForm = () => {
         </div>
       </div>
 
-      {/* Confirmation Modal */}
+      
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg">

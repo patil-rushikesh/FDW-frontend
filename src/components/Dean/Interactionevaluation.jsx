@@ -244,7 +244,7 @@ const Interactionevaluation = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Back Button */}
+      
       <button
         onClick={() => navigate("/dean/give-interaction-marks")}
         className="mb-4 inline-flex items-center text-indigo-600 hover:text-indigo-800"
@@ -252,14 +252,14 @@ const Interactionevaluation = () => {
         <ArrowLeft size={16} className="mr-1" /> Back to Dashboard
       </button>
 
-      {/* Faculty Info Card */}
+      
       <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
         <div className="bg-indigo-700 px-6 py-4">
           <h1 className="text-xl font-bold text-white">Dean Interaction Evaluation</h1>
         </div>
 
         <div className="p-6">
-          {/* Enhanced Faculty Profile Section */}
+          
           <div className="bg-indigo-50 rounded-lg p-6 mb-6 border border-indigo-100">
             <div className="flex flex-col md:flex-row items-center md:items-start">
               <div className="bg-indigo-100 rounded-full w-24 h-24 flex items-center justify-center mr-6 text-indigo-700 mb-4 md:mb-0">
@@ -317,9 +317,9 @@ const Interactionevaluation = () => {
             </p>
           </div>
 
-          {/* Evaluation Form */}
+          
           <form className="space-y-8">
-            {/* Knowledge */}
+            
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-amber-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Knowledge (Max 20 marks)
@@ -343,7 +343,7 @@ const Interactionevaluation = () => {
               </div>
             </div>
 
-            {/* Skills */}
+            
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-blue-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Skills (Max 20 marks)
@@ -367,7 +367,7 @@ const Interactionevaluation = () => {
               </div>
             </div>
 
-            {/* Attributes */}
+            
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-red-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Attributes (Max 10 marks)
@@ -391,7 +391,7 @@ const Interactionevaluation = () => {
               </div>
             </div>
 
-            {/* Outcomes and Initiatives */}
+            
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-yellow-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Outcomes and Initiatives (Max 20 marks)
@@ -415,7 +415,7 @@ const Interactionevaluation = () => {
               </div>
             </div>
 
-            {/* Self Branching */}
+            
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-blue-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Self Branching (Max 10 marks)
@@ -439,7 +439,7 @@ const Interactionevaluation = () => {
               </div>
             </div>
 
-            {/* Team Performance */}
+            
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-red-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Team Performance (Max 20 marks)
@@ -463,7 +463,7 @@ const Interactionevaluation = () => {
               </div>
             </div>
 
-            {/* Comments */}
+            
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-amber-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Additional Comments
@@ -477,7 +477,7 @@ const Interactionevaluation = () => {
               ></textarea>
             </div>
 
-            {/* Total Score */}
+            
             <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
               <h3 className="text-lg font-semibold text-indigo-900 mb-2">
                 Total Score
@@ -495,7 +495,7 @@ const Interactionevaluation = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
+            
             <div className="flex justify-between pt-4 border-t">
               <button
                 type="button"

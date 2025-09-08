@@ -197,7 +197,7 @@ const AddExternal = () => {
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
-        {/* Header */}
+        
         <div className="bg-indigo-700 px-6 py-4">
           <h1 className="text-xl font-bold text-white">Add External</h1>
           <p className="text-indigo-100 text-sm">
@@ -205,10 +205,10 @@ const AddExternal = () => {
           </p>
         </div>
 
-        {/* Form */}
+        
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Name */}
+            
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <User size={16} /> Full Name{" "}
@@ -225,7 +225,7 @@ const AddExternal = () => {
               />
             </div>
 
-            {/* mail */}
+            
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <Mail size={16} /> Email Address{" "}
@@ -242,7 +242,7 @@ const AddExternal = () => {
               />
             </div>
 
-            {/* Mobile */}
+            
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <Phone size={16} /> Mobile Number{" "}
@@ -268,7 +268,7 @@ const AddExternal = () => {
               />
             </div>
 
-            {/* desg */}
+            
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <Briefcase size={16} /> Designation{" "}
@@ -285,7 +285,7 @@ const AddExternal = () => {
               />
             </div>
 
-            {/* Specialization */}
+            
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <School size={16} /> Specialization
@@ -300,7 +300,7 @@ const AddExternal = () => {
               />
             </div>
 
-            {/* Organization */}
+            
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <Briefcase size={16} /> Organization
@@ -315,7 +315,7 @@ const AddExternal = () => {
               />
             </div>
 
-            {/* Address */}
+            
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <MapPin size={16} /> Address
@@ -331,7 +331,7 @@ const AddExternal = () => {
             </div>
           </div>
 
-          {/* Submit Button */}
+          
           <div className="flex justify-end pt-4 border-t border-gray-200">
             <button
               type="submit"
@@ -372,7 +372,7 @@ const AddExternal = () => {
         </form>
       </div>
 
-      {/* External List Table */}
+      
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         <div className="bg-indigo-700 px-6 py-4">
           <h2 className="text-xl font-bold text-white">

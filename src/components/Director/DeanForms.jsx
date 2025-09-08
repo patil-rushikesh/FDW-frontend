@@ -241,10 +241,8 @@ const DeanForms = () => {
     }));
   };
 
-  // Handle verification status change
   const handleVerify = async (id) => {
     try {
-      // Update the faculty's status in the local state
       setFacultyData((prevData) =>
         prevData.map((faculty) =>
           faculty._id === id
@@ -253,7 +251,6 @@ const DeanForms = () => {
         )
       );
 
-      // Store the verification status in localStorage
       const allVerifications = JSON.parse(
         localStorage.getItem("verifiedHODs") || "{}"
       );
@@ -267,7 +264,6 @@ const DeanForms = () => {
     }
   };
 
-  // Function to determine what to display in the action column - Update the Portfolio_Mark_pending section
   const renderActionButton = (faculty) => {
     if (faculty.status === "authority_verification_pending") {
       return (
@@ -330,7 +326,7 @@ const DeanForms = () => {
     }
   };
 
-  // Only show marks for authority_verification_pending, interaction_pending, or done; others show 'N/A'
+
   const displayMarks = (faculty) => {
     const allowedStatuses = [
       "authority_verification_pending",
@@ -343,10 +339,10 @@ const DeanForms = () => {
     if (!allowedStatuses.includes((faculty.status || "").toLowerCase())) {
       return "N/A";
     }
-    // Get verified marks and interaction marks
+
     const verifiedMarks = faculty.portfolio?.grand_total || 0;
     const interactionMarks = faculty.interaction_marks || 0;
-    // Get total marks from the data (prefer backend value)
+
     const totalMarks = faculty.grand_marks?.grand_total || faculty.grand_total || faculty.total_marks || verifiedMarks + interactionMarks;
     return totalMarks ? totalMarks.toFixed(2) : "N/A";
   };
@@ -389,7 +385,6 @@ const DeanForms = () => {
         <main className="lg:mt-16">
           <div className="max-w-full mx-auto px-4 space-y-8">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              {/* Header Section */}
               <div className="border-b border-gray-200 px-4 lg:px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                   <div className="flex items-center">
@@ -399,7 +394,6 @@ const DeanForms = () => {
                     </h2>
                   </div>
 
-                  {/* Filters Section */}
                   <div className="flex flex-col sm:flex-row gap-4">
                     <input
                       type="text"
@@ -453,7 +447,6 @@ const DeanForms = () => {
                   </div>
                 </div>
 
-                {/* Marks Filter Section */}
                 <div className="mt-4 flex flex-wrap gap-4">
                   <div className="flex items-center gap-2">
                     <input
@@ -510,8 +503,6 @@ const DeanForms = () => {
                   </button>
                 </div>
 
-                {/* Summary Section */}
-                {/* Summary Section - Improved UI */}
                 <div className="mt-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
                   <div
                     className={`bg-blue-50 p-4 rounded-lg border ${
@@ -640,7 +631,6 @@ const DeanForms = () => {
                   </div>
                 </div>
 
-                {/* Status filter indicator */}
                 {filters.status && (
                   <div className="mt-2 flex items-center">
                     <span className="text-sm text-gray-600 mr-2">
@@ -663,7 +653,6 @@ const DeanForms = () => {
                 )}
               </div>
 
-              {/* Table Section */}
               <div className="overflow-x-auto w-full">
                 <table className="min-w-full text-sm text-left">
                   <thead className="bg-gray-50">

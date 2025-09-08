@@ -223,7 +223,7 @@ const EvaluateFacultyPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* CSS to hide number input spinners and prevent value changes on scroll */}
+      
       <style>
         {`
           /* Hide spinner buttons for Chrome, Safari, Edge, Opera */
@@ -248,7 +248,7 @@ const EvaluateFacultyPage = () => {
         `}
       </style>
 
-      {/* Back Button */}
+      
       <button
         onClick={() => navigate("/external/give-marks")}
         className="mb-4 inline-flex items-center text-indigo-600 hover:text-indigo-800"
@@ -256,14 +256,14 @@ const EvaluateFacultyPage = () => {
         <ArrowLeft size={16} className="mr-1" /> Back to Dashboard
       </button>
 
-      {/* Faculty Info Card - Made sticky */}
+      
       <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6 sticky top-0 z-10">
         <div className="bg-indigo-700 px-6 py-4">
           <h1 className="text-xl font-bold text-white">Evaluate HoD and Dean</h1>
         </div>
 
         <div className="p-4">
-          {/* Enhanced Faculty Profile Section - Condensed for sticky header */}
+          
           <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
             <div className="flex items-center">
               <div className="bg-indigo-100 rounded-full w-16 h-16 flex items-center justify-center mr-4 text-indigo-700 shrink-0">
@@ -290,7 +290,7 @@ const EvaluateFacultyPage = () => {
         </div>
       </div>
 
-      {/* Main Content Container */}
+      
       <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
         <div className="p-6">
           <div className="mb-8">
@@ -301,9 +301,9 @@ const EvaluateFacultyPage = () => {
             </p>
           </div>
 
-          {/* Evaluation Form */}
+          
           <form className="space-y-8">
-            {/* Knowledge */}
+            
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-amber-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Knowledge (Max 20 marks)
@@ -328,7 +328,7 @@ const EvaluateFacultyPage = () => {
               </div>
             </div>
 
-            {/* Skills */}
+            
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-blue-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Skills (Max 20 marks)
@@ -353,7 +353,7 @@ const EvaluateFacultyPage = () => {
               </div>
             </div>
 
-            {/* Attributes */}
+            
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-red-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Attributes (Max 10 marks)
@@ -378,7 +378,7 @@ const EvaluateFacultyPage = () => {
               </div>
             </div>
 
-            {/* Outcomes and Initiatives */}
+            
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-yellow-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Outcomes and Initiatives (Max 20 marks)
@@ -403,7 +403,7 @@ const EvaluateFacultyPage = () => {
               </div>
             </div>
 
-            {/* Self Branching */}
+            
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-blue-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Self Branching (Max 10 marks)
@@ -428,7 +428,7 @@ const EvaluateFacultyPage = () => {
               </div>
             </div>
 
-            {/* Team Performance */}
+            
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-red-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Team Performance (Max 20 marks)
@@ -453,7 +453,7 @@ const EvaluateFacultyPage = () => {
               </div>
             </div>
 
-            {/* Comments */}
+            
             <div className="bg-gray-50 p-6 rounded-lg border-l-3 border-amber-400">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Additional Comments
@@ -467,7 +467,7 @@ const EvaluateFacultyPage = () => {
               ></textarea>
             </div>
 
-            {/* Total Score */}
+            
             <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
               <h3 className="text-lg font-semibold text-indigo-900 mb-2">
                 Total Score
@@ -485,7 +485,7 @@ const EvaluateFacultyPage = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
+            
             <div className="flex justify-between pt-4 border-t">
               <button
                 type="button"

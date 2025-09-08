@@ -77,7 +77,7 @@ const CollegeExternalDashboard = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {/* Dashboard Header */}
+      
       <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
         <div className="bg-indigo-700 px-6 py-4">
           <h1 className="text-xl font-bold text-white">
@@ -122,7 +122,7 @@ const CollegeExternalDashboard = () => {
                 </p>
               </div>
 
-              {/* Faculty List */}
+              
               <div className="grid gap-4">
                 {assignedFaculty.map((faculty) => (
                   <div

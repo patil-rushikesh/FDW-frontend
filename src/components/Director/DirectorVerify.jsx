@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
@@ -87,7 +87,6 @@ const FacultyEvaluationForm = () => {
   // Calculate total score based on portfolio type
   const calculateTotalScore = () => {
     const selfScore = Math.min(60, Number(portfolioData.selfAwardedMarks) || 0);
-    const hodScore = Math.min(60, Number(portfolioData.hodMarks) || 0);
     const directorScore = Math.min(60, Number(directorMarks) || 0);
 
     // For regular faculty
@@ -135,7 +134,7 @@ const FacultyEvaluationForm = () => {
       );
     // Update the status to 'verification_pending' after portfolio marks are assigned
     await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/portfolio-given`
+      `${import.meta.env.VITE_BASE_URL}/${department}/${userId}/director-mark-given`
     );
 
       setIsModalOpen(false);
@@ -316,7 +315,7 @@ const FacultyEvaluationForm = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold mb-4">Confirm Submission</h2>
             <p className="mb-4">
-              Details can't be changed after the final submission. Confirm
+              Details can&apos;t be changed after the final submission. Confirm
               Submit?
             </p>
             <div className="flex justify-end">

@@ -13,7 +13,6 @@ const ConfirmDirectorVerify = () => {
   const [pdfUrl, setPdfUrl] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
-  // Add this to your state declarations at the top of the component
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errorModalInfo, setErrorModalInfo] = useState({
     show: false,
@@ -22,7 +21,6 @@ const ConfirmDirectorVerify = () => {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Get department and faculty_id from state or params
   const params = useParams();
   const department = faculty?.department || params?.department;
   const facultyId = faculty?.id || params?.faculty_id;
@@ -73,7 +71,6 @@ const ConfirmDirectorVerify = () => {
     }
   }, [department, facultyId]);
 
-  // Replace the dummy faculty info with actual data from API
   const facultyInfo = {
     name: apiData?.name || faculty?.name || "Not Available",
     id: apiData?._id || faculty?.id || "Not Available",
@@ -100,7 +97,7 @@ const ConfirmDirectorVerify = () => {
     },
   });
 
-  // Update marks data when API data is loaded
+
   useEffect(() => {
     if (apiData) {
       setMarksData({
@@ -139,7 +136,7 @@ const ConfirmDirectorVerify = () => {
     }
   }, [apiData]);
 
-  // Add this function at the component level
+
   const getMaxMarksBySection = (section, role) => {
     const maxMarks = {
       academic: {
@@ -168,7 +165,7 @@ const ConfirmDirectorVerify = () => {
     return maxMarks[section]?.[roleKey] || 0;
   };
 
-  // Update the handleInputChange function
+
   const handleInputChange = (type, field, value) => {
     const maxMarks = getMaxMarksBySection(field, facultyInfo.role);
     const numValue = parseFloat(value) || 0;
@@ -182,18 +179,6 @@ const ConfirmDirectorVerify = () => {
       },
     }));
   };
-
-  // Update the input fields
-
-  // const handleInputChange = (type, field, value) => {
-  //   setMarksData((prev) => ({
-  //     ...prev,
-  //     [type]: {
-  //       ...prev[type],
-  //       [field]: value,
-  //     },
-  //   }));
-  // };
 
   const calculateTotal = (type) => {
     if (type === "obtained") {
@@ -227,7 +212,6 @@ const ConfirmDirectorVerify = () => {
 
   const processSubmission = async () => {
     try {
-      // Format the data according to the required structure
       const formattedData = {
         A: { verified_marks: parseFloat(marksData.obtained.academic) || 0 },
         B: { verified_marks: parseFloat(marksData.obtained.research) || 0 },
@@ -236,14 +220,12 @@ const ConfirmDirectorVerify = () => {
         E: { verified_marks: parseFloat(marksData.obtained.extraOrd) || 0 },
       };
 
-      // First submit the verified marks
       const markResponse = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/total_marks/${department}/${facultyId}`,
         formattedData
       );
 
       if (markResponse.status === 200) {
-        // Then update the status to Interaction_pending
         const statusResponse = await axios.post(
           `${import.meta.env.VITE_BASE_URL}/${department}/${facultyId}/verify-authority`
         );
@@ -352,7 +334,6 @@ const ConfirmDirectorVerify = () => {
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       <div className="bg-white rounded-lg shadow-lg p-6">
-        {/* Faculty Information Section with new styling */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-6 border border-blue-200">
           <h2 className="text-xl font-semibold text-blue-800 mb-4">
             Faculty Information
@@ -379,7 +360,6 @@ const ConfirmDirectorVerify = () => {
           </div>
         </div>
 
-        {/* Verification Summary Section with matching styling */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-6 border border-blue-200">
           <h2 className="text-xl font-semibold text-blue-800 mb-4">
             Verification Summary
@@ -415,9 +395,6 @@ const ConfirmDirectorVerify = () => {
             ))}
           </div>
         </div>
-
-        {/* PDF Preview */}
-        {/* PDF Preview Section */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-6 border border-blue-200">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-semibold text-blue-800">
@@ -480,7 +457,7 @@ const ConfirmDirectorVerify = () => {
             )
           )}
         </div>
-        {/* Complete Summary Table */}
+        
         <div className="overflow-x-auto">
           <h2 className="text-xl font-bold mb-4 text-center">
             Summary Marks Obtained/Awarded of Self Appraisal System
@@ -742,7 +719,6 @@ const ConfirmDirectorVerify = () => {
           </button>
         </div>
       </div>
-      {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">
@@ -775,7 +751,7 @@ const ConfirmDirectorVerify = () => {
                 <button
                   onClick={() => {
                     setShowSuccessModal(false);
-                    navigate(-1); // Navigate back when dismissed
+                    navigate(-1); 
                   }}
                   className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 >
@@ -786,7 +762,7 @@ const ConfirmDirectorVerify = () => {
           </div>
         </div>
       )}
-      {/* Error Modal */}
+
       {errorModalInfo.show && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">
@@ -829,7 +805,6 @@ const ConfirmDirectorVerify = () => {
           </div>
         </div>
       )}
-      {/* Confirmation Modal */}
       {confirmModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">

@@ -33,7 +33,7 @@ const HODForms = () => {
     verification_pending: 0,
     interaction_pending: 0,
     authority_verification_pending: 0,
-    portfolio_mark_pending: 0,
+    Portfolio_mark_director_pending: 0,
     pending: 0,
     total: 0,
   });
@@ -77,7 +77,7 @@ const HODForms = () => {
             verification_pending: 0,
             interaction_pending: 0,
             authority_verification_pending: 0,
-            portfolio_mark_pending: 0,
+            Portfolio_mark_director_pending: 0,
             pending: 0,
             total: hodFaculty.length,
           };
@@ -95,8 +95,8 @@ const HODForms = () => {
               summary.authority_verification_pending++;
             } else if (status.includes("interaction_pending")) {
               summary.interaction_pending++;
-            } else if (status.includes("portfolio_mark_pending")) {
-              summary.portfolio_mark_pending++;
+            } else if (status.includes("Portfolio_mark_director_pending")) {
+              summary.Portfolio_mark_director_pending++;
             } else {
               summary.pending++;
             }
@@ -197,8 +197,8 @@ const HODForms = () => {
               .includes("authority_verification_pending")) ||
           (filters.status === "interaction_pending" &&
             faculty.status?.toLowerCase().includes("interaction_pending")) ||
-          (filters.status === "portfolio_mark_pending" &&
-            faculty.status?.toLowerCase().includes("portfolio_mark_pending")) ||
+          (filters.status === "Portfolio_mark_director_pending" &&
+            faculty.status?.toLowerCase().includes("portfolio_mark_director_pending")) ||
           (filters.status === "pending" &&
             (!faculty.status || faculty.status.toLowerCase() === "pending"));
 
@@ -298,7 +298,7 @@ const HODForms = () => {
           </button>
         </div>
       );
-    } else if (faculty.status === "Portfolio_Mark_pending") {
+    } else if (faculty.status === "Portfolio_mark_director_pending") {
       return (
         <button
           type="button"
@@ -387,7 +387,7 @@ const HODForms = () => {
         <main className="lg:mt-16">
           <div className="max-w-full mx-auto px-4 space-y-8">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              {/* Header Section */}
+              
               <div className="border-b border-gray-200 px-4 lg:px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                   <div className="flex items-center">
@@ -397,7 +397,7 @@ const HODForms = () => {
                     </h2>
                   </div>
 
-                  {/* Filters Section */}
+                  
                   <div className="flex flex-col sm:flex-row gap-4">
                     <input
                       type="text"
@@ -451,7 +451,7 @@ const HODForms = () => {
                   </div>
                 </div>
 
-                {/* Marks Filter Section */}
+                
                 <div className="mt-4 flex flex-wrap gap-4">
                   <div className="flex items-center gap-2">
                     <input
@@ -508,8 +508,8 @@ const HODForms = () => {
                   </button>
                 </div>
 
-                {/* Summary Section - Add this */}
-                {/* Summary Section - Improved UI */}
+                
+                
                 <div className="mt-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
                   <div
                     className={`bg-blue-50 p-4 rounded-lg border ${
@@ -591,17 +591,17 @@ const HODForms = () => {
 
                   <div
                     className={`bg-blue-50 p-4 rounded-lg border ${
-                      filters.status === "portfolio_mark_pending"
+                      filters.status === "Portfolio_mark_director_pending"
                         ? "border-blue-400 shadow-md"
                         : "border-blue-200"
                     } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("portfolio_mark_pending")}
+                    onClick={() => handleStatusFilter("Portfolio_mark_director_pending")}
                   >
                     <p className="text-sm text-blue-600 mb-1">
                       Portfolio Mark Pending
                     </p>
                     <p className="text-2xl font-bold text-blue-800 mt-auto">
-                      {statusSummary.portfolio_mark_pending}
+                      {statusSummary.Portfolio_mark_director_pending}
                     </p>
                   </div>
 
@@ -638,7 +638,7 @@ const HODForms = () => {
                   </div>
                 </div>
 
-                {/* Add an indicator if any filter is active */}
+                
                 {filters.status && (
                   <div className="mt-2 flex items-center">
                     <span className="text-sm text-gray-600 mr-2">
@@ -661,7 +661,7 @@ const HODForms = () => {
                 )}
               </div>
 
-              {/* Table Section */}
+              
               <div className="overflow-x-auto w-full">
                 <table className="min-w-full text-sm text-left">
                   <thead className="bg-gray-50">
@@ -705,7 +705,7 @@ const HODForms = () => {
                                           "verification_pending"
                                         ? "bg-orange-100 text-orange-800"
                                         : faculty.status ===
-                                            "Portfolio_Mark_pending"
+                                            "Portfolio_mark_director_pending"
                                           ? "bg-blue-100 text-blue-800"
                                           : "bg-gray-100 text-gray-800"
                               }`}
@@ -720,7 +720,7 @@ const HODForms = () => {
                                     : faculty.status === "verification_pending"
                                       ? "Verification Pending"
                                       : faculty.status ===
-                                          "Portfolio_Mark_pending"
+                                          "Portfolio_mark_director_pending"
                                         ? "Portfolio Mark Pending"
                                         : "Pending"}
                             </span>
