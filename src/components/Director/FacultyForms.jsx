@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Users,
   SortAsc,
@@ -205,6 +204,11 @@ const FacultyForms = () => {
     if (!faculty) return 0;
     if (faculty.status === "pending") return 0;
 
+    // Prefer backend total marks if available (similar to HODForms)
+    if (faculty.grand_total) {
+      return Number(faculty.grand_total) || 0;
+    }
+
     if (typeof faculty.grand_marks === "object" && faculty.grand_marks) {
       return Number(faculty.grand_marks.grand_total || 0);
     } else if (typeof faculty.grand_marks === "number") {
@@ -221,7 +225,61 @@ const FacultyForms = () => {
   // Update the filteredData useMemo function
   const filteredData = useMemo(() => {
     return facultyData
-      .filter((faculty) => faculty.status === "SentToDirector" && faculty.designation === "Faculty")
+      .filter((faculty) => {
+        // Base filter for SentToDirector and Faculty designation
+        const baseFilter = faculty.status === "SentToDirector" && faculty.designation === "Faculty";
+        
+        if (!baseFilter) return false;
+
+        // Search filter
+        const searchMatch =
+          faculty._id.toLowerCase().includes(filters.search.toLowerCase()) ||
+          (faculty.name &&
+            faculty.name.toLowerCase().includes(filters.search.toLowerCase()));
+
+        // Department filter
+        const departmentMatch =
+          !filters.department || faculty.department === filters.department;
+
+        // Designation filter
+        const designationMatch =
+          !filters.designation || faculty.designation === filters.designation;
+
+        // Role filter
+        const roleMatch =
+          !filters.role || faculty.role === filters.role;
+
+        // Status filter
+        const statusMatch =
+          !filters.status ||
+          (filters.status === "done" &&
+            (faculty.status?.toLowerCase() === "done" || faculty.status === "Done")) ||
+          (filters.status === "interaction_pending" &&
+            faculty.status?.toLowerCase().includes("interaction_pending")) ||
+          (filters.status === "authority_verification_pending" &&
+            faculty.status?.toLowerCase().includes("authority_verification_pending")) ||
+          (filters.status === "verification_pending" &&
+            faculty.status?.toLowerCase().includes("verification_pending") &&
+            !faculty.status?.toLowerCase().includes("authority_verification_pending")) ||
+          (filters.status === "portfolio_mark_pending" &&
+            faculty.status?.toLowerCase().includes("portfolio_mark_pending")) ||
+          (filters.status === "portfolio_mark_dean_pending" &&
+            faculty.status?.toLowerCase().includes("portfolio_mark_dean_pending")) ||
+          (filters.status === "pending" &&
+            (!faculty.status || faculty.status.toLowerCase() === "pending"));
+
+        // Marks filter
+        const facultyMarks = getNumericMarks(faculty);
+        const marksMatch =
+          (!filters.minMarks ||
+            filters.minMarks === "" ||
+            facultyMarks >= Number(filters.minMarks)) &&
+          (!filters.maxMarks ||
+            filters.maxMarks === "" ||
+            facultyMarks <= Number(filters.maxMarks));
+
+        return searchMatch && departmentMatch && designationMatch && roleMatch && statusMatch && marksMatch;
+      })
       .sort((a, b) => {
         if (!sortConfig.key) return 0;
         if (sortConfig.key === "marks") {
@@ -345,44 +403,36 @@ const FacultyForms = () => {
       "done",
       "Done",
       "Authority_Verification_Pending",
-      "Interaction_pending"
+      "Interaction_pending",
+      "SentToDirector"
     ];
-    if (!allowedStatuses.includes((faculty.status || "").toLowerCase())) {
-      return "N/A";
+
+    // For SentToDirector status, always show marks if available
+    if (faculty.status === "SentToDirector" || allowedStatuses.includes((faculty.status || "").toLowerCase())) {
+      // Prefer backend total marks if available (similar to HODForms)
+      if (faculty.grand_total) {
+        return Number(faculty.grand_total).toFixed(2);
+      }
+
+      // Get verified marks and interaction marks
+      const verifiedMarks = faculty.portfolio?.grand_total || 0;
+      const interactionMarks = faculty.interaction_marks || 0;
+
+      // Get total marks from the data
+      const totalMarks =
+        faculty.grand_marks?.grand_total ||
+        faculty.grand_total ||
+        faculty.total_marks ||
+        verifiedMarks + interactionMarks;
+
+      // Format and display the total marks
+      return totalMarks ? Number(totalMarks).toFixed(2) : "N/A";
     }
-    // Get verified marks and interaction marks
-    const verifiedMarks = faculty.portfolio?.grand_total || 0;
-    const interactionMarks = faculty.interaction_marks || 0;
-    // Get total marks from the data
-    const totalMarks =
-      faculty.grand_marks?.grand_total ||
-      faculty.grand_total ||
-      faculty.total_marks ||
-      verifiedMarks + interactionMarks;
-    // Format and display the total marks
-    return totalMarks ? totalMarks.toFixed(2) : "N/A";
+
+    return "N/A";
   };
 
-  // Calculate counts for status types
-  const statusLabels = {
-    done: "Completed",
-    verification_pending: "Verification Pending",
-    authority_verification_pending: "Authority Verification Pending",
-    interaction_pending: "Interaction Pending",
-    portfolio_mark_pending: "Portfolio Mark Pending",
-    portfolio_mark_dean_pending: "Portfolio Dean Mark Pending",
-    pending: "Pending",
-  };
 
-  const statusColors = {
-    done: "green",
-    verification_pending: "orange",
-    authority_verification_pending: "yellow",
-    interaction_pending: "purple",
-    portfolio_mark_pending: "blue",
-    portfolio_mark_dean_pending: "indigo",
-    pending: "gray",
-  };
 
   if (loading)
     return (
