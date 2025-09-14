@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -176,7 +177,8 @@ const EvaluateFacultyPage = () => {
         }
 
         toast.success("Evaluation submitted successfully!");
-        navigate("/external/give-marks");
+        // Force dashboard reload to update evaluated status
+        window.location.href = "/external/give-marks";
       } else {
         toast.success("Progress saved successfully!");
       }
@@ -210,7 +212,7 @@ const EvaluateFacultyPage = () => {
               The faculty member you're trying to evaluate could not be found.
             </p>
             <button
-              onClick={() => navigate("/external/give-marks")}
+              onClick={() => navigate("/director/external/give-marks")}
               className="inline-flex items-center px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
             >
               <ArrowLeft size={16} className="mr-2" /> Return to Dashboard
@@ -250,7 +252,7 @@ const EvaluateFacultyPage = () => {
 
       {/* Back Button */}
       <button
-        onClick={() => navigate("/external/give-marks")}
+        onClick={() => navigate("/director/external/give-marks")}
         className="mb-4 inline-flex items-center text-indigo-600 hover:text-indigo-800"
       >
         <ArrowLeft size={16} className="mr-1" /> Back to Dashboard

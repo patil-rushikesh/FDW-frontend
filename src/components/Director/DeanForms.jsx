@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Users,
-  Search,
-  Filter,
   CheckCircle2,
   SortAsc,
   SortDesc,
@@ -33,7 +31,7 @@ const DeanForms = () => {
     verification_pending: 0,
     interaction_pending: 0,
     authority_verification_pending: 0,
-    portfolio_mark_pending: 0,
+    Portfolio_mark_director_pending: 0,
     pending: 0,
     total: 0,
   });
@@ -60,27 +58,14 @@ const DeanForms = () => {
       try {
         setLoading(true);
         const response = await fetch(`${import.meta.env.VITE_BASE_URL}/all-faculties`);
+        console.log(response);
         if (!response.ok) throw new Error("Failed to fetch faculty data");
         const responseData = await response.json();
-          responseData.data.forEach(async (faculty) => {
-          try {
-            const res = await fetch(`${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}`);
-            if (res.ok) {
-              const facultyDetail = await res.json();
-              console.log(`Fetched detail for ${faculty.name} (${faculty._id}):`, facultyDetail);
-            } else {
-              console.warn(`Failed to fetch detail for ${faculty.name} (${faculty._id})`);
-            }
-          } catch (err) {
-            console.error(`Error fetching detail for ${faculty.name} (${faculty._id}):`, err);
-          }
-        });
         if (responseData.status === "success") {
-          // Filter Dean and Associate Dean only
           const deanFaculty = responseData.data.filter(
             (faculty) =>
               faculty.role === "Dean" ||
-              faculty.designation === "Dean" 
+              faculty.designation === "Dean"
           );
 
           // Calculate status counts for summary
@@ -89,7 +74,7 @@ const DeanForms = () => {
             verification_pending: 0,
             interaction_pending: 0,
             authority_verification_pending: 0,
-            portfolio_mark_pending: 0,
+            Portfolio_mark_director_pending: 0,
             pending: 0,
             total: deanFaculty.length,
           };
@@ -107,8 +92,8 @@ const DeanForms = () => {
               summary.authority_verification_pending++;
             } else if (status.includes("interaction_pending")) {
               summary.interaction_pending++;
-            } else if (status.includes("portfolio_mark_pending")) {
-              summary.portfolio_mark_pending++;
+            } else if (status.includes("Portfolio_mark_director_pending")) {
+              summary.Portfolio_mark_director_pending++;
             } else {
               summary.pending++;
             }
@@ -167,6 +152,7 @@ const DeanForms = () => {
 
   // Update the filteredData useMemo function
   const filteredData = useMemo(() => {
+
     return facultyData
       .filter((faculty) => {
         const searchMatch =
@@ -206,8 +192,8 @@ const DeanForms = () => {
               .includes("authority_verification_pending")) ||
           (filters.status === "interaction_pending" &&
             faculty.status?.toLowerCase().includes("interaction_pending")) ||
-          (filters.status === "portfolio_mark_pending" &&
-            faculty.status?.toLowerCase().includes("portfolio_mark_pending")) ||
+          (filters.status === "Portfolio_mark_director_pending" &&
+            faculty.status?.toLowerCase().includes("Portfolio_mark_director_pending")) ||
           (filters.status === "pending" &&
             (!faculty.status || faculty.status.toLowerCase() === "pending"));
 
@@ -241,43 +227,20 @@ const DeanForms = () => {
     }));
   };
 
-  // Handle verification status change
-  const handleVerify = async (id) => {
-    try {
-      // Update the faculty's status in the local state
-      setFacultyData((prevData) =>
-        prevData.map((faculty) =>
-          faculty._id === id
-            ? { ...faculty, status: "authority_verification_pending" }
-            : faculty
-        )
-      );
-
-      // Store the verification status in localStorage
-      const allVerifications = JSON.parse(
-        localStorage.getItem("verifiedHODs") || "{}"
-      );
-      allVerifications[id] = {
-        verifiedAt: new Date().toISOString(),
-        verifiedBy: JSON.parse(localStorage.getItem("userData"))._id,
-      };
-      localStorage.setItem("verifiedHODs", JSON.stringify(allVerifications));
-    } catch (err) {
-      setError("Failed to verify faculty: " + err.message);
-    }
-  };
-
-  // Function to determine what to display in the action column - Update the Portfolio_Mark_pending section
+  // Function to determine what to display in the action column
   const renderActionButton = (faculty) => {
     if (faculty.status === "authority_verification_pending") {
       return (
-        <span className="flex gap-2">
+        <div className="flex flex-col gap-2">
           <button
             type="button"
             className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-            onClick={() => viewFacultyPDF(faculty)}
+            onClick={async () => {
+              // Open PDF in new tab
+              const url = `${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}/generate-doc`;
+              window.open(url, "_blank");
+            }}
           >
-            <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
             <span className="font-semibold text-blue-700">View PDF</span>
           </button>
           <button
@@ -302,9 +265,9 @@ const DeanForms = () => {
             <CheckCircle2 className="h-4 w-4 text-green-600" />
             <span className="font-semibold text-green-700">Verify</span>
           </button>
-        </span>
+        </div>
       );
-    } else if (faculty.status === "Portfolio_Mark_pending") {
+    } else if (faculty.status === "Portfolio_mark_director_pending") {
       return (
         <button
           type="button"
@@ -329,28 +292,30 @@ const DeanForms = () => {
       return <span className="text-gray-400">-</span>;
     }
   };
-
   // Only show marks for authority_verification_pending, interaction_pending, or done; others show 'N/A'
   const displayMarks = (faculty) => {
     const allowedStatuses = [
       "authority_verification_pending",
       "interaction_pending",
       "done",
-      "Done",
+      "done",
       "Authority_Verification_Pending",
       "Interaction_pending"
     ];
     if (!allowedStatuses.includes((faculty.status || "").toLowerCase())) {
       return "N/A";
     }
-    // Get verified marks and interaction marks
-    const verifiedMarks = faculty.portfolio?.grand_total || 0;
-    const interactionMarks = faculty.interaction_marks || 0;
-    // Get total marks from the data (prefer backend value)
-    const totalMarks = faculty.grand_marks?.grand_total || faculty.grand_total || faculty.total_marks || verifiedMarks + interactionMarks;
-    return totalMarks ? totalMarks.toFixed(2) : "N/A";
+    // Prefer backend total marks if available
+    if (faculty.grand_total) {
+      return Number(faculty.grand_total).toFixed(2);
+    }
+    if (typeof faculty.grand_marks === "object") {
+      return faculty.grand_marks?.grand_total || "N/A";
+    } else {
+      return faculty.grand_marks || "N/A";
+    }
   };
-
+  // Now add a function to handle status card clicks
   const handleStatusFilter = (status) => {
     setFilters((prev) => ({
       ...prev,
@@ -514,11 +479,10 @@ const DeanForms = () => {
                 {/* Summary Section - Improved UI */}
                 <div className="mt-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
                   <div
-                    className={`bg-blue-50 p-4 rounded-lg border ${
-                      filters.status === ""
+                    className={`bg-blue-50 p-4 rounded-lg border ${filters.status === ""
                         ? "border-blue-400 shadow-md"
                         : "border-blue-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
+                      } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
                     onClick={() => handleStatusFilter("")}
                   >
                     <p className="text-sm text-blue-600 mb-1">Total Faculty</p>
@@ -528,11 +492,10 @@ const DeanForms = () => {
                   </div>
 
                   <div
-                    className={`bg-green-50 p-4 rounded-lg border ${
-                      filters.status === "done"
+                    className={`bg-green-50 p-4 rounded-lg border ${filters.status === "done"
                         ? "border-green-400 shadow-md"
                         : "border-green-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
+                      } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
                     onClick={() => handleStatusFilter("done")}
                   >
                     <p className="text-sm text-green-600 mb-1">Completed</p>
@@ -542,11 +505,10 @@ const DeanForms = () => {
                   </div>
 
                   <div
-                    className={`bg-yellow-50 p-4 rounded-lg border ${
-                      filters.status === "authority_verification_pending"
+                    className={`bg-yellow-50 p-4 rounded-lg border ${filters.status === "authority_verification_pending"
                         ? "border-yellow-400 shadow-md"
                         : "border-yellow-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
+                      } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
                     onClick={() =>
                       handleStatusFilter("authority_verification_pending")
                     }
@@ -560,11 +522,10 @@ const DeanForms = () => {
                   </div>
 
                   <div
-                    className={`bg-purple-50 p-4 rounded-lg border ${
-                      filters.status === "interaction_pending"
+                    className={`bg-purple-50 p-4 rounded-lg border ${filters.status === "interaction_pending"
                         ? "border-purple-400 shadow-md"
                         : "border-purple-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
+                      } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
                     onClick={() => handleStatusFilter("interaction_pending")}
                   >
                     <p className="text-sm text-purple-600 mb-1">
@@ -576,11 +537,10 @@ const DeanForms = () => {
                   </div>
 
                   <div
-                    className={`bg-orange-50 p-4 rounded-lg border ${
-                      filters.status === "verification_pending"
+                    className={`bg-orange-50 p-4 rounded-lg border ${filters.status === "verification_pending"
                         ? "border-orange-400 shadow-md"
                         : "border-orange-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
+                      } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
                     onClick={() => handleStatusFilter("verification_pending")}
                   >
                     <p className="text-sm text-orange-600 mb-1">
@@ -589,30 +549,26 @@ const DeanForms = () => {
                     <p className="text-2xl font-bold text-orange-800 mt-auto">
                       {statusSummary.verification_pending}
                     </p>
-                  </div>
-
-                  <div
-                    className={`bg-blue-50 p-4 rounded-lg border ${
-                      filters.status === "portfolio_mark_pending"
+                  </div>                  <div
+                    className={`bg-blue-50 p-4 rounded-lg border ${filters.status === "Portfolio_mark_director_pending"
                         ? "border-blue-400 shadow-md"
                         : "border-blue-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("portfolio_mark_pending")}
+                      } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
+                    onClick={() => handleStatusFilter("Portfolio_mark_director_pending")}
                   >
                     <p className="text-sm text-blue-600 mb-1">
                       Portfolio Mark Pending
                     </p>
                     <p className="text-2xl font-bold text-blue-800 mt-auto">
-                      {statusSummary.portfolio_mark_pending}
+                      {statusSummary.Portfolio_mark_director_pending}
                     </p>
                   </div>
 
                   <div
-                    className={`bg-indigo-50 p-4 rounded-lg border ${
-                      filters.status === "portfolio_mark_dean_pending"
+                    className={`bg-indigo-50 p-4 rounded-lg border ${filters.status === "portfolio_mark_dean_pending"
                         ? "border-indigo-400 shadow-md"
                         : "border-indigo-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
+                      } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
                     onClick={() =>
                       handleStatusFilter("portfolio_mark_dean_pending")
                     }
@@ -621,16 +577,15 @@ const DeanForms = () => {
                       Dean Mark Pending
                     </p>
                     <p className="text-2xl font-bold text-indigo-800 mt-auto">
-                      {statusSummary.portfolio_mark_dean_pending}
+                      {statusSummary.portfolio_mark_dean_pending || 0}
                     </p>
                   </div>
 
                   <div
-                    className={`bg-gray-50 p-4 rounded-lg border ${
-                      filters.status === "pending"
+                    className={`bg-gray-50 p-4 rounded-lg border ${filters.status === "pending"
                         ? "border-gray-400 shadow-md"
                         : "border-gray-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
+                      } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
                     onClick={() => handleStatusFilter("pending")}
                   >
                     <p className="text-sm text-gray-600 mb-1">Pending</p>
@@ -638,9 +593,7 @@ const DeanForms = () => {
                       {statusSummary.pending}
                     </p>
                   </div>
-                </div>
-
-                {/* Status filter indicator */}
+                </div>                {/* Status filter indicator */}
                 {filters.status && (
                   <div className="mt-2 flex items-center">
                     <span className="text-sm text-gray-600 mr-2">
@@ -692,37 +645,35 @@ const DeanForms = () => {
                           <td className="px-6 py-4">{faculty.department}</td>
                           <td className="px-6 py-4">{faculty.designation}</td>
                           <td className="px-6 py-4">{faculty.role}</td>
-                          <td className="px-6 py-4">{displayMarks(faculty)}</td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4">{displayMarks(faculty)}</td>                          <td className="px-6 py-4">
                             <span
-                              className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold ${
-                                faculty.status === "Done"
+                              className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold ${faculty.status === "done"
                                   ? "bg-green-100 text-green-800"
                                   : faculty.status === "Interaction_pending"
                                     ? "bg-purple-100 text-purple-800"
                                     : faculty.status ===
-                                        "authority_verification_pending"
+                                      "authority_verification_pending"
                                       ? "bg-yellow-100 text-yellow-800"
                                       : faculty.status ===
-                                          "verification_pending"
+                                        "verification_pending"
                                         ? "bg-orange-100 text-orange-800"
                                         : faculty.status ===
-                                            "Portfolio_Mark_pending"
+                                          "Portfolio_mark_director_pending"
                                           ? "bg-blue-100 text-blue-800"
                                           : "bg-gray-100 text-gray-800"
-                              }`}
+                                }`}
                             >
-                              {faculty.status === "Done"
-                                ? "Done"
+                              {faculty.status === "done"
+                                ? "done"
                                 : faculty.status === "Interaction_pending"
                                   ? "Interaction Pending"
                                   : faculty.status ===
-                                      "authority_verification_pending"
+                                    "authority_verification_pending"
                                     ? "Authority Verification Pending"
                                     : faculty.status === "verification_pending"
                                       ? "Verification Pending"
                                       : faculty.status ===
-                                          "Portfolio_Mark_pending"
+                                        "Portfolio_mark_director_pending"
                                         ? "Portfolio Mark Pending"
                                         : "Pending"}
                             </span>

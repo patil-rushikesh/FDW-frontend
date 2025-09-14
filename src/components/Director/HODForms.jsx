@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Users,
-  Search,
-  Filter,
   CheckCircle2,
   SortAsc,
   SortDesc,
@@ -232,31 +230,6 @@ const HODForms = () => {
     }));
   };
 
-  // Handle verification status change
-  const handleVerify = async (id) => {
-    try {
-      // Update the faculty's status in the local state
-      setFacultyData((prevData) =>
-        prevData.map((faculty) =>
-          faculty._id === id
-            ? { ...faculty, status: "authority_verification_pending" }
-            : faculty
-        )
-      );
-
-      // Store the verification status in localStorage
-      const allVerifications = JSON.parse(
-        localStorage.getItem("verifiedHODs") || "{}"
-      );
-      allVerifications[id] = {
-        verifiedAt: new Date().toISOString(),
-        verifiedBy: JSON.parse(localStorage.getItem("userData"))._id,
-      };
-      localStorage.setItem("verifiedHODs", JSON.stringify(allVerifications));
-    } catch (err) {
-      setError("Failed to verify faculty: " + err.message);
-    }
-  };
 
   // Function to determine what to display in the action column
   const renderActionButton = (faculty) => {
