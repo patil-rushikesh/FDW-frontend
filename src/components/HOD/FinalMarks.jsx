@@ -516,8 +516,19 @@ const FinalMarks = () => {
                           <span className="font-medium text-blue-700">{formatNumber(faculty.final_marks?.scaled_interaction_marks)}</span>
                         </td>
                         <td className="px-4 py-4">
-                          <span className="font-semibold text-lg text-blue-800 px-3 py-1 bg-blue-50 rounded-lg">
+                          <span className={`font-semibold text-lg px-3 py-1 rounded-lg relative group whitespace-nowrap ${
+                            faculty.faculty_info.designation_bonus_given 
+                              ? 'text-amber-700 bg-amber-100' 
+                              : 'text-blue-800 bg-blue-50'
+                          }`}>
                             {formatNumber(faculty.final_marks?.total_marks)}
+                            {/* Hover tooltip for designation bonus */}
+                            {faculty.faculty_info.designation_bonus_given && (
+                              <div className="absolute z-10 invisible group-hover:visible bg-black text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+                                Extra Marks Given Due to Designation
+                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black"></div>
+                              </div>
+                            )}
                           </span>
                         </td>
                         <td className="px-4 py-4">
