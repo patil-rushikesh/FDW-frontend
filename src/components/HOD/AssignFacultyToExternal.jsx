@@ -527,7 +527,7 @@ const AssignFacultyToExternal = () => {
   // Update the handleAssignDean function
   const handleAssignDean = async (externalId, deanId) => {
     try {
-      
+      setLoading(true);
       // Make the API call to assign a dean to an external reviewer
       const response = await fetch(
         `${import.meta.env.VITE_BASE_URL}/${userDept}/dean-external-assignment/${externalId}/${deanId}`,
@@ -538,45 +538,34 @@ const AssignFacultyToExternal = () => {
           }
         }
       );
-      
-      
+      const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Failed to assign dean");
       }
-      else{
-        window.location.reload();
-      }
-      
       // Find the dean's name in the eligible faculty list
       const assignedDean = deanEligibleFaculty.find(dean => dean.id === deanId);
       const deanName = assignedDean ? assignedDean.name : "Selected dean";
       const externalName = selectedExternal.name;
-      
       // Refresh dean assignments to get the latest data
       const refreshResponse = await fetch(
         `${import.meta.env.VITE_BASE_URL}/${userDept}/external-dean-assignments`
       );
-      
       if (!refreshResponse.ok) {
         throw new Error("Failed to refresh dean assignments");
       }
-      
       const refreshData = await refreshResponse.json();
-      
       // Update local state with the complete refreshed data
       setDeanAssignments(refreshData.data || {});
-      
       // After successful dean assignment, also refresh the dean-external mappings
       await fetchDeanExternalMappings();
-      
+      // Show success toast
+      toast.success(`Dean ${deanName} assigned to ${externalName} successfully`);
       // Close the modal
       closeDeanModal();
-      
-
-      
     } catch (error) {
       console.error("Error assigning dean:", error);
       toast.error(error.message || "Failed to assign dean");
+    } finally {
       setLoading(false);
     }
   };
