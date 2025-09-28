@@ -1,185 +1,160 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
-import axios from "axios";
-import {
-  User,
-  ArrowRight,
-  CheckCircle,
-  AlertCircle,
-  Info,
-  FileText,
-} from "lucide-react";
+import { CheckCircle, FileText, RefreshCw, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+// Defines which faculty roles are eligible for review
+const ALLOWED_ROLES = ["Professor", "Associate Professor", "Assistant Professor"];
+// Defines which faculty designations are eligible for review
+const ALLOWED_DESG = ["HOD", "Dean", "Professor"]; // Adjusted to be more inclusive
 
 const CollegeExternalDashboard = () => {
   const navigate = useNavigate();
-  const [assignedFaculty, setAssignedFaculty] = useState([]);
-  const [evaluations, setEvaluations] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [externalInfo, setExternalInfo] = useState({});
   const [externalId, setExternalId] = useState("");
+  const [internalFacultyList, setInternalFacultyList] = useState([]);
 
+  // Effect to get the logged-in external user's ID
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('userData'));
-    if (userData) {
-      setExternalId(userData._id);
-      setExternalInfo({
-        full_name: userData.name,
-        organization: userData.organization || "",
-        desg: userData.desg
-      });
-    } else {
-      setError("User not logged in or session expired");
-      toast.error("Please log in again");
+    try {
+      const userData = JSON.parse(localStorage.getItem('userData'));
+      if (userData && userData._id) {
+        setExternalId(userData._id);
+      } else {
+        throw new Error("User not logged in or session expired");
+      }
+    } catch (err) {
+      setError(err.message);
+      toast.error("Please log in again.");
+      navigate('/login'); // Redirect to login if no user data
     }
-  }, []);
+  }, [navigate]);
 
+  // Effect to fetch all necessary data once the externalId is known
   useEffect(() => {
-    const fetchAssignments = async () => {
+    if (!externalId) return;
+
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/external-assignments/${externalId}`);
-        if (response.data && response.data.data) {
-          const facultyAssignments = response.data.data;
-          setAssignedFaculty(facultyAssignments.assigned_faculty || []);
-          setEvaluations(facultyAssignments.evaluations || {});
-        } else {
-          setError("No data found");
-        }
-      } catch (err) {
-        setError(err.message || "Failed to load assignments");
-        toast.error("Error loading assignments");
-        console.error("Error fetching assignments:", err);
+        const [usersResponse, marksResponse] = await Promise.all([
+          fetch(`${import.meta.env.VITE_BASE_URL}/users`),
+          fetch(`${import.meta.env.VITE_BASE_URL}/external_interaction_marks/${externalId}`)
+        ]);
+
+        if (!usersResponse.ok) throw new Error("Failed to fetch faculty list");
+        if (!marksResponse.ok) throw new Error("Failed to fetch evaluation marks");
+
+        const allUsers = await usersResponse.json();
+        const marksData = await marksResponse.json();
+        const allEvaluatedMarks = marksData.data || {};
+
+        const eligibleFaculty = allUsers.filter(
+          (user) => ALLOWED_ROLES.includes(user.role) && ALLOWED_DESG.includes(user.desg)
+        );
+        const getEvaluationStatus = async (facultyId, department) => {
+          const res = await fetch(`${import.meta.env.VITE_BASE_URL}/getEvaluationStatus/${facultyId}/${department}`);
+          if (res.ok) {
+            const data = await res.json();
+            return data.status || null;
+          }
+          return null;
+        };
+        const formattedFacultyPromises = eligibleFaculty.map(async (faculty) => {
+          const externalMarks = allEvaluatedMarks[faculty._id] || null;
+          const [evaluationStatus] = await Promise.all([
+            getEvaluationStatus(faculty._id, faculty.dept)
+          ]);
+          return {
+            id: faculty._id,
+            name: faculty.name,
+            department: faculty.dept,
+            designation: faculty.desg,
+            externalMarks: externalMarks,
+            status: evaluationStatus
+          };
+        });
+        const formattedFacultyList = await Promise.all(formattedFacultyPromises);
+        setInternalFacultyList(formattedFacultyList);
+
+      } catch (e) {
+        setError(e.message);
+        toast.error(e.message || "Failed to load dashboard data");
       } finally {
         setLoading(false);
       }
     };
 
-    if (externalId) {
-      fetchAssignments();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchDashboardData();
   }, [externalId]);
-
-  useEffect(() => {
-    localStorage.setItem("externalEvaluations", JSON.stringify(evaluations));
-  }, [evaluations]);
-
-  const getEvaluationStatus = (facultyId) => {
-    const facultyEval = evaluations[externalId]?.[facultyId];
-    const facultyData = assignedFaculty.find(faculty => faculty.faculty_id === facultyId);
-    if (facultyData?.isReviewed) return "Submitted";
-    if (!facultyEval) return "Not Started";
-    if (facultyEval.submittedAt) return "Submitted";
-    return "In Progress";
-  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {/* Dashboard Header */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
         <div className="bg-indigo-700 px-6 py-4">
-          <h1 className="text-xl font-bold text-white">
-            External Dashboard
-          </h1>
-          <p className="text-indigo-100 text-sm">
-            {externalInfo.full_name
-              ? `Welcome, ${externalInfo.full_name}`
-              : "Faculty Evaluation Portal"}
-          </p>
-          {externalInfo.organization && (
-            <p className="text-indigo-200 text-xs mt-1">
-              {externalInfo.organization}
-              {externalInfo.dept ? ` • ${externalInfo.dept}` : ""}
-              {externalInfo.desg ? ` • ${externalInfo.desg}` : ""}
-            </p>
-          )}
+          <h1 className="text-xl font-bold text-white">External Reviewer Dashboard</h1>
+          <p className="text-indigo-100 text-sm">Evaluate faculty members assigned for review.</p>
         </div>
 
         <div className="p-6">
           {loading ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">Loading assignments...</p>
+              <RefreshCw className="animate-spin h-8 w-8 text-indigo-600 mx-auto" />
+              <p className="mt-2 text-gray-500">Loading Faculty List...</p>
             </div>
           ) : error ? (
             <div className="text-center py-8 text-red-500">
+              <AlertCircle className="h-8 w-8 mx-auto" />
+              <p className="mt-2 font-semibold">An error occurred:</p>
               <p>{error}</p>
             </div>
-          ) : assignedFaculty.length === 0 ? (
-            console.log("asssignedFaculty", assignedFaculty),
+          ) : internalFacultyList.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <p>No faculty members have been assigned to you yet.</p>
+              <p>No faculty members are currently available for review.</p>
             </div>
           ) : (
-            <div>
-              <div className="mb-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-2">
-                  Your Assigned Faculty Members
-                </h2>
-                <p className="text-gray-600 text-sm">
-                  Please evaluate each faculty member on the required parameters
-                </p>
-              </div>
-
-              {/* Faculty List */}
-              <div className="grid gap-4">
-                {assignedFaculty.map((faculty) => (
-                  <div
-                    key={faculty.faculty_id}
-                    id={`faculty-${faculty.faculty_id}`}
-                    className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
-                  >
-                    <div className={`p-4 flex justify-between items-center ${faculty.isReviewed ? "bg-green-50 border-green-200" :
-                        getEvaluationStatus(faculty.faculty_id) === "In Progress" ? "bg-yellow-50 border-yellow-200" :
-                          "bg-white border-gray-200"
-                      }`}
-                    >
-                      <div className="flex items-center">
-                        <div className="bg-indigo-100 rounded-full w-12 h-12 flex items-center justify-center mr-4 text-indigo-700">
-                          <User size={20} />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold">{faculty.faculty_info.name}</h3>
-                          <p className="text-sm text-gray-600">{faculty.faculty_id}</p>
-                        </div>
+            <div className="space-y-6">
+              {internalFacultyList
+                .filter((faculty) => faculty.status === "Interaction_pending" || faculty.status === "done")
+                .map((faculty) => (
+                  <div key={faculty.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="bg-gray-50 px-6 py-4 flex justify-between items-center">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800">{faculty.name}</h3>
+                        <p className="text-sm text-gray-600">
+                          {faculty.designation} • {faculty.department}
+                        </p>
                       </div>
-
-                      <div className="flex items-center">
-                        {faculty.isReviewed ? (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                            <CheckCircle size={16} className="mr-1" /> Evaluated
-                          </span>
-                        ) : getEvaluationStatus(faculty.faculty_id) === "In Progress" ? (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                            <AlertCircle size={16} className="mr-1" /> In Progress
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                            <Info size={16} className="mr-1" /> Not Started
-                          </span>
-                        )}
-
-                        {faculty.isReviewed ? (
-                          <div className="ml-4 inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-green-100 text-green-700">
-                            <CheckCircle size={16} className="mr-1" />
-                            Score: {faculty.total_marks}/100
+                      <div className="flex gap-3">
+                        {faculty.externalMarks ? (
+                          <div className="flex items-center">
+                            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                              <CheckCircle size={16} className="mr-2" />
+                              {/* --- CORRECTED DISPLAY: Access the .marks property --- */}
+                              Evaluated: {faculty.externalMarks.marks} / 100
+                            </span>
                           </div>
                         ) : (
                           <button
-                            onClick={() => navigate(`/evaluate-authority/${faculty.faculty_id}`, { state: { faculty } })}
-                            className="ml-4 inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
+                            onClick={() =>
+                              /* --- CORRECTED NAVIGATION: Route to an external-specific page --- */
+                              navigate(`/external-evaluate/${faculty.id}`, {
+                                state: { faculty: faculty },
+                              })
+                            }
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md flex items-center gap-2 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            title="Evaluate faculty"
                           >
-                            <FileText size={16} className="mr-1" />
-                            Evaluate
-                            <ArrowRight size={16} className="ml-1" />
+                            <FileText size={16} />
+                            <span>Evaluate</span>
                           </button>
                         )}
                       </div>
                     </div>
                   </div>
                 ))}
-              </div>
             </div>
           )}
         </div>
