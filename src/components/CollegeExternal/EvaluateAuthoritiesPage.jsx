@@ -46,7 +46,6 @@ const EvaluateFacultyPage = () => {
     }
 
     setLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facultyId, location.state, navigate]);
 
   const handleInputChange = (e) => {
@@ -176,7 +175,7 @@ const EvaluateFacultyPage = () => {
         }
 
         toast.success("Evaluation submitted successfully!");
-        navigate("/external/give-marks");
+        navigate("/director/external/give-marks");
       } else {
         toast.success("Progress saved successfully!");
       }

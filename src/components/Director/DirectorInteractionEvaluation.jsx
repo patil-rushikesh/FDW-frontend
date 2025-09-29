@@ -146,8 +146,7 @@ const DirectorInteractionEvaluation = () => {
         }
         
         toast.success("Evaluation submitted successfully!");
-        // Refresh page data after submit
-        window.location.reload();
+        navigate("/director/assign-external");
       } else {
         toast.success("Progress saved successfully!");
         // Optionally, you can refresh data here as well if needed

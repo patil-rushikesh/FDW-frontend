@@ -38,11 +38,12 @@ const AssignExternal = () => {
             designation: f.desg,
             role: f.role,
             status: evaluationStatus,
-            isDirectorMarksGiven: f.isDirectorMarksGiven || false,
             directorMarks: directorMarks
           };
         });
         const formatted = await Promise.all(facultyPromises);
+
+        console.log("Formatted Faculty Data:", formatted);
         setInternalFacultyList(formatted);
       } catch (e) {
         toast.error("Failed to load faculty list");
@@ -109,7 +110,7 @@ const AssignExternal = () => {
                           </p>
                         </div>
                         <div className="flex gap-3">
-                          {internal.isDirectorMarksGiven ? (
+                          {internal.directorMarks ? (
                             <div className="flex items-center">
                               <span className="bg-green-100 text-green-800 px-3 py-1 rounded-md text-sm font-medium flex items-center">
                                 <CheckCircle size={14} className="mr-1" />

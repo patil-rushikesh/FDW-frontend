@@ -3,10 +3,9 @@ import { toast } from "react-hot-toast";
 import { CheckCircle, FileText, RefreshCw, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// Defines which faculty roles are eligible for review
 const ALLOWED_ROLES = ["Professor", "Associate Professor", "Assistant Professor"];
-// Defines which faculty designations are eligible for review
-const ALLOWED_DESG = ["HOD", "Dean", "Professor"]; // Adjusted to be more inclusive
+
+const ALLOWED_DESG = ["HOD", "Dean"];
 
 const CollegeExternalDashboard = () => {
   const navigate = useNavigate();
@@ -15,7 +14,6 @@ const CollegeExternalDashboard = () => {
   const [externalId, setExternalId] = useState("");
   const [internalFacultyList, setInternalFacultyList] = useState([]);
 
-  // Effect to get the logged-in external user's ID
   useEffect(() => {
     try {
       const userData = JSON.parse(localStorage.getItem('userData'));
@@ -69,11 +67,16 @@ const CollegeExternalDashboard = () => {
           ]);
           return {
             id: faculty._id,
+            faculty_id: faculty._id,
             name: faculty.name,
             department: faculty.dept,
             designation: faculty.desg,
             externalMarks: externalMarks,
-            status: evaluationStatus
+            status: evaluationStatus,
+            faculty_info: {
+              name: faculty.name,
+              department: faculty.dept
+            }
           };
         });
         const formattedFacultyList = await Promise.all(formattedFacultyPromises);
@@ -132,16 +135,14 @@ const CollegeExternalDashboard = () => {
                           <div className="flex items-center">
                             <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium flex items-center">
                               <CheckCircle size={16} className="mr-2" />
-                              {/* --- CORRECTED DISPLAY: Access the .marks property --- */}
                               Evaluated: {faculty.externalMarks.marks} / 100
                             </span>
                           </div>
                         ) : (
                           <button
                             onClick={() =>
-                              /* --- CORRECTED NAVIGATION: Route to an external-specific page --- */
                               navigate(`/evaluate-authority/${faculty.id}`, {
-                                state: { faculty: faculty },
+                                state: { faculty: faculty, department: faculty.department },
                               })
                             }
                             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md flex items-center gap-2 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
