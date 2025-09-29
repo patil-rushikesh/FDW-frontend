@@ -174,19 +174,30 @@ const AddExternal = () => {
       setLoading(false);
     }
 };
-
   const handleDelete = async (id) => {
     try {
-      // Ask for confirmation
       if (!window.confirm("Are you sure you want to delete this external?")) {
         return;
       }
 
-      // Simulating API call for deletion
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      const response = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/delete-external/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          credentials: "include",
+        }
+      );
 
-      // Remove from the list
-      setExternalList((prev) => prev.filter((external) => external.id !== id));
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to delete external");
+      }
+
+      setExternalList((prev) => prev.filter((external) => external._id !== id));
       toast.success("External removed successfully");
     } catch (error) {
       console.error("Error deleting external:", error);
