@@ -140,7 +140,7 @@ const CollegeExternalDashboard = () => {
                           <button
                             onClick={() =>
                               /* --- CORRECTED NAVIGATION: Route to an external-specific page --- */
-                              navigate(`/external-evaluate/${faculty.id}`, {
+                              navigate(`/evaluate-authority/${faculty.id}`, {
                                 state: { faculty: faculty },
                               })
                             }
