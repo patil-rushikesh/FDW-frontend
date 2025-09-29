@@ -53,10 +53,10 @@ const hodPrivilegeItems = [
     label: "Department Faculty Forms",
     path: "/hod/faculty-forms-list", // Changed path here
   },
-  { 
-    icon: Award, 
-    label: "Final Marks", 
-    path: "/hod/final-marks" 
+  {
+    icon: Award,
+    label: "Final Marks",
+    path: "/hod/final-marks",
   },
 ];
 
@@ -115,7 +115,7 @@ const deanPrivilegeItems = [
 // Add conditional rendering for the Dean interaction marks item
 const getDeanPrivilegeItems = (isAddedForInteraction) => {
   const items = [...deanPrivilegeItems];
-  
+
   if (isAddedForInteraction) {
     items.push({
       icon: Award,
@@ -123,7 +123,7 @@ const getDeanPrivilegeItems = (isAddedForInteraction) => {
       path: "/dean/give-interaction-marks",
     });
   }
-  
+
   return items;
 };
 
@@ -134,14 +134,19 @@ const paperVerificationItems = [
 // Updated external faculty items function to handle different paths based on ID
 const getExternalFacultyItems = (userId) => {
   const dashboardItem = { icon: User, label: "Dashboard", path: "/dashboard" };
-  
+
   // Check if the user ID starts with "EXTPCCO"
-  const giveMarksPath = userId && userId.startsWith("EXTPCCO") 
-    ? "/director/external/give-marks" 
-    : "/external/give-marks";
-  
-  const giveMarksItem = { icon: Award, label: "Give Marks", path: giveMarksPath };
-  
+  const giveMarksPath =
+    userId && userId.startsWith("EXTPCCO")
+      ? "/director/external/give-marks"
+      : "/external/give-marks";
+
+  const giveMarksItem = {
+    icon: Award,
+    label: "Give Marks",
+    path: giveMarksPath,
+  };
+
   return [dashboardItem, giveMarksItem];
 };
 
@@ -153,7 +158,8 @@ export default function Sidebar({ isOpen, onClose }) {
   const [isPrivilegeOpen, setIsPrivilegeOpen] = useState(false);
   const [isPaperVerificationOpen, setIsPaperVerificationOpen] = useState(false);
   const [isHodInteractionOpen, setIsHodInteractionOpen] = useState(false); // Separate state for HOD
-  const [isDirectorInteractionOpen, setIsDirectorInteractionOpen] = useState(false); // Separate state for Director
+  const [isDirectorInteractionOpen, setIsDirectorInteractionOpen] =
+    useState(false); // Separate state for Director
   const [userStatus, setUserStatus] = useState(null);
   const [statusLoading, setStatusLoading] = useState(false);
 
@@ -172,6 +178,13 @@ export default function Sidebar({ isOpen, onClose }) {
   }, []);
 
   const fetchUserStatus = async (department, userId) => {
+    // Validate inputs before making API call
+    if (!department || !userId) {
+      console.warn("Missing department or userId for status fetch");
+      setStatusLoading(false);
+      return;
+    }
+
     setStatusLoading(true);
     try {
       const response = await fetch(
@@ -217,14 +230,17 @@ export default function Sidebar({ isOpen, onClose }) {
 
   const toggleParts = () => setIsPartsOpen(!isPartsOpen);
   const togglePrivilege = () => setIsPrivilegeOpen(!isPrivilegeOpen);
-  const togglePaperVerification = () => setIsPaperVerificationOpen(!isPaperVerificationOpen);
-  const toggleHodInteraction = () => setIsHodInteractionOpen(!isHodInteractionOpen);
-  const toggleDirectorInteraction = () => setIsDirectorInteractionOpen(!isDirectorInteractionOpen);
+  const togglePaperVerification = () =>
+    setIsPaperVerificationOpen(!isPaperVerificationOpen);
+  const toggleHodInteraction = () =>
+    setIsHodInteractionOpen(!isHodInteractionOpen);
+  const toggleDirectorInteraction = () =>
+    setIsDirectorInteractionOpen(!isDirectorInteractionOpen);
 
   // Add handleLogout function
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   // 1. Update the NavLink component with improved line styling
@@ -282,7 +298,9 @@ export default function Sidebar({ isOpen, onClose }) {
         break;
       case "dean":
         // Use the function to get the dean items based on isAddedForInteraction
-        privilegeItems = getDeanPrivilegeItems(userData.isAddedForInteraction || false);
+        privilegeItems = getDeanPrivilegeItems(
+          userData.isAddedForInteraction || false
+        );
         sectionTitle = "Dean Privileges";
         break;
       default:
@@ -515,16 +533,23 @@ export default function Sidebar({ isOpen, onClose }) {
                   Dashboard
                 </p>
               )}
-              
+
               {/* Status indicator */}
               {statusLoading ? (
                 <div className="h-5 w-24 bg-indigo-700 animate-pulse rounded-full mt-2"></div>
               ) : userStatus ? (
-                <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${getStatusColorClass(userStatus)}`}>
+                <div
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${getStatusColorClass(userStatus)}`}
+                >
                   <span className="w-2 h-2 bg-current rounded-full mr-1.5"></span>
-                  {userStatus.split('_').map(word => 
-                    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-                  ).join(' ')}
+                  {userStatus
+                    .split("_")
+                    .map(
+                      (word) =>
+                        word.charAt(0).toUpperCase() +
+                        word.slice(1).toLowerCase()
+                    )
+                    .join(" ")}
                 </div>
               ) : null}
             </div>
@@ -535,7 +560,7 @@ export default function Sidebar({ isOpen, onClose }) {
               <X size={24} />
             </button>
           </div>
-          
+
           {/* Rest of the sidebar content */}
           <nav className="space-y-2">
             {/* For External Faculty: Show only Dashboard and Give Marks options */}
@@ -632,7 +657,7 @@ export default function Sidebar({ isOpen, onClose }) {
             )}
           </nav>
         </div>
-        
+
         {/* Modify the logout button styling to better match the theme */}
         <div className="p-6 mt-auto border-t border-indigo-700">
           <button

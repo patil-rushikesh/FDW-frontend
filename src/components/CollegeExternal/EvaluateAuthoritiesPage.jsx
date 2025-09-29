@@ -46,7 +46,6 @@ const EvaluateFacultyPage = () => {
     }
 
     setLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facultyId, location.state, navigate]);
 
   const handleInputChange = (e) => {
@@ -73,9 +72,10 @@ const EvaluateFacultyPage = () => {
       };
 
       // Only allow empty string or positive integers up to the maximum value
-      const numValue = value === ""
-        ? ""
-        : Math.min(Math.max(parseInt(value) || 0, 0), maxValues[name]);
+      const numValue =
+        value === ""
+          ? ""
+          : Math.min(Math.max(parseInt(value) || 0, 0), maxValues[name]);
 
       setEvaluation((prev) => ({ ...prev, [name]: numValue }));
     } else {
@@ -97,15 +97,20 @@ const EvaluateFacultyPage = () => {
         "attributes",
         "outcomesInitiatives",
         "selfBranching",
-        "teamPerformance"
+        "teamPerformance",
       ];
 
-      const missingFields = requiredFields.filter(field =>
-        evaluation[field] === "" || evaluation[field] === null || evaluation[field] === undefined
+      const missingFields = requiredFields.filter(
+        (field) =>
+          evaluation[field] === "" ||
+          evaluation[field] === null ||
+          evaluation[field] === undefined
       );
 
       if (missingFields.length > 0) {
-        toast.error(`Please complete all evaluation criteria before submitting`);
+        toast.error(
+          `Please complete all evaluation criteria before submitting`
+        );
         return;
       }
     }
@@ -153,30 +158,36 @@ const EvaluateFacultyPage = () => {
           externalId,
           facultyId,
           totalScore,
-          comments: evaluation.comments
+          comments: evaluation.comments,
         });
 
-        const apiResponse = await fetch(`${import.meta.env.VITE_BASE_URL}/external_interaction_marks/${faculty.faculty_info.department}/${externalId}/${facultyId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            total_marks: totalScore,
-            comments: evaluation.comments || '',
-          }),
-          credentials: 'include', // Include this to send cookies if using sessions
-        });
+        const apiResponse = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/external_interaction_marks/${faculty.faculty_info.department}/${externalId}/${facultyId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              total_marks: totalScore,
+              comments: evaluation.comments || "",
+            }),
+            credentials: "include", // Include this to send cookies if using sessions
+          }
+        );
 
         // Add better error handling
         if (!apiResponse.ok) {
           const errorData = await apiResponse.json();
           console.error("API Error:", errorData);
-          throw new Error(errorData.error || `Server responded with status ${apiResponse.status}`);
+          throw new Error(
+            errorData.error ||
+              `Server responded with status ${apiResponse.status}`
+          );
         }
 
         toast.success("Evaluation submitted successfully!");
-        navigate("/external/give-marks");
+        navigate("/director/external/give-marks");
       } else {
         toast.success("Progress saved successfully!");
       }
@@ -259,7 +270,9 @@ const EvaluateFacultyPage = () => {
       {/* Faculty Info Card - Made sticky */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6 sticky top-0 z-10">
         <div className="bg-indigo-700 px-6 py-4">
-          <h1 className="text-xl font-bold text-white">Evaluate HoD and Dean</h1>
+          <h1 className="text-xl font-bold text-white">
+            Evaluate HoD and Dean
+          </h1>
         </div>
 
         <div className="p-4">
@@ -277,10 +290,15 @@ const EvaluateFacultyPage = () => {
 
                 <div className="flex flex-wrap gap-2 mt-1">
                   {faculty.faculty_id && (
-                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">ID: {faculty.faculty_id}</span>
+                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                      ID: {faculty.faculty_id}
+                    </span>
                   )}
                   <span className="text-xs text-gray-700">
-                    <Briefcase size={12} className="inline text-indigo-600 mr-1" />
+                    <Briefcase
+                      size={12}
+                      className="inline text-indigo-600 mr-1"
+                    />
                     {faculty.faculty_info.department || "Not specified"}
                   </span>
                 </div>

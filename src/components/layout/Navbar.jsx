@@ -10,13 +10,20 @@ export default function Navbar({ onMenuClick, showMenuButton = true }) {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("userData"));
-    if (user) {
+    if (user && user.dept && user._id) {
       setUserData(user);
       fetchUserStatus(user.dept, user._id);
     }
   }, []);
 
   const fetchUserStatus = async (department, userId) => {
+    // Validate inputs before making API call
+    if (!department || !userId) {
+      console.warn("Missing department or userId for status fetch");
+      setStatusLoading(false);
+      return;
+    }
+
     setStatusLoading(true);
     try {
       const response = await fetch(
@@ -82,7 +89,7 @@ export default function Navbar({ onMenuClick, showMenuButton = true }) {
           <button className="p-2 hover:bg-gray-100 rounded-full">
             <Settings size={20} className="text-gray-600" />
           </button>
-          <div 
+          <div
             className="relative"
             onMouseEnter={() => setShowProfileDropdown(true)}
             onMouseLeave={() => setShowProfileDropdown(false)}
@@ -102,12 +109,14 @@ export default function Navbar({ onMenuClick, showMenuButton = true }) {
                 {userData?.name || "User"}
               </span>
             </Link>
-            
+
             {/* Profile dropdown */}
             {showProfileDropdown && (
               <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg py-2 z-50">
                 <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-800">{userData?.name}</p>
+                  <p className="text-sm font-medium text-gray-800">
+                    {userData?.name}
+                  </p>
                   <p className="text-xs text-gray-500 mt-1">{userData?.mail}</p>
                 </div>
                 <div className="px-4 py-3">
@@ -115,7 +124,9 @@ export default function Navbar({ onMenuClick, showMenuButton = true }) {
                   {statusLoading ? (
                     <div className="h-6 w-full bg-gray-200 animate-pulse rounded-full"></div>
                   ) : userStatus ? (
-                    <div className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sm font-semibold ${getStatusColorClass(userStatus)}`}>
+                    <div
+                      className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sm font-semibold ${getStatusColorClass(userStatus)}`}
+                    >
                       {userStatus.replace(/_/g, " ")}
                     </div>
                   ) : (
@@ -125,8 +136,8 @@ export default function Navbar({ onMenuClick, showMenuButton = true }) {
                   )}
                 </div>
                 <div className="border-t border-gray-100 pt-2">
-                  <Link 
-                    to="/profile" 
+                  <Link
+                    to="/profile"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     View Profile

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { User, Save, ArrowLeft, Check, Briefcase, Mail} from "lucide-react";
+import { User, Save, ArrowLeft, Check, Briefcase, Mail } from "lucide-react";
 
 const DirectorInteractionEvaluation = () => {
   const { facultyId } = useParams();
@@ -57,10 +57,11 @@ const DirectorInteractionEvaluation = () => {
         teamPerformance: 20,
       };
 
-      const numValue = value === "" 
-        ? "" 
-        : Math.min(Math.max(parseInt(value) || 0, 0), maxValues[name]);
-        
+      const numValue =
+        value === ""
+          ? ""
+          : Math.min(Math.max(parseInt(value) || 0, 0), maxValues[name]);
+
       setEvaluation((prev) => ({ ...prev, [name]: numValue }));
     } else {
       setEvaluation((prev) => ({ ...prev, [name]: value }));
@@ -76,20 +77,25 @@ const DirectorInteractionEvaluation = () => {
     // If submitting final evaluation, validate all required fields are filled
     if (isSubmitted) {
       const requiredFields = [
-        "knowledge", 
-        "skills", 
-        "attributes", 
-        "outcomesInitiatives", 
-        "selfBranching", 
-        "teamPerformance"
+        "knowledge",
+        "skills",
+        "attributes",
+        "outcomesInitiatives",
+        "selfBranching",
+        "teamPerformance",
       ];
-      
-      const missingFields = requiredFields.filter(field => 
-        evaluation[field] === "" || evaluation[field] === null || evaluation[field] === undefined
+
+      const missingFields = requiredFields.filter(
+        (field) =>
+          evaluation[field] === "" ||
+          evaluation[field] === null ||
+          evaluation[field] === undefined
       );
-      
+
       if (missingFields.length > 0) {
-        toast.error(`Please complete all evaluation criteria before submitting`);
+        toast.error(
+          `Please complete all evaluation criteria before submitting`
+        );
         return;
       }
     }
@@ -102,9 +108,8 @@ const DirectorInteractionEvaluation = () => {
         localStorage.getItem("directorEvaluations") || "{}"
       );
 
-
       // Calculate total score
-      const totalScore = 
+      const totalScore =
         (parseInt(evaluation.knowledge) || 0) +
         (parseInt(evaluation.skills) || 0) +
         (parseInt(evaluation.attributes) || 0) +
@@ -129,25 +134,29 @@ const DirectorInteractionEvaluation = () => {
       // If submitting final evaluation, send to backend API
       if (isSubmitted) {
         // Fix: Use correct property for external reviewer id
-        const apiResponse = await fetch(`${import.meta.env.VITE_BASE_URL}/${facultyDepartment}/director_interaction_marks/${facultyId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            total_marks: totalScore,
-            comments: evaluation.comments || '',
-          }),
-        });
-        
+        const apiResponse = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/${facultyDepartment}/director_interaction_marks/${facultyId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              total_marks: totalScore,
+              comments: evaluation.comments || "",
+            }),
+          }
+        );
+
         if (!apiResponse.ok) {
           const errorData = await apiResponse.json();
-          throw new Error(errorData.error || 'Failed to submit evaluation to server');
+          throw new Error(
+            errorData.error || "Failed to submit evaluation to server"
+          );
         }
-        
+
         toast.success("Evaluation submitted successfully!");
-        // Refresh page data after submit
-        window.location.reload();
+        navigate("/director/assign-external");
       } else {
         toast.success("Progress saved successfully!");
         // Optionally, you can refresh data here as well if needed
@@ -179,7 +188,8 @@ const DirectorInteractionEvaluation = () => {
               Faculty Not Found
             </h1>
             <p className="text-gray-600 mb-4">
-              The faculty member you&apos;re trying to evaluate could not be found.
+              The faculty member you&apos;re trying to evaluate could not be
+              found.
             </p>
             <button
               onClick={() => {
@@ -212,7 +222,9 @@ const DirectorInteractionEvaluation = () => {
       {/* Faculty Info Card */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
         <div className="bg-indigo-700 px-6 py-4">
-          <h1 className="text-xl font-bold text-white">HOD Interaction Evaluation</h1>
+          <h1 className="text-xl font-bold text-white">
+            HOD Interaction Evaluation
+          </h1>
         </div>
 
         <div className="p-6">
@@ -222,22 +234,25 @@ const DirectorInteractionEvaluation = () => {
               <div className="bg-indigo-100 rounded-full w-24 h-24 flex items-center justify-center mr-6 text-indigo-700 mb-4 md:mb-0">
                 <User size={40} />
               </div>
-              
+
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
                   {faculty.name}
                 </h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {faculty._id && (
                     <div className="flex items-center">
-                      <span className="text-md text-gray-500 bg-gray-100 px-2 py-1 rounded">ID: {faculty._id}</span>
+                      <span className="text-md text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        ID: {faculty._id}
+                      </span>
                     </div>
                   )}
                   <div className="flex items-center">
                     <Briefcase size={18} className="text-indigo-600 mr-2" />
                     <span className="text-gray-700">
-                      <span className="font-medium">Department:</span> {facultyDepartment || "Not specified"}
+                      <span className="font-medium">Department:</span>{" "}
+                      {facultyDepartment || "Not specified"}
                     </span>
                   </div>
 
@@ -248,11 +263,12 @@ const DirectorInteractionEvaluation = () => {
                     </div>
                   )}
                 </div>
-                
-                
+
                 {faculty.expertise && (
                   <div className="mt-4">
-                    <h3 className="font-medium text-gray-800 mb-1">Areas of Expertise:</h3>
+                    <h3 className="font-medium text-gray-800 mb-1">
+                      Areas of Expertise:
+                    </h3>
                     <p className="text-gray-700">{faculty.expertise}</p>
                   </div>
                 )}
@@ -324,8 +340,8 @@ const DirectorInteractionEvaluation = () => {
                 Attributes (Max 10 marks)
               </h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Assess the faculty member&apos; professional behavior, punctuality,
-                and interpersonal skills.
+                Assess the faculty member&apos; professional behavior,
+                punctuality, and interpersonal skills.
               </p>
               <div className="flex items-center">
                 <input
@@ -348,8 +364,8 @@ const DirectorInteractionEvaluation = () => {
                 Outcomes and Initiatives (Max 20 marks)
               </h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Assess the faculty member&apos; research output, innovative teaching
-                methods, and initiatives taken.
+                Assess the faculty member&apos; research output, innovative
+                teaching methods, and initiatives taken.
               </p>
               <div className="flex items-center">
                 <input
@@ -372,8 +388,8 @@ const DirectorInteractionEvaluation = () => {
                 Self Branching (Max 10 marks)
               </h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Assess the faculty member&apos;s professional development, continuous
-                learning, and self-improvement efforts.
+                Assess the faculty member&apos;s professional development,
+                continuous learning, and self-improvement efforts.
               </p>
               <div className="flex items-center">
                 <input
@@ -423,7 +439,7 @@ const DirectorInteractionEvaluation = () => {
                 name="comments"
                 value={evaluation.comments}
                 onChange={handleInputChange}
-                placeholder="Please provide any additional feedback or comments about this faculty member&apos; performance."
+                placeholder="Please provide any additional feedback or comments about this faculty member' performance."
                 className="w-full p-3 border rounded-md h-32"
               ></textarea>
             </div>
