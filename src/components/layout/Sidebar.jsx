@@ -536,8 +536,10 @@ export default function Sidebar({ isOpen, onClose }) {
 
               {/* Status indicator */}
               {statusLoading ? (
-                <div className="h-5 w-24 bg-indigo-700 animate-pulse rounded-full mt-2"></div>
-              ) : userStatus ? (
+                userRole !== "director" && (
+                  <div className="h-5 w-24 bg-indigo-700 animate-pulse rounded-full mt-2"></div>
+                )
+              ) : userStatus && userRole !== "director" ? (
                 <div
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${getStatusColorClass(userStatus)}`}
                 >

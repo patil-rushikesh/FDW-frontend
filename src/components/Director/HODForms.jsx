@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Users, CheckCircle2 } from "lucide-react";
+import { Users, CheckCircle2, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const normalizeStatus = (status) => (status || "").toLowerCase();
@@ -7,7 +7,7 @@ const normalizeStatus = (status) => (status || "").toLowerCase();
 const HODForms = () => {
   const navigate = useNavigate();
   const [facultyData, setFacultyData] = useState([]);
-  const [loading, setLoading] = useState(true); // loader on initial render
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     search: "",
@@ -20,6 +20,16 @@ const HODForms = () => {
   const [sortConfig, setSortConfig] = useState({
     key: null,
     direction: "asc",
+  });
+
+  // PDF modal state (like FacultyForms)
+  const [pdfModal, setPdfModal] = useState({
+    isOpen: false,
+    pdfUrl: "",
+    facultyName: "",
+    loading: false,
+    loadingProgress: 0,
+    error: null,
   });
 
   // Process verification status
@@ -171,7 +181,56 @@ const HODForms = () => {
     }));
   };
 
-  // Action button rendering
+  // PDF view function (same as FacultyForms)
+  const viewFacultyPDF = async (faculty) => {
+    setPdfModal({
+      isOpen: true,
+      pdfUrl: "",
+      facultyName: faculty.name,
+      loading: true,
+      loadingProgress: 0,
+      error: null,
+    });
+
+    try {
+      const progressInterval = setInterval(() => {
+        setPdfModal((prev) => ({
+          ...prev,
+          loadingProgress:
+            prev.loadingProgress >= 90 ? 90 : prev.loadingProgress + 10,
+        }));
+      }, 500);
+
+      const response = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}/generate-doc`,
+        { method: "GET" }
+      );
+
+      if (!response.ok) throw new Error("Failed to generate PDF");
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      clearInterval(progressInterval);
+      setPdfModal({
+        isOpen: true,
+        pdfUrl: url,
+        facultyName: faculty.name,
+        loading: false,
+        loadingProgress: 100,
+        error: null,
+      });
+    } catch (error) {
+      setPdfModal((prev) => ({
+        ...prev,
+        loading: false,
+        loadingProgress: 0,
+        error: "Failed to load PDF. Please try again.",
+      }));
+    }
+  };
+
+  // Action button rendering (add "View PDF" for done status)
   const renderActionButton = (faculty) => {
     const status = normalizeStatus(faculty.status);
     if (status === "authority_verification_pending") {
@@ -180,11 +239,9 @@ const HODForms = () => {
           <button
             type="button"
             className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-            onClick={() => {
-              const url = `${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}/generate-doc`;
-              window.open(url, "_blank");
-            }}
+            onClick={() => viewFacultyPDF(faculty)}
           >
+            <Eye className="h-4 w-4 text-blue-600" />
             <span className="font-semibold text-blue-700">View PDF</span>
           </button>
           <button
@@ -231,6 +288,18 @@ const HODForms = () => {
           }
         >
           <span className="font-semibold text-blue-700">Give Marks</span>
+        </button>
+      );
+    }
+    if (status === "done") {
+      return (
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          onClick={() => viewFacultyPDF(faculty)}
+        >
+          <Eye className="h-4 w-4 text-blue-600" />
+          <span className="font-semibold text-blue-700">View PDF</span>
         </button>
       );
     }
@@ -425,15 +494,6 @@ const HODForms = () => {
                     <p className="text-2xl font-bold text-blue-800 mt-auto">{statusSummary.Portfolio_mark_director_pending}</p>
                   </div>
                   <div
-                    className={`bg-indigo-50 p-4 rounded-lg border ${
-                      filters.status === "portfolio_mark_dean_pending" ? "border-indigo-400 shadow-md" : "border-indigo-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("portfolio_mark_dean_pending")}
-                  >
-                    <p className="text-sm text-indigo-600 mb-1">Dean Mark Pending</p>
-                    <p className="text-2xl font-bold text-indigo-800 mt-auto">{statusSummary.portfolio_mark_dean_pending}</p>
-                  </div>
-                  <div
                     className={`bg-gray-50 p-4 rounded-lg border ${
                       filters.status === "pending" ? "border-gray-400 shadow-md" : "border-gray-200"
                     } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
@@ -536,6 +596,85 @@ const HODForms = () => {
           </div>
         </main>
       </div>
+      {/* PDF Modal */}
+      {pdfModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl">
+            <div className="flex justify-between items-center border-b border-gray-200 p-4">
+              <h2 className="text-xl font-semibold text-gray-800">
+                {pdfModal.facultyName}&apos;s Appraisal Form
+              </h2>
+              <button
+                onClick={() =>
+                  setPdfModal((prev) => ({ ...prev, isOpen: false }))
+                }
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              {pdfModal.loading ? (
+                <div className="flex flex-col items-center justify-center p-8">
+                  <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+                    <div
+                      className="bg-blue-500 h-4 rounded-full transition-all duration-500"
+                      style={{ width: `${pdfModal.loadingProgress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-center mt-2 text-gray-600">
+                    Loading PDF... {pdfModal.loadingProgress}%
+                  </p>
+                </div>
+              ) : pdfModal.error ? (
+                <div className="text-center text-red-500 p-8">
+                  {pdfModal.error}
+                </div>
+              ) : (
+                <div className="w-full h-[70vh] border border-gray-300 rounded-lg">
+                  <iframe
+                    src={pdfModal.pdfUrl}
+                    className="w-full h-full rounded-lg"
+                    title={`${pdfModal.facultyName}'s Appraisal Form`}
+                  />
+                </div>
+              )}
+            </div>
+            <div className="border-t border-gray-200 p-4 flex justify-end gap-3">
+              {!pdfModal.loading && pdfModal.pdfUrl && (
+                <a
+                  href={pdfModal.pdfUrl}
+                  download={`faculty_appraisal.pdf`}
+                  className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  Download PDF
+                </a>
+              )}
+              <button
+                onClick={() =>
+                  setPdfModal((prev) => ({ ...prev, isOpen: false }))
+                }
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

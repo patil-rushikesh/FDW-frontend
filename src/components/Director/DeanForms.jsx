@@ -1,18 +1,13 @@
-import React, { useState, useEffect, useMemo } from "react";
-import {
-  Users,
-  Search,
-  Filter,
-  CheckCircle2,
-  SortAsc,
-  SortDesc,
-} from "lucide-react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { Users, CheckCircle2, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+const normalizeStatus = (status) => (status || "").toLowerCase();
 
 const DeanForms = () => {
   const navigate = useNavigate();
   const [facultyData, setFacultyData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     search: "",
@@ -20,41 +15,34 @@ const DeanForms = () => {
     designation: "",
     minMarks: "",
     maxMarks: "",
-    status: "", // Add status filter
+    status: "",
   });
   const [sortConfig, setSortConfig] = useState({
     key: null,
     direction: "asc",
   });
-  const [departments, setDepartments] = useState([]);
-  const [designations, setDesignations] = useState([]);
-  const [statusSummary, setStatusSummary] = useState({
-    done: 0,
-    verification_pending: 0,
-    interaction_pending: 0,
-    authority_verification_pending: 0,
-    portfolio_mark_pending: 0,
-    pending: 0,
-    total: 0,
+  const [pdfModal, setPdfModal] = useState({
+    isOpen: false,
+    pdfUrl: "",
+    facultyName: "",
+    loading: false,
+    loadingProgress: 0,
+    error: null,
   });
 
-  // Process verification status
-  const processVerificationStatus = (facultyList) => {
-    const verifiedFaculty = JSON.parse(
-      localStorage.getItem("verifiedHODs") || "{}"
-    );
+  const processVerificationStatus = useCallback((facultyList) => {
+    const verifiedFaculty = JSON.parse(localStorage.getItem("verifiedHODs") || "{}");
     return facultyList.map((faculty) => ({
       ...faculty,
       status:
-        faculty.status === "authority_verification_pending"
+        normalizeStatus(faculty.status) === "authority_verification_pending"
           ? "authority_verification_pending"
           : verifiedFaculty[faculty._id]
             ? "authority_verification_pending"
             : faculty.status,
     }));
-  };
+  }, []);
 
-  // Fetch faculty data using the new all-faculties endpoint
   useEffect(() => {
     const fetchFaculties = async () => {
       try {
@@ -62,78 +50,27 @@ const DeanForms = () => {
         const response = await fetch(`${import.meta.env.VITE_BASE_URL}/all-faculties`);
         if (!response.ok) throw new Error("Failed to fetch faculty data");
         const responseData = await response.json();
-          responseData.data.forEach(async (faculty) => {
-          try {
-            const res = await fetch(`${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}`);
-            if (res.ok) {
-              const facultyDetail = await res.json();
-              console.log(`Fetched detail for ${faculty.name} (${faculty._id}):`, facultyDetail);
-            } else {
-              console.warn(`Failed to fetch detail for ${faculty.name} (${faculty._id})`);
-            }
-          } catch (err) {
-            console.error(`Error fetching detail for ${faculty.name} (${faculty._id}):`, err);
-          }
-        });
         if (responseData.status === "success") {
-          // Filter Dean and Associate Dean only
           const deanFaculty = responseData.data.filter(
-            (faculty) =>
-              faculty.role === "Dean" ||
-              faculty.designation === "Dean" 
+            (faculty) => faculty.role === "Dean" || faculty.designation === "Dean"
           );
-
-          // Calculate status counts for summary
-          const summary = {
-            done: 0,
-            verification_pending: 0,
-            interaction_pending: 0,
-            authority_verification_pending: 0,
-            portfolio_mark_pending: 0,
-            pending: 0,
-            total: deanFaculty.length,
-          };
-
-          deanFaculty.forEach((faculty) => {
-            const status = faculty.status?.toLowerCase() || "pending";
-            if (status.includes("done")) {
-              summary.done++;
-            } else if (
-              status.includes("verification_pending") &&
-              !status.includes("authority_verification_pending")
-            ) {
-              summary.verification_pending++;
-            } else if (status.includes("authority_verification_pending")) {
-              summary.authority_verification_pending++;
-            } else if (status.includes("interaction_pending")) {
-              summary.interaction_pending++;
-            } else if (status.includes("portfolio_mark_pending")) {
-              summary.portfolio_mark_pending++;
-            } else {
-              summary.pending++;
-            }
-          });
-
-          setStatusSummary(summary);
-          setDepartments([...new Set(responseData.data.map((f) => f.department))].filter(Boolean));
-          setDesignations([...new Set(responseData.data.map((f) => f.designation))].filter(Boolean));
-
-          // Fetch total marks for each Dean from /<department>/<user_id>/total and add to faculty object
-          const deanWithTotals = await Promise.all(deanFaculty.map(async (faculty) => {
-            try {
-              const res = await fetch(`${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}/total`);
-              if (res.ok) {
-                const totalData = await res.json();
-                return {
-                  ...faculty,
-                  grand_total: totalData.grand_total?.grand_total ?? null
-                };
-              }
-            } catch (err) {
-              console.error(`Error fetching total for ${faculty._id}:`, err);
-            }
-            return faculty;
-          }));
+          const deanWithTotals = await Promise.all(
+            deanFaculty.map(async (faculty) => {
+              try {
+                const res = await fetch(
+                  `${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}/total`
+                );
+                if (res.ok) {
+                  const totalData = await res.json();
+                  return {
+                    ...faculty,
+                    grand_total: totalData.grand_total?.grand_total ?? null,
+                  };
+                }
+              } catch {}
+              return faculty;
+            })
+          );
           setFacultyData(processVerificationStatus(deanWithTotals));
         } else {
           throw new Error("API returned an error");
@@ -145,94 +82,87 @@ const DeanForms = () => {
       }
     };
     fetchFaculties();
+  }, [processVerificationStatus]);
+
+  const departments = useMemo(
+    () => Array.from(new Set(facultyData.map((f) => f.department).filter(Boolean))).sort(),
+    [facultyData]
+  );
+  const designations = useMemo(
+    () => Array.from(new Set(facultyData.map((f) => f.designation).filter(Boolean))).sort(),
+    [facultyData]
+  );
+
+  const statusSummary = useMemo(() => {
+    const summary = {
+      done: 0,
+      verification_pending: 0,
+      interaction_pending: 0,
+      authority_verification_pending: 0,
+      Portfolio_mark_director_pending: 0,
+      portfolio_mark_dean_pending: 0,
+      pending: 0,
+      total: facultyData.length,
+    };
+    facultyData.forEach((faculty) => {
+      const status = normalizeStatus(faculty.status);
+      if (status.includes("done")) summary.done++;
+      else if (status.includes("authority_verification_pending")) summary.authority_verification_pending++;
+      else if (status.includes("verification_pending")) summary.verification_pending++;
+      else if (status.includes("interaction_pending")) summary.interaction_pending++;
+      else if (status.includes("portfolio_mark_director_pending")) summary.Portfolio_mark_director_pending++;
+      else if (status.includes("portfolio_mark_dean_pending")) summary.portfolio_mark_dean_pending++;
+      else summary.pending++;
+    });
+    return summary;
+  }, [facultyData]);
+
+  const getNumericMarks = useCallback((faculty) => {
+    if (!faculty || normalizeStatus(faculty.status) === "pending") return 0;
+    if (faculty.grand_total) return Number(faculty.grand_total) || 0;
+    const gm = faculty.grand_marks;
+    if (!gm) return 0;
+    if (typeof gm === "object") return Number(gm.grand_total || 0);
+    if (typeof gm === "number") return gm;
+    if (typeof gm === "string" && !isNaN(gm)) return Number(gm);
+    return 0;
   }, []);
 
-  // Helper function to get numeric marks value regardless of format
-  const getNumericMarks = (faculty) => {
-    if (!faculty) return 0;
-    if (faculty.status === "pending") return 0;
-
-    if (typeof faculty.grand_marks === "object" && faculty.grand_marks) {
-      return Number(faculty.grand_marks.grand_total || 0);
-    } else if (typeof faculty.grand_marks === "number") {
-      return faculty.grand_marks;
-    } else if (
-      typeof faculty.grand_marks === "string" &&
-      !isNaN(faculty.grand_marks)
-    ) {
-      return Number(faculty.grand_marks);
-    }
-    return 0;
-  };
-
-  // Update the filteredData useMemo function
   const filteredData = useMemo(() => {
     return facultyData
       .filter((faculty) => {
+        const search = filters.search.toLowerCase();
         const searchMatch =
-          faculty._id.toLowerCase().includes(filters.search.toLowerCase()) ||
-          (faculty.name &&
-            faculty.name.toLowerCase().includes(filters.search.toLowerCase()));
-
-        const departmentMatch =
-          !filters.department || faculty.department === filters.department;
-
-        const designationMatch =
-          !filters.designation || faculty.designation === filters.designation;
-
-        const facultyMarks = getNumericMarks(faculty);
-
+          faculty._id.toLowerCase().includes(search) ||
+          (faculty.name && faculty.name.toLowerCase().includes(search));
+        const departmentMatch = !filters.department || faculty.department === filters.department;
+        const designationMatch = !filters.designation || faculty.designation === filters.designation;
+        const marks = getNumericMarks(faculty);
         const marksMatch =
-          (!filters.minMarks ||
-            filters.minMarks === "" ||
-            facultyMarks >= Number(filters.minMarks)) &&
-          (!filters.maxMarks ||
-            filters.maxMarks === "" ||
-            facultyMarks <= Number(filters.maxMarks));
-
-        // Add status filtering
+          (!filters.minMarks || marks >= Number(filters.minMarks)) &&
+          (!filters.maxMarks || marks <= Number(filters.maxMarks));
+        const status = normalizeStatus(faculty.status);
         const statusMatch =
           !filters.status ||
-          (filters.status === "done" &&
-            faculty.status?.toLowerCase() === "done") ||
-          (filters.status === "verification_pending" &&
-            faculty.status?.toLowerCase().includes("verification_pending") &&
-            !faculty.status
-              ?.toLowerCase()
-              .includes("authority_verification_pending")) ||
-          (filters.status === "authority_verification_pending" &&
-            faculty.status
-              ?.toLowerCase()
-              .includes("authority_verification_pending")) ||
-          (filters.status === "interaction_pending" &&
-            faculty.status?.toLowerCase().includes("interaction_pending")) ||
-          (filters.status === "portfolio_mark_pending" &&
-            faculty.status?.toLowerCase().includes("portfolio_mark_pending")) ||
-          (filters.status === "pending" &&
-            (!faculty.status || faculty.status.toLowerCase() === "pending"));
-
-        return (
-          searchMatch &&
-          departmentMatch &&
-          designationMatch &&
-          marksMatch &&
-          statusMatch
-        );
+          (filters.status === "done" && status === "done") ||
+          (filters.status === "verification_pending" && status.includes("verification_pending") && !status.includes("authority_verification_pending")) ||
+          (filters.status === "authority_verification_pending" && status.includes("authority_verification_pending")) ||
+          (filters.status === "interaction_pending" && status.includes("interaction_pending")) ||
+          (filters.status === "Portfolio_mark_director_pending" && status.includes("portfolio_mark_director_pending")) ||
+          (filters.status === "portfolio_mark_dean_pending" && status.includes("portfolio_mark_dean_pending")) ||
+          (filters.status === "pending" && (!status || status === "pending"));
+        return searchMatch && departmentMatch && designationMatch && marksMatch && statusMatch;
       })
       .sort((a, b) => {
         if (!sortConfig.key) return 0;
-
         if (sortConfig.key === "marks") {
-          const marksA = getNumericMarks(a);
-          const marksB = getNumericMarks(b);
-
-          return sortConfig.direction === "asc"
-            ? marksA - marksB
-            : marksB - marksA;
+          const ma = getNumericMarks(a);
+          const mb = getNumericMarks(b);
+          return sortConfig.direction === "asc" ? ma - mb : mb - ma;
         }
         return 0;
       });
-  }, [facultyData, filters, sortConfig]);
+  }, [facultyData, filters, sortConfig, getNumericMarks]);
 
   const toggleSort = () => {
     setSortConfig((current) => ({
@@ -241,43 +171,65 @@ const DeanForms = () => {
     }));
   };
 
-  // Handle verification status change
-  const handleVerify = async (id) => {
+  const viewFacultyPDF = async (faculty) => {
+    setPdfModal({
+      isOpen: true,
+      pdfUrl: "",
+      facultyName: faculty.name,
+      loading: true,
+      loadingProgress: 0,
+      error: null,
+    });
+
     try {
-      // Update the faculty's status in the local state
-      setFacultyData((prevData) =>
-        prevData.map((faculty) =>
-          faculty._id === id
-            ? { ...faculty, status: "authority_verification_pending" }
-            : faculty
-        )
+      const progressInterval = setInterval(() => {
+        setPdfModal((prev) => ({
+          ...prev,
+          loadingProgress:
+            prev.loadingProgress >= 90 ? 90 : prev.loadingProgress + 10,
+        }));
+      }, 500);
+
+      const response = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/${faculty.department}/${faculty._id}/generate-doc`,
+        { method: "GET" }
       );
 
-      // Store the verification status in localStorage
-      const allVerifications = JSON.parse(
-        localStorage.getItem("verifiedHODs") || "{}"
-      );
-      allVerifications[id] = {
-        verifiedAt: new Date().toISOString(),
-        verifiedBy: JSON.parse(localStorage.getItem("userData"))._id,
-      };
-      localStorage.setItem("verifiedHODs", JSON.stringify(allVerifications));
-    } catch (err) {
-      setError("Failed to verify faculty: " + err.message);
+      if (!response.ok) throw new Error("Failed to generate PDF");
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      clearInterval(progressInterval);
+      setPdfModal({
+        isOpen: true,
+        pdfUrl: url,
+        facultyName: faculty.name,
+        loading: false,
+        loadingProgress: 100,
+        error: null,
+      });
+    } catch (error) {
+      setPdfModal((prev) => ({
+        ...prev,
+        loading: false,
+        loadingProgress: 0,
+        error: "Failed to load PDF. Please try again.",
+      }));
     }
   };
 
-  // Function to determine what to display in the action column - Update the Portfolio_Mark_pending section
   const renderActionButton = (faculty) => {
-    if (faculty.status === "authority_verification_pending") {
+    const status = normalizeStatus(faculty.status);
+    if (status === "authority_verification_pending") {
       return (
-        <span className="flex gap-2">
+        <div className="flex flex-col gap-2">
           <button
             type="button"
             className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
             onClick={() => viewFacultyPDF(faculty)}
           >
-            <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+            <Eye className="h-4 w-4 text-blue-600" />
             <span className="font-semibold text-blue-700">View PDF</span>
           </button>
           <button
@@ -302,9 +254,10 @@ const DeanForms = () => {
             <CheckCircle2 className="h-4 w-4 text-green-600" />
             <span className="font-semibold text-green-700">Verify</span>
           </button>
-        </span>
+        </div>
       );
-    } else if (faculty.status === "Portfolio_Mark_pending") {
+    }
+    if (status === "portfolio_mark_director_pending") {
       return (
         <button
           type="button"
@@ -325,30 +278,40 @@ const DeanForms = () => {
           <span className="font-semibold text-blue-700">Give Marks</span>
         </button>
       );
-    } else {
-      return <span className="text-gray-400">-</span>;
     }
+    if (status === "done") {
+      return (
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md text-blue-700 bg-white border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          onClick={() => viewFacultyPDF(faculty)}
+        >
+          <Eye className="h-4 w-4 text-blue-600" />
+          <span className="font-semibold text-blue-700">View PDF</span>
+        </button>
+      );
+    }
+    return <span className="text-gray-400">-</span>;
   };
 
-  // Only show marks for authority_verification_pending, interaction_pending, or done; others show 'N/A'
   const displayMarks = (faculty) => {
+    const status = normalizeStatus(faculty.status);
     const allowedStatuses = [
       "authority_verification_pending",
       "interaction_pending",
       "done",
-      "Done",
-      "Authority_Verification_Pending",
-      "Interaction_pending"
     ];
-    if (!allowedStatuses.includes((faculty.status || "").toLowerCase())) {
-      return "N/A";
+    if (!allowedStatuses.includes(status)) return "N/A";
+    if (faculty.grand_total !== undefined && faculty.grand_total !== null) {
+      return Number(faculty.grand_total).toFixed(2);
     }
-    // Get verified marks and interaction marks
-    const verifiedMarks = faculty.portfolio?.grand_total || 0;
-    const interactionMarks = faculty.interaction_marks || 0;
-    // Get total marks from the data (prefer backend value)
-    const totalMarks = faculty.grand_marks?.grand_total || faculty.grand_total || faculty.total_marks || verifiedMarks + interactionMarks;
-    return totalMarks ? totalMarks.toFixed(2) : "N/A";
+    if (faculty.grand_marks?.grand_total !== undefined && faculty.grand_marks?.grand_total !== null) {
+      return faculty.grand_marks.grand_total;
+    }
+    if (faculty.grand_marks !== undefined && faculty.grand_marks !== null) {
+      return faculty.grand_marks;
+    }
+    return "N/A";
   };
 
   const handleStatusFilter = (status) => {
@@ -357,16 +320,6 @@ const DeanForms = () => {
       status: prev.status === status ? "" : status,
     }));
   };
-
-  if (loading)
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading Dean data...</p>
-        </div>
-      </div>
-    );
 
   if (error)
     return (
@@ -394,25 +347,15 @@ const DeanForms = () => {
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                   <div className="flex items-center">
                     <Users className="mr-2 text-blue-600" />
-                    <h2 className="text-xl font-semibold text-gray-800">
-                      Dean Forms
-                    </h2>
+                    <h2 className="text-xl font-semibold text-gray-800">Dean Forms</h2>
+                    {loading && (
+                      <div className="ml-3 flex items-center gap-2" aria-hidden="true" title="Loading...">
+                        <div className="animate-spin h-4 w-4 rounded-full border-b-2 border-blue-600" />
+                        <span className="text-sm text-gray-500">Loading...</span>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Filters Section */}
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <input
-                      type="text"
-                      placeholder="Search by ID or Name"
-                      value={filters.search}
-                      onChange={(e) =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          search: e.target.value,
-                        }))
-                      }
-                      className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-full sm:w-auto"
-                    />
                     <div className="flex gap-2">
                       <select
                         value={filters.department}
@@ -422,7 +365,8 @@ const DeanForms = () => {
                             department: e.target.value,
                           }))
                         }
-                        className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-full sm:w-auto"
+                        className={`p-2 bg-white border border-gray-300 rounded-lg text-sm w-full sm:w-auto ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+                        disabled={loading}
                       >
                         <option value="">All Departments</option>
                         {departments.map((dept) => (
@@ -431,29 +375,9 @@ const DeanForms = () => {
                           </option>
                         ))}
                       </select>
-
-                      <select
-                        value={filters.designation}
-                        onChange={(e) =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            designation: e.target.value,
-                          }))
-                        }
-                        className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-full sm:w-auto"
-                      >
-                        <option value="">All Designations</option>
-                        {designations.map((desg) => (
-                          <option key={desg} value={desg}>
-                            {desg}
-                          </option>
-                        ))}
-                      </select>
                     </div>
                   </div>
                 </div>
-
-                {/* Marks Filter Section */}
                 <div className="mt-4 flex flex-wrap gap-4">
                   <div className="flex items-center gap-2">
                     <input
@@ -466,7 +390,8 @@ const DeanForms = () => {
                           minMarks: e.target.value,
                         }))
                       }
-                      className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-20 sm:w-24"
+                      className={`p-2 bg-white border border-gray-300 rounded-lg text-sm w-20 sm:w-24 ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+                      disabled={loading}
                     />
                     <span className="text-gray-500">to</span>
                     <input
@@ -479,193 +404,96 @@ const DeanForms = () => {
                           maxMarks: e.target.value,
                         }))
                       }
-                      className="p-2 bg-white border border-gray-300 rounded-lg text-sm w-20 sm:w-24"
+                      className={`p-2 bg-white border border-gray-300 rounded-lg text-sm w-20 sm:w-24 ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+                      disabled={loading}
                     />
                   </div>
-                  <button
-                    onClick={toggleSort}
-                    className="flex items-center gap-2 p-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
-                    aria-label={`Sort by marks ${sortConfig.direction === "asc" ? "ascending" : "descending"}`}
-                    title={`Sort by marks ${sortConfig.direction === "asc" ? "low to high" : "high to low"}`}
-                  >
-                    {sortConfig.direction === "asc" ? (
-                      <SortAsc size={16} className="text-blue-600" />
-                    ) : (
-                      <SortDesc size={16} className="text-blue-600" />
-                    )}
-                    <span
-                      className={
-                        sortConfig.key === "marks"
-                          ? "font-medium text-blue-700"
-                          : ""
+                  <div className="flex items-center">
+                    <input
+                      type="search"
+                      placeholder="Search ID or Name"
+                      value={filters.search}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          search: e.target.value,
+                        }))
                       }
-                    >
-                      Sort by Marks{" "}
-                      {sortConfig.key === "marks"
-                        ? sortConfig.direction === "asc"
-                          ? "(Low to High)"
-                          : "(High to Low)"
-                        : ""}
-                    </span>
-                  </button>
+                      className={`p-2 bg-white border border-gray-300 rounded-lg text-sm w-full sm:w-64 ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+                      disabled={loading}
+                    />
+                  </div>
                 </div>
-
                 {/* Summary Section */}
-                {/* Summary Section - Improved UI */}
                 <div className="mt-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
                   <div
                     className={`bg-blue-50 p-4 rounded-lg border ${
-                      filters.status === ""
-                        ? "border-blue-400 shadow-md"
-                        : "border-blue-200"
+                      filters.status === "" ? "border-blue-400 shadow-md" : "border-blue-200"
                     } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
                     onClick={() => handleStatusFilter("")}
                   >
                     <p className="text-sm text-blue-600 mb-1">Total Faculty</p>
-                    <p className="text-2xl font-bold text-blue-800 mt-auto">
-                      {statusSummary.total}
-                    </p>
+                    <p className="text-2xl font-bold text-blue-800 mt-auto">{statusSummary.total}</p>
                   </div>
-
                   <div
                     className={`bg-green-50 p-4 rounded-lg border ${
-                      filters.status === "done"
-                        ? "border-green-400 shadow-md"
-                        : "border-green-200"
+                      filters.status === "done" ? "border-green-400 shadow-md" : "border-green-200"
                     } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
                     onClick={() => handleStatusFilter("done")}
                   >
                     <p className="text-sm text-green-600 mb-1">Completed</p>
-                    <p className="text-2xl font-bold text-green-800 mt-auto">
-                      {statusSummary.done}
-                    </p>
+                    <p className="text-2xl font-bold text-green-800 mt-auto">{statusSummary.done}</p>
                   </div>
-
                   <div
                     className={`bg-yellow-50 p-4 rounded-lg border ${
-                      filters.status === "authority_verification_pending"
-                        ? "border-yellow-400 shadow-md"
-                        : "border-yellow-200"
+                      filters.status === "authority_verification_pending" ? "border-yellow-400 shadow-md" : "border-yellow-200"
                     } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() =>
-                      handleStatusFilter("authority_verification_pending")
-                    }
+                    onClick={() => handleStatusFilter("authority_verification_pending")}
                   >
-                    <p className="text-sm text-yellow-600 mb-1">
-                      Authority Verification
-                    </p>
-                    <p className="text-2xl font-bold text-yellow-800 mt-auto">
-                      {statusSummary.authority_verification_pending}
-                    </p>
+                    <p className="text-sm text-yellow-600 mb-1">Authority Verification</p>
+                    <p className="text-2xl font-bold text-yellow-800 mt-auto">{statusSummary.authority_verification_pending}</p>
                   </div>
-
                   <div
                     className={`bg-purple-50 p-4 rounded-lg border ${
-                      filters.status === "interaction_pending"
-                        ? "border-purple-400 shadow-md"
-                        : "border-purple-200"
+                      filters.status === "interaction_pending" ? "border-purple-400 shadow-md" : "border-purple-200"
                     } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
                     onClick={() => handleStatusFilter("interaction_pending")}
                   >
-                    <p className="text-sm text-purple-600 mb-1">
-                      Interaction Pending
-                    </p>
-                    <p className="text-2xl font-bold text-purple-800 mt-auto">
-                      {statusSummary.interaction_pending}
-                    </p>
+                    <p className="text-sm text-purple-600 mb-1">Interaction Pending</p>
+                    <p className="text-2xl font-bold text-purple-800 mt-auto">{statusSummary.interaction_pending}</p>
                   </div>
-
                   <div
                     className={`bg-orange-50 p-4 rounded-lg border ${
-                      filters.status === "verification_pending"
-                        ? "border-orange-400 shadow-md"
-                        : "border-orange-200"
+                      filters.status === "verification_pending" ? "border-orange-400 shadow-md" : "border-orange-200"
                     } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
                     onClick={() => handleStatusFilter("verification_pending")}
                   >
-                    <p className="text-sm text-orange-600 mb-1">
-                      Verification Pending
-                    </p>
-                    <p className="text-2xl font-bold text-orange-800 mt-auto">
-                      {statusSummary.verification_pending}
-                    </p>
+                    <p className="text-sm text-orange-600 mb-1">Verification Pending</p>
+                    <p className="text-2xl font-bold text-orange-800 mt-auto">{statusSummary.verification_pending}</p>
                   </div>
-
                   <div
                     className={`bg-blue-50 p-4 rounded-lg border ${
-                      filters.status === "portfolio_mark_pending"
-                        ? "border-blue-400 shadow-md"
-                        : "border-blue-200"
+                      filters.status === "Portfolio_mark_director_pending" ? "border-blue-400 shadow-md" : "border-blue-200"
                     } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() => handleStatusFilter("portfolio_mark_pending")}
+                    onClick={() => handleStatusFilter("Portfolio_mark_director_pending")}
                   >
-                    <p className="text-sm text-blue-600 mb-1">
-                      Portfolio Mark Pending
-                    </p>
-                    <p className="text-2xl font-bold text-blue-800 mt-auto">
-                      {statusSummary.portfolio_mark_pending}
-                    </p>
+                    <p className="text-sm text-blue-600 mb-1">Portfolio Mark Pending</p>
+                    <p className="text-2xl font-bold text-blue-800 mt-auto">{statusSummary.Portfolio_mark_director_pending}</p>
                   </div>
-
-                  <div
-                    className={`bg-indigo-50 p-4 rounded-lg border ${
-                      filters.status === "portfolio_mark_dean_pending"
-                        ? "border-indigo-400 shadow-md"
-                        : "border-indigo-200"
-                    } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
-                    onClick={() =>
-                      handleStatusFilter("portfolio_mark_dean_pending")
-                    }
-                  >
-                    <p className="text-sm text-indigo-600 mb-1">
-                      Dean Mark Pending
-                    </p>
-                    <p className="text-2xl font-bold text-indigo-800 mt-auto">
-                      {statusSummary.portfolio_mark_dean_pending}
-                    </p>
-                  </div>
-
                   <div
                     className={`bg-gray-50 p-4 rounded-lg border ${
-                      filters.status === "pending"
-                        ? "border-gray-400 shadow-md"
-                        : "border-gray-200"
+                      filters.status === "pending" ? "border-gray-400 shadow-md" : "border-gray-200"
                     } cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between h-full`}
                     onClick={() => handleStatusFilter("pending")}
                   >
                     <p className="text-sm text-gray-600 mb-1">Pending</p>
-                    <p className="text-2xl font-bold text-gray-800 mt-auto">
-                      {statusSummary.pending}
-                    </p>
+                    <p className="text-2xl font-bold text-gray-800 mt-auto">{statusSummary.pending}</p>
                   </div>
                 </div>
-
-                {/* Status filter indicator */}
-                {filters.status && (
-                  <div className="mt-2 flex items-center">
-                    <span className="text-sm text-gray-600 mr-2">
-                      Filtered by status:
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                      {filters.status
-                        .replace(/_/g, " ")
-                        .replace(/\b\w/g, (l) => l.toUpperCase())}
-                      <button
-                        onClick={() =>
-                          setFilters((prev) => ({ ...prev, status: "" }))
-                        }
-                        className="ml-1 text-blue-500 hover:text-blue-700"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  </div>
-                )}
               </div>
-
               {/* Table Section */}
               <div className="overflow-x-auto w-full">
-                <table className="min-w-full text-sm text-left">
+                <table className="min-w-full text-sm text-left" aria-busy={loading}>
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-gray-600">ID</th>
@@ -673,22 +501,38 @@ const DeanForms = () => {
                       <th className="px-6 py-3 text-gray-600">Department</th>
                       <th className="px-6 py-3 text-gray-600">Designation</th>
                       <th className="px-6 py-3 text-gray-600">Role</th>
-                      <th className="px-6 py-3 text-gray-600">Total Marks</th>
+                      <th className="px-6 py-3 text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <span>Total Marks</span>
+                          <button
+                            className="p-1 rounded-md text-gray-500 hover:text-gray-700"
+                            onClick={toggleSort}
+                            title={`Sort by marks (${sortConfig.direction})`}
+                            disabled={loading}
+                          >
+                            {sortConfig.direction === "asc" ? "↑" : "↓"}
+                          </button>
+                        </div>
+                      </th>
                       <th className="px-6 py-3 text-gray-600">Status</th>
                       <th className="px-6 py-3 text-gray-600">Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredData.length > 0 ? (
+                    {loading ? (
+                      <tr>
+                        <td colSpan="8" className="px-6 py-8 text-center">
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto" />
+                            <p className="text-gray-600">Loading Dean data...</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : filteredData.length > 0 ? (
                       filteredData.map((faculty) => (
-                        <tr
-                          key={faculty._id}
-                          className="border-b hover:bg-gray-50"
-                        >
+                        <tr key={faculty._id} className="border-b hover:bg-gray-50">
                           <td className="px-6 py-4">{faculty._id}</td>
-                          <td className="px-6 py-4 font-medium">
-                            {faculty.name}
-                          </td>
+                          <td className="px-6 py-4 font-medium">{faculty.name}</td>
                           <td className="px-6 py-4">{faculty.department}</td>
                           <td className="px-6 py-4">{faculty.designation}</td>
                           <td className="px-6 py-4">{faculty.role}</td>
@@ -696,48 +540,38 @@ const DeanForms = () => {
                           <td className="px-6 py-4">
                             <span
                               className={`inline-block min-w-[140px] text-center px-3 py-1 rounded-full text-sl font-semibold ${
-                                faculty.status === "Done"
+                                normalizeStatus(faculty.status) === "done"
                                   ? "bg-green-100 text-green-800"
-                                  : faculty.status === "Interaction_pending"
-                                    ? "bg-purple-100 text-purple-800"
-                                    : faculty.status ===
-                                        "authority_verification_pending"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : faculty.status ===
-                                          "verification_pending"
-                                        ? "bg-orange-100 text-orange-800"
-                                        : faculty.status ===
-                                            "Portfolio_Mark_pending"
-                                          ? "bg-blue-100 text-blue-800"
-                                          : "bg-gray-100 text-gray-800"
+                                  : normalizeStatus(faculty.status) === "interaction_pending"
+                                  ? "bg-purple-100 text-purple-800"
+                                  : normalizeStatus(faculty.status) === "authority_verification_pending"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : normalizeStatus(faculty.status) === "verification_pending"
+                                  ? "bg-orange-100 text-orange-800"
+                                  : normalizeStatus(faculty.status) === "portfolio_mark_director_pending"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-gray-100 text-gray-800"
                               }`}
                             >
-                              {faculty.status === "Done"
+                              {normalizeStatus(faculty.status) === "done"
                                 ? "Done"
-                                : faculty.status === "Interaction_pending"
+                                : normalizeStatus(faculty.status) === "interaction_pending"
                                   ? "Interaction Pending"
-                                  : faculty.status ===
-                                      "authority_verification_pending"
+                                  : normalizeStatus(faculty.status) === "authority_verification_pending"
                                     ? "Authority Verification Pending"
-                                    : faculty.status === "verification_pending"
+                                    : normalizeStatus(faculty.status) === "verification_pending"
                                       ? "Verification Pending"
-                                      : faculty.status ===
-                                          "Portfolio_Mark_pending"
+                                      : normalizeStatus(faculty.status) === "portfolio_mark_director_pending"
                                         ? "Portfolio Mark Pending"
                                         : "Pending"}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
-                            {renderActionButton(faculty)}
-                          </td>
+                          <td className="px-6 py-4">{renderActionButton(faculty)}</td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td
-                          colSpan="8"
-                          className="px-6 py-8 text-center text-gray-500"
-                        >
+                        <td colSpan="8" className="px-6 py-8 text-center text-gray-500">
                           No Dean data available. Try adjusting your filters.
                         </td>
                       </tr>
@@ -745,6 +579,85 @@ const DeanForms = () => {
                   </tbody>
                 </table>
               </div>
+              {/* PDF Modal */}
+              {pdfModal.isOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4 overflow-y-auto">
+                  <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl">
+                    <div className="flex justify-between items-center border-b border-gray-200 p-4">
+                      <h2 className="text-xl font-semibold text-gray-800">
+                        {pdfModal.facultyName}&apos;s Appraisal Form
+                      </h2>
+                      <button
+                        onClick={() =>
+                          setPdfModal((prev) => ({ ...prev, isOpen: false }))
+                        }
+                        className="text-gray-500 hover:text-gray-700"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-6 w-6"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="p-4">
+                      {pdfModal.loading ? (
+                        <div className="flex flex-col items-center justify-center p-8">
+                          <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+                            <div
+                              className="bg-blue-500 h-4 rounded-full transition-all duration-500"
+                              style={{ width: `${pdfModal.loadingProgress}%` }}
+                            ></div>
+                          </div>
+                          <p className="text-center mt-2 text-gray-600">
+                            Loading PDF... {pdfModal.loadingProgress}%
+                          </p>
+                        </div>
+                      ) : pdfModal.error ? (
+                        <div className="text-center text-red-500 p-8">
+                          {pdfModal.error}
+                        </div>
+                      ) : (
+                        <div className="w-full h-[70vh] border border-gray-300 rounded-lg">
+                          <iframe
+                            src={pdfModal.pdfUrl}
+                            className="w-full h-full rounded-lg"
+                            title={`${pdfModal.facultyName}'s Appraisal Form`}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="border-t border-gray-200 p-4 flex justify-end gap-3">
+                      {!pdfModal.loading && pdfModal.pdfUrl && (
+                        <a
+                          href={pdfModal.pdfUrl}
+                          download={`faculty_appraisal.pdf`}
+                          className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                        >
+                          Download PDF
+                        </a>
+                      )}
+                      <button
+                        onClick={() =>
+                          setPdfModal((prev) => ({ ...prev, isOpen: false }))
+                        }
+                        className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </main>
