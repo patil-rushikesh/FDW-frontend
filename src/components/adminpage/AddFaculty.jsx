@@ -34,15 +34,34 @@ const AddFaculty = () => {
 
   const roles = ["Professor", "Assistant Professor", "Associate Professor"];
 
-  const [formData, setFormData] = useState({
-    _id: "",
-    name: "",
-    dept: "",
-    role: "",
-    mail: "",
-    mob: "",
-    desg: "",
-    higherDean: "", // Add this new field
+  const calculateAcademicYear = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1; // getMonth() returns 0-11
+
+    // Academic year starts in June (month 6)
+    if (month > 5) {
+      return `${year}-${year + 1}`;
+    } else {
+      return `${year - 1}-${year}`;
+    }
+  };
+
+  const [formData, setFormData] = useState(() => {
+    const currentDate = new Date().toISOString().split('T')[0];
+    return {
+      _id: "",
+      name: "",
+      dept: "",
+      role: "",
+      mail: "",
+      mob: "",
+      desg: "",
+      higherDean: "",
+      date_added: currentDate,
+      year: calculateAcademicYear(currentDate),
+    };
   });
 
   const fetchDeanSuggestions = async () => {
@@ -71,6 +90,17 @@ const AddFaculty = () => {
       console.error("Error fetching dean suggestions:", error);
       setDeanSuggestions([]);
     }
+  };
+
+  const handleDateChange = (e) => {
+    const newDate = e.target.value;
+    const suggestedYear = calculateAcademicYear(newDate);
+
+    setFormData(prev => ({
+      ...prev,
+      date_added: newDate,
+      year: suggestedYear
+    }));
   };
 
   const handleInputChange = (e) => {
@@ -127,6 +157,7 @@ const AddFaculty = () => {
   };
 
   const resetForm = () => {
+    const currentDate = new Date().toISOString().split('T')[0];
     setFormData({
       _id: "",
       name: "",
@@ -136,6 +167,8 @@ const AddFaculty = () => {
       mob: "",
       desg: "",
       higherDean: "",
+      date_added: currentDate,
+      year: calculateAcademicYear(currentDate),
     });
   };
 
@@ -303,6 +336,35 @@ const AddFaculty = () => {
                       }}
                       required
                       pattern="[0-9]{10}"
+                      className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Date 
+                    </label>
+                    <input
+                      type="date"
+                      name="date_added"
+                      value={formData.date_added}
+                      onChange={handleDateChange}
+                      required
+                      className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Academic Year
+                    </label>
+                    <input
+                      type="text"
+                      name="year"
+                      placeholder="Auto-filled based on date added"
+                      value={formData.year}
+                      onChange={handleInputChange}
+                      required
                       className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
