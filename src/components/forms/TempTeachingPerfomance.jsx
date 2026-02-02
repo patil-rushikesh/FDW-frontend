@@ -38,6 +38,7 @@ const CourseResultInput = ({
   onChange,
   index,
   directScoreInput,
+  formDisabled,
 }) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
     <h4 className="text-lg font-medium  mb-3">
@@ -50,7 +51,7 @@ const CourseResultInput = ({
         value={courseData.studentsAbove60}
         onChange={(e) => onChange(index, "studentsAbove60", e.target.value)}
         placeholder="Enter number of students"
-        disabled={directScoreInput}
+        disabled={directScoreInput || formDisabled}
       />
       <InputField
         label="Students with CGPA 5.26 to 6.3"
@@ -58,7 +59,7 @@ const CourseResultInput = ({
         value={courseData.students50to59}
         onChange={(e) => onChange(index, "students50to59", e.target.value)}
         placeholder="Enter number of students"
-        disabled={directScoreInput}
+        disabled={directScoreInput || formDisabled}
       />
       <InputField
         label="Students with CGPA 4.21 to 5.25"
@@ -66,7 +67,7 @@ const CourseResultInput = ({
         value={courseData.students40to49}
         onChange={(e) => onChange(index, "students40to49", e.target.value)}
         placeholder="Enter number of students"
-        disabled={directScoreInput}
+        disabled={directScoreInput || formDisabled}
       />
       <InputField
         label="Total Students"
@@ -74,7 +75,7 @@ const CourseResultInput = ({
         value={courseData.totalStudents}
         onChange={(e) => onChange(index, "totalStudents", e.target.value)}
         placeholder="Enter total number of students"
-        disabled={directScoreInput}
+        disabled={directScoreInput || formDisabled}
       />
     </div>
   </div>
@@ -85,6 +86,7 @@ const CourseOutcomeInput = ({
   onChange,
   index,
   directScoreInput,
+  formDisabled,
 }) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
     <h4 className="text-lg font-medium text-gray-800 mb-3 ">
@@ -98,7 +100,7 @@ const CourseOutcomeInput = ({
           value={courseData.coAttainment}
           onChange={(e) => onChange(index, "coAttainment", e.target.value)}
           placeholder="Enter CO attainment percentage"
-          disabled={directScoreInput}
+          disabled={directScoreInput || formDisabled}
         />
       </div>
       <div className="flex-1">
@@ -113,7 +115,7 @@ const CourseOutcomeInput = ({
               onChange(index, "timelySubmissionCO", e.target.checked)
             }
             className="form-checkbox h-5 w-5 text-blue-600 rounded"
-            disabled={directScoreInput}
+            disabled={directScoreInput || formDisabled}
           />
           <span className="text-gray-700">
             Timely submission of CO attainment
@@ -130,6 +132,7 @@ const AcademicEngagementInput = ({
   onChange,
   index,
   directScoreInput,
+  formDisabled,
 }) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
     <h4 className="text-lg font-medium text-gray-800 mb-3">
@@ -142,7 +145,7 @@ const AcademicEngagementInput = ({
         value={courseData.studentsPresent}
         onChange={(e) => onChange(index, "studentsPresent", e.target.value)}
         placeholder="Enter number of students present"
-        disabled={directScoreInput}
+        disabled={directScoreInput || formDisabled}
       />
       <InputField
         label="Total enrolled students for lectures/practical labs/tutorials"
@@ -152,13 +155,13 @@ const AcademicEngagementInput = ({
           onChange(index, "totalEnrolledStudents", e.target.value)
         }
         placeholder="Enter total enrolled students"
-        disabled={directScoreInput}
+        disabled={directScoreInput || formDisabled}
       />
     </div>
   </div>
 );
 
-const FeedbackInput = ({ courseData, onChange, index, directScoreInput }) => (
+const FeedbackInput = ({ courseData, onChange, index, directScoreInput, formDisabled }) => (
   <div className="border-b border-gray-200 pb-4 mb-4">
     <h4 className="text-lg font-medium text-gray-800 mb-3">
       <CourseNameCard name={courseData.courseCode} />
@@ -170,7 +173,7 @@ const FeedbackInput = ({ courseData, onChange, index, directScoreInput }) => (
         value={courseData.feedbackPercentage}
         onChange={(e) => onChange(index, "feedbackPercentage", e.target.value)}
         placeholder="Enter feedback percentage"
-        disabled={directScoreInput}
+        disabled={directScoreInput || formDisabled}
       />
     </div>
   </div>
@@ -835,6 +838,7 @@ const TeachingPerformance = () => {
       courseData={courseData}
       onChange={handleCourseResultChange}
       index={index}
+      formDisabled={formStatus !== "pending"}
     />
   ))}
   <ScoreCard
@@ -857,6 +861,7 @@ const TeachingPerformance = () => {
       courseData={courseData}
       onChange={handleCourseResultChange}
       index={index}
+      formDisabled={formStatus !== "pending"}
     />
   ))}
   <ScoreCard
@@ -902,6 +907,7 @@ const TeachingPerformance = () => {
       courseData={courseData}
       onChange={handleCourseResultChange}
       index={index}
+      formDisabled={formStatus !== "pending"}
     />
   ))}
   <ScoreCard
@@ -926,6 +932,7 @@ const TeachingPerformance = () => {
         value={formData.weeklyLoadSem1}
         onChange={handleChange}
         placeholder="Enter weekly load"
+        disabled={formStatus !== "pending"}
       />
       <InputField
         label="Weekly Load Semester II"
@@ -933,6 +940,7 @@ const TeachingPerformance = () => {
         value={formData.weeklyLoadSem2}
         onChange={handleChange}
         placeholder="Enter weekly load"
+        disabled={formStatus !== "pending"}
       />
       <div className="flex items-center gap-2">
         <input
@@ -940,6 +948,7 @@ const TeachingPerformance = () => {
           name="adminResponsibility"
           checked={formData.adminResponsibility}
           onChange={handleChange}
+          disabled={formStatus !== "pending"}
           className="h-5 w-5 text-blue-600 rounded"
         />
         <label className="text-sm font-medium text-gray-700">
@@ -969,6 +978,7 @@ const TeachingPerformance = () => {
       value={formData.projectsGuided}
       onChange={handleChange}
       placeholder="Enter number of projects guided"
+      disabled={formStatus !== "pending"}
     />
   )}
   <ScoreCard
@@ -991,6 +1001,7 @@ const TeachingPerformance = () => {
       courseData={courseData}
       onChange={handleCourseResultChange}
       index={index}
+      formDisabled={formStatus !== "pending"}
     />
   ))}
   <ScoreCard
@@ -1014,6 +1025,7 @@ const TeachingPerformance = () => {
       value={formData.ptgMeetings}
       onChange={handleChange}
       placeholder="Enter number of PTG meetings"
+      disabled={formStatus !== "pending"}
     />
   )}
   <ScoreCard
