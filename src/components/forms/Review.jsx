@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Download, RefreshCw, ShieldAlert, AlertTriangle, FileText, User, Calendar, Award, Save, Trash2, Eye } from 'lucide-react';
+import { Download, RefreshCw, ShieldAlert, AlertTriangle, FileText, User, Calendar, Award, Save, Trash2, Eye, Archive, X } from 'lucide-react';
 import Cookies from 'js-cookie';
 
 const Review = () => {
@@ -13,7 +13,10 @@ const Review = () => {
   const [pdfExists, setPdfExists] = useState(false);
   const [savingPdf, setSavingPdf] = useState(false);
   const [deletingPdf, setDeletingPdf] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSavedPdfsModal, setShowSavedPdfsModal] = useState(false);
+  const [savedPdfs, setSavedPdfs] = useState([]);
+  const [loadingSavedPdfs, setLoadingSavedPdfs] = useState(false);
+  const [selectedPdfForDelete, setSelectedPdfForDelete] = useState(null);
   const userData = JSON.parse(localStorage.getItem("userData"));
   
   const generatePDF = useCallback(async (forceUpdate = false) => {
@@ -119,6 +122,31 @@ const Review = () => {
     }
   }, [userData.dept, userData._id]);
 
+  // Fetch all saved PDFs
+  const fetchSavedPdfs = useCallback(async () => {
+    setLoadingSavedPdfs(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/${userData.dept}/${userData._id}/saved-pdfs`,
+        {
+          method: 'GET',
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setSavedPdfs(data.pdfs || []);
+      } else {
+        setSavedPdfs([]);
+      }
+    } catch (error) {
+      console.error('Error fetching saved PDFs:', error);
+      setSavedPdfs([]);
+    } finally {
+      setLoadingSavedPdfs(false);
+    }
+  }, [userData.dept, userData._id]);
+
   // Save PDF to faculty profile
   const handleSavePdf = useCallback(async () => {
     setSavingPdf(true);
@@ -156,45 +184,6 @@ const Review = () => {
       setSavingPdf(false);
     }
   }, [userData.dept, userData._id, fetchPdfMetadata, generatePDF]);
-
-  // Delete PDF from faculty profile
-  const handleDeletePdf = useCallback(async () => {
-    setDeletingPdf(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/${userData.dept}/${userData._id}/delete-pdf`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to delete PDF');
-      }
-
-      const result = await response.json();
-      alert('PDF deleted from your profile successfully!');
-      
-      // Clear PDF data and refresh
-      setPdfUrl('');
-      setPdfMetadata(null);
-      setPdfExists(false);
-      Cookies.remove('pdfData');
-      
-      // Refresh metadata
-      fetchPdfMetadata();
-      
-    } catch (error) {
-      console.error('Error deleting PDF:', error);
-      alert('Failed to delete PDF. Please try again.');
-    } finally {
-      setDeletingPdf(false);
-      setShowDeleteModal(false);
-    }
-  }, [userData.dept, userData._id, fetchPdfMetadata]);
 
   // View saved PDF from faculty profile
   const handleViewSavedPdf = useCallback(async () => {
@@ -237,6 +226,67 @@ const Review = () => {
     }
   }, [userData.dept, userData._id, fetchPdfMetadata]);
 
+  // View specific saved PDF by ID
+  const handleViewSpecificPdf = useCallback(async (pdfId) => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/${userData.dept}/${userData._id}/view-saved-pdf/${pdfId}`,
+        {
+          method: 'GET',
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to load PDF');
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      // Open PDF in new tab
+      window.open(url, '_blank');
+
+    } catch (error) {
+      console.error('Error loading PDF:', error);
+      alert('Failed to load PDF. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [userData.dept, userData._id]);
+
+  // Delete specific saved PDF
+  const handleDeleteSpecificPdf = useCallback(async (pdfId) => {
+    setDeletingPdf(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/${userData.dept}/${userData._id}/delete-saved-pdf/${pdfId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to delete PDF');
+      }
+
+      alert('PDF deleted successfully!');
+      setSelectedPdfForDelete(null);
+      
+      // Refresh saved PDFs list
+      fetchSavedPdfs();
+      
+    } catch (error) {
+      console.error('Error deleting PDF:', error);
+      alert('Failed to delete PDF. Please try again.');
+    } finally {
+      setDeletingPdf(false);
+    }
+  }, [userData.dept, userData._id, fetchSavedPdfs]);
+
   // Fetch form status from API
   const fetchFormStatus = useCallback(async () => {
     try {
@@ -265,7 +315,8 @@ const Review = () => {
     generatePDF();
     fetchFormStatus();
     fetchPdfMetadata();
-  }, [generatePDF, fetchFormStatus, fetchPdfMetadata]);
+    fetchSavedPdfs();
+  }, [generatePDF, fetchFormStatus, fetchPdfMetadata, fetchSavedPdfs]);
 
   const handleSubmit = async () => {
     try {
@@ -344,6 +395,17 @@ const Review = () => {
               </a>
             )}
             <button
+              onClick={() => {
+                setShowSavedPdfsModal(true);
+                fetchSavedPdfs();
+              }}
+              className="flex items-center gap-2 bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors"
+              disabled={loadingSavedPdfs}
+            >
+              <Archive size={20} className={loadingSavedPdfs ? 'animate-spin' : ''} />
+              {loadingSavedPdfs ? 'Loading...' : 'Saved PDFs'}
+            </button>
+            <button
               onClick={() => generatePDF(true)}
               className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
               disabled={loading}
@@ -351,16 +413,6 @@ const Review = () => {
               <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
               {pdfExists ? 'Regenerate PDF' : 'Generate PDF'}
             </button>
-            {pdfExists && (
-              <button
-                onClick={handleViewSavedPdf}
-                className="flex items-center gap-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
-                disabled={loading}
-              >
-                <Eye size={20} className={loading ? 'animate-pulse' : ''} />
-                {loading ? 'Loading...' : 'View Saved PDF'}
-              </button>
-            )}
             {pdfUrl && (
               <button
                 onClick={handleSavePdf}
@@ -369,16 +421,6 @@ const Review = () => {
               >
                 <Save size={20} className={savingPdf ? 'animate-pulse' : ''} />
                 {savingPdf ? 'Saving...' : 'Save to Profile'}
-              </button>
-            )}
-            {pdfExists && (
-              <button
-                onClick={() => setShowDeleteModal(true)}
-                className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-                disabled={deletingPdf}
-              >
-                <Trash2 size={20} />
-                Delete PDF
               </button>
             )}
           </div>
@@ -563,28 +605,117 @@ const Review = () => {
         </div>
       )}
 
-      {/* Delete PDF Confirmation Modal */}
-      {showDeleteModal && (
+      {/* Saved PDFs Modal */}
+      {showSavedPdfsModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+          <div className="relative bg-white rounded-lg shadow-xl p-8 max-w-3xl w-full m-4 animate-modal-appear max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-2">
+                <Archive size={24} className="text-indigo-600" />
+                <h3 className="text-2xl font-semibold text-gray-900">Saved PDFs</h3>
+              </div>
+              <button
+                onClick={() => setShowSavedPdfsModal(false)}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {loadingSavedPdfs ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin">
+                  <RefreshCw size={32} className="text-indigo-600" />
+                </div>
+                <p className="mt-2 text-gray-600">Loading saved PDFs...</p>
+              </div>
+            ) : savedPdfs.length > 0 ? (
+              <div className="space-y-3">
+                {savedPdfs.map((pdf, index) => (
+                  <div
+                    key={pdf._id || index}
+                    className="flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="p-3 bg-indigo-100 rounded-lg">
+                        <FileText size={20} className="text-indigo-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">{pdf.filename || `PDF ${index + 1}`}</h4>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p>Faculty: {pdf.faculty_name || 'Not Available'}</p>
+                          <p>Year: {pdf.appraisal_year || 'Not Available'}</p>
+                          <p>
+                            Saved: {pdf.upload_date ? new Date(pdf.upload_date).toLocaleDateString() : 'Not Available'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleViewSpecificPdf(pdf._id)}
+                        disabled={loading}
+                        className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:bg-blue-300"
+                      >
+                        <Eye size={18} />
+                        View
+                      </button>
+                      <button
+                        onClick={() => setSelectedPdfForDelete(pdf._id)}
+                        disabled={deletingPdf}
+                        className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors disabled:bg-red-300"
+                      >
+                        <Trash2 size={18} />
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Archive size={48} className="mx-auto text-gray-300 mb-4" />
+                <p className="text-gray-600 text-lg">No saved PDFs yet</p>
+                <p className="text-gray-500 text-sm mt-2">
+                  Generate and save a PDF to see it here
+                </p>
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowSavedPdfsModal(false)}
+                className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Specific PDF Confirmation Modal */}
+      {selectedPdfForDelete && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-[60]">
           <div className="relative bg-white rounded-lg shadow-xl p-8 max-w-md w-full m-4 animate-modal-appear">
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
                 <Trash2 className="h-8 w-8 text-red-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Delete PDF Document</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Delete Saved PDF</h3>
               <p className="text-sm text-gray-600 mb-6">
-                Are you sure you want to delete your appraisal PDF? This action cannot be undone and you will need to regenerate the PDF if needed.
+                Are you sure you want to delete this PDF? This action cannot be undone.
               </p>
               <div className="flex justify-center gap-4">
                 <button
-                  onClick={() => setShowDeleteModal(false)}
+                  onClick={() => setSelectedPdfForDelete(null)}
                   className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
                   disabled={deletingPdf}
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleDeletePdf}
+                  onClick={() => handleDeleteSpecificPdf(selectedPdfForDelete)}
                   className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
                   disabled={deletingPdf}
                 >
@@ -595,6 +726,7 @@ const Review = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };
