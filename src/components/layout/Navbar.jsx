@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Bell, Settings, Menu } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { Bell, Settings, Menu, LogOut } from "lucide-react";
 
 export default function Navbar({ onMenuClick, showMenuButton = true }) {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [userData, setUserData] = useState(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [userStatus, setUserStatus] = useState(null);
@@ -142,6 +145,16 @@ export default function Navbar({ onMenuClick, showMenuButton = true }) {
                   >
                     View Profile
                   </Link>
+                  <button
+                    onClick={() => {
+                      logout();
+                      navigate("/login");
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                  >
+                    <LogOut size={16} />
+                    <span>Logout</span>
+                  </button>
                 </div>
               </div>
             )}

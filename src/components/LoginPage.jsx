@@ -35,11 +35,6 @@ const LoginPage = () => {
     setSuccess("");
     setIsLoading(true);
 
-    if (userId === "admin2025" && password === "admin2025") {
-      navigate("/admin");
-      return;
-    }
-
     try {
       const response = await fetch(`${import.meta.env.VITE_BASE_URL}/login`, {
         method: "POST",
@@ -61,7 +56,10 @@ const LoginPage = () => {
 
         // Wait for 1.5 seconds to show the success message before redirecting
         setTimeout(() => {
-          if (data.role === "external") {
+          // Check if user is admin and redirect to admin dashboard
+          if (data.role === "Admin" || userId === "admin2025") {
+            navigate("/admin");
+          } else if (data.role === "external") {
             navigate("/dashboard");
           } else {
             navigate("/dashboard"); // Regular users

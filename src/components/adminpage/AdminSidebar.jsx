@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { NavLink as RouterNavLink, useLocation } from "react-router-dom";
+import { NavLink as RouterNavLink, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import {
   UserPlus,
   Users,
@@ -14,6 +15,8 @@ import {
 
 const AdminSidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   // Add state for dropdowns
   const [isManageFacultyOpen, setIsManageFacultyOpen] = useState(false);
   const [isVerificationTeamOpen, setIsVerificationTeamOpen] = useState(false);
@@ -74,9 +77,8 @@ const AdminSidebar = ({ isOpen, onClose }) => {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    // Add logout logic here
-    localStorage.removeItem("adminToken"); // Remove admin token
-    window.location.href = "/login"; // Redirect to login page
+    logout();
+    navigate("/login");
   };
 
   // Toggle functions for dropdowns

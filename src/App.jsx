@@ -6,6 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import Sidebar from "./components/layout/Sidebar";
+import AdminSidebar from "./components/adminpage/AdminSidebar";
 import Navbar from "./components/layout/Navbar";
 import ResearchPublications from "./components/forms/ResearchPublications";
 import Profile from "./components/profile/Profile";
@@ -76,8 +77,13 @@ const ProtectedRoute = ({ children }) => {
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isAuthenticated, userRole } = useAuth(); // Make sure you get userRole from your auth context
+  const { isAuthenticated } = useAuth();
   const [showSplash, setShowSplash] = useState(!isAuthenticated);
+  
+  // Get user data from localStorage to check role
+  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  const userRole = userData.role;
+  const isAdmin = userRole === "Admin";
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -97,7 +103,11 @@ function AppContent() {
     <FormProvider>
       <div className="min-h-screen bg-gray-50">
         {isAuthenticated && userRole !== "external" && (
-          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          isAdmin ? (
+            <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          ) : (
+            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          )
         )}
         <div
           className={
@@ -391,33 +401,67 @@ function AppContent() {
                     }
                   />
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  
+                  {/* Admin Routes */}
+                  <Route
+                    path="/admin/add-faculty"
+                    element={
+                      <ProtectedRoute>
+                        <AddFaculty />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/faculty-list"
+                    element={
+                      <ProtectedRoute>
+                        <FacultyList />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/summary"
+                    element={
+                      <ProtectedRoute>
+                        <Summary />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/verification-team"
+                    element={
+                      <ProtectedRoute>
+                        <VerificationTeam />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/assign-faculty-to-verification-team"
+                    element={
+                      <ProtectedRoute>
+                        <AssignFacultyToVerificationTeam />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/assign-dean-to-department"
+                    element={
+                      <ProtectedRoute>
+                        <AssignDeanToDepartment />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin"
+                    element={<Navigate to="/admin/add-faculty" />}
+                  />
+                  
                   <Route path="/" element={<Navigate to="/profile" />} />
                 </Routes>
               </div>
             ) : (
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/admin/add-faculty" element={<AddFaculty />} />
-                <Route path="/admin/faculty-list" element={<FacultyList />} />
-                <Route path="/admin/summary" element={<Summary />} />
-                <Route
-                  path="/admin/verification-team"
-                  element={<VerificationTeam />}
-                />
-                <Route
-                  path="/admin/assign-faculty-to-verification-team"
-                  element={<AssignFacultyToVerificationTeam />}
-                />
-                <Route
-                  path="/admin/assign-dean-to-department"
-                  element={<AssignDeanToDepartment />}
-                />
-                <Route
-                  path="/admin"
-                  element={<Navigate to="/admin/add-faculty" />}
-                />
-
-                <Route path="" element={<FacultyFormsList />} />
                 <Route path="/*" element={<Navigate to="/login" />} />
               </Routes>
             )}

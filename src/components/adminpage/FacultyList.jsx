@@ -73,7 +73,7 @@ const FacultyList = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://10.10.1.18:5000/users/${facultyToDelete._id}`,
+        `${import.meta.env.VITE_BASE_URL}/users/${facultyToDelete._id}`,
         {
           method: "DELETE",
         }
