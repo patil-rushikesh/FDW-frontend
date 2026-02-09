@@ -103,7 +103,7 @@ function AppContent() {
   return (
     <FormProvider>
       <div className="min-h-screen bg-gray-50">
-        {isAuthenticated && userRole !== "external" && (
+        {isAuthenticated && (
           isAdmin ? (
             <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
           ) : (
@@ -112,7 +112,7 @@ function AppContent() {
         )}
         <div
           className={
-            isAuthenticated && userRole !== "external" ? "lg:ml-72" : ""
+            !isAuthenticated ? "" : (  userRole !== "external" ? "lg:ml-72" : "lg:ml-72")
           }
         >
           {isAuthenticated && (
