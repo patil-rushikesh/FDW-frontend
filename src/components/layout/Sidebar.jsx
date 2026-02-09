@@ -133,7 +133,6 @@ const paperVerificationItems = [
 
 // Updated external faculty items function to handle different paths based on ID
 const getExternalFacultyItems = (userId) => {
-  const dashboardItem = { icon: User, label: "Dashboard", path: "/dashboard" };
 
   // Check if the user ID starts with "EXTPCCO"
   const giveMarksPath =
@@ -147,7 +146,7 @@ const getExternalFacultyItems = (userId) => {
     path: giveMarksPath,
   };
 
-  return [dashboardItem, giveMarksItem];
+  return [giveMarksItem];
 };
 
 export default function Sidebar({ isOpen, onClose }) {
