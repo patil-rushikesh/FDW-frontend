@@ -150,7 +150,7 @@ const ScoreCard = ({
               type="number"
               value={verifiedScore || ""}
               onChange={(e) =>
-                onVerifiedScoreChange(parseInt(e.target.value) || 0)
+                onVerifiedScoreChange(Math.min(runningTotal, Math.max(0, parseInt(e.target.value) || 0)))
               }
               placeholder="Enter section total (optional)"
               className="w-full px-3 py-2 text-gray-700 bg-white border border-green-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -218,8 +218,9 @@ const InputFieldWithProof = ({
            onWheel={(e) => e.target.blur()} 
           type="number"
           value={verifiedScore || ""}
-          onChange={(e) => onVerifiedScoreChange(parseInt(e.target.value) || 0)}
+          onChange={(e) => onVerifiedScoreChange(Math.min(displayMarks, Math.max(0, parseInt(e.target.value) || 0)))}
           min="0"
+          max={displayMarks}
           placeholder="Verified Score"
           className="w-1/6 px-3 py-2 text-gray-700 bg-white border border-green-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />

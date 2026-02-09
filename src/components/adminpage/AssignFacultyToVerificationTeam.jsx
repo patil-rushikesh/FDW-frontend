@@ -10,8 +10,6 @@ import {
   Check,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import AdminSidebar from "./AdminSidebar"; // Import AdminSidebar component
-import Navbar from "../layout/Navbar"; // Import Navbar component
 
 const AssignFacultyToVerificationTeam = () => {
   const [selectedDepartment, setSelectedDepartment] = useState("");
@@ -22,7 +20,6 @@ const AssignFacultyToVerificationTeam = () => {
   const [selectedFaculties, setSelectedFaculties] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Add state for sidebar
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const navigate = useNavigate();
 
@@ -228,21 +225,8 @@ const AssignFacultyToVerificationTeam = () => {
   };
 
   return (
-    <div className="ml-3 min-h-screen bg-gray-50">
-      {/* Add AdminSidebar */}
-      <AdminSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
-
-      <div className="lg:ml-64">
-        {" "}
-        {/* Add margin for sidebar */}
-        {/* Add Navbar */}
-        <Navbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="p-4 lg:p-6 mt-16">
-          <div className="max-w-7xl mx-auto space-y-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+    <div className="space-y-8">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
               {/* Header Section */}
               <div className="border-b border-gray-200 px-4 lg:px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">

@@ -562,13 +562,13 @@ const Portfolio = () => {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">HOD Marks:</span>
                 <span className="font-medium">
-                  {formData.isMarkHOD ? formData.hodMarks : "Not reviewed yet"}
+                  {formData.isMarkHOD ? formData.hodMarks : "Not Reviewed Yet"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Dean Marks:</span>
                 <span className="font-medium">
-                  {formData.isMarkDean ? formData.deanMarks : "Not reviewed yet"}
+                  {formData.isMarkDean ? formData.deanMarks : "Not Reviewed Yet"}
                 </span>
               </div>
             </>
@@ -580,7 +580,7 @@ const Portfolio = () => {
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">HOD Marks:</span>
               <span className="font-medium">
-                {formData.isMarkHOD ? formData.hodMarks : "Not reviewed yet"}
+                {formData.isMarkHOD ? formData.hodMarks : "Not Reviewed Yet"}
               </span>
             </div>
           )}
@@ -590,7 +590,7 @@ const Portfolio = () => {
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Director Marks:</span>
               <span className="font-medium">
-                {formData.directorMarks > 0 ? formData.directorMarks : "Not reviewed yet"}
+                {formData.directorMarks > 0 ? formData.directorMarks : "Not Reviewed Yet"}
               </span>
             </div>
           )}

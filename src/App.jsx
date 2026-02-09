@@ -63,6 +63,7 @@ import DirectorVerify from "./components/Director/DirectorVerify";
 import ResetPassword from "./components/ResetPassword";
 // Add this to your routes configuration
 import Summary from "./components/adminpage/Summary";
+import AdminDashboard from "./components/adminpage/AdminDashboard";
 import ExternalDashboard from "./components/External/ExternalDashboard";
 
 // Protected Route component
@@ -111,7 +112,7 @@ function AppContent() {
         )}
         <div
           className={
-            isAuthenticated && userRole !== "external" ? "lg:ml-64" : ""
+            isAuthenticated && userRole !== "external" ? "lg:ml-72" : ""
           }
         >
           {isAuthenticated && (
@@ -119,7 +120,7 @@ function AppContent() {
           )}
           <main className={isAuthenticated ? "p-4 lg:p-6 mt-16" : ""}>
             {isAuthenticated ? (
-              <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-sm p-4 lg:p-6">
+              <div className="w-full">
                 <Routes>
                   <Route path="/login" element={<Navigate to="/dashboard" />} />
                   <Route
@@ -453,7 +454,11 @@ function AppContent() {
                   />
                   <Route
                     path="/admin"
-                    element={<Navigate to="/admin/add-faculty" />}
+                    element={
+                      <ProtectedRoute>
+                        <AdminDashboard />
+                      </ProtectedRoute>
+                    }
                   />
                   
                   <Route path="/" element={<Navigate to="/profile" />} />

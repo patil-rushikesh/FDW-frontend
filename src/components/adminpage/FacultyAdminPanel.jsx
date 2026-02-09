@@ -11,10 +11,8 @@ import {
   AlertCircle,
   Menu
 } from "lucide-react";
-import Sidebar from "./AdminSidebar";
 
 const FacultyAdminPanel = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [faculties, setFaculties] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedFaculty, setSelectedFaculty] = useState(null);
@@ -180,30 +178,26 @@ const FacultyAdminPanel = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="lg:ml-64">
-        <main className="p-4 lg:p-6 mt-16">
-          <div className="max-w-7xl mx-auto space-y-8">
-            {/* Notifications */}
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            {success && (
-              <Alert className="mb-4 bg-green-50 text-green-700 border-green-200">
-                <Check className="h-4 w-4" />
-                <AlertDescription>{success}</AlertDescription>
-              </Alert>
-            )}
+    <div className="space-y-8">
+      {/* Notifications */}
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {success && (
+        <Alert className="mb-4 bg-green-50 text-green-700 border-green-200">
+          <Check className="h-4 w-4" />
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
 
-            {/* Rest of your existing JSX components */}
-            {/* ... College Header ... */}
-            
-            {/* Add/Edit Faculty Form */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+      {/* Rest of your existing JSX components */}
+      {/* ... College Header ... */}
+      
+      {/* Add/Edit Faculty Form */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 flex items-center">
                 {isEditing ? (
                   <Pencil className="mr-2 text-blue-600" />
@@ -514,9 +508,6 @@ const FacultyAdminPanel = () => {
                 </div>
               </div>
             )}
-          </div>
-        </main>
-      </div>
     </div>
   );
 };

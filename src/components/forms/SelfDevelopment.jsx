@@ -366,7 +366,7 @@ const SelfDevelopment = () => {
       >
         <div className="space-y-4">
           <RadioField
-            label="PDF Completed"
+            label="Ph.D. Completed"
             name="qualificationStatus"
             checked={formData.pdfCompleted}
             onChange={() => {
@@ -379,7 +379,7 @@ const SelfDevelopment = () => {
             }}
           />
           <RadioField
-            label="PDF Ongoing"
+            label="Ph.D. Ongoing"
             name="qualificationStatus"
             checked={formData.pdfOngoing}
             onChange={() => {
@@ -419,7 +419,7 @@ const SelfDevelopment = () => {
           />
         </div>
         <ScoreCard
-          label="Qualification Score"
+          label="Qualification Score "
           score={scores.qualificationScore}
           total="20"
         />
@@ -514,27 +514,27 @@ const SelfDevelopment = () => {
       {/* PhD Guided Section */}
       {(userData.role === "Professor" || userData.role === "Associate Professor") && (
         <SectionCard
-          title="PhD Guided (Extra)"
+          title="Ph.D. Guided (Extra)"
           icon="📝"
           borderColor="border-yellow-500"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField
-              label="PhD Degrees Awarded"
+              label="Ph.D. Degrees Awarded"
               name="phdDegreeAwarded"
               value={formData.phdDegreeAwarded}
               onChange={handleChange}
               placeholder="Enter number of degrees awarded"
             />
             <InputField
-              label="PhD Thesis Submitted"
+              label="Ph.D. Thesis Submitted"
               name="phdThesisSubmitted"
               value={formData.phdThesisSubmitted}
               onChange={handleChange}
               placeholder="Enter number of thesis submitted"
             />
             <InputField
-              label="PhD Scholars Currently Guiding"
+              label="Ph.D. Scholars Currently Guiding"
               name="phdScholarsGuiding"
               value={formData.phdScholarsGuiding}
               onChange={handleChange}
@@ -542,7 +542,7 @@ const SelfDevelopment = () => {
             />
           </div>
           <ScoreCard
-            label="PhD Guided Score"
+            label="Ph.D. Guided Score"
             score={scores.phdGuidedScore}
             total="No limit"
           />
@@ -590,7 +590,7 @@ const SelfDevelopment = () => {
               Submitting...
             </span>
           ) : (
-            'Save Self Development Details'
+            'Save Self-Development Details'
           )}
         </button>
       </div>

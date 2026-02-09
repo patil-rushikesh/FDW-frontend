@@ -188,14 +188,14 @@ const Extra = () => {
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
       {/* Contributions Section */}
       <SectionCard
-        title="Extra-ordinary Contributions"
+        title="Extraordinary Contributions"
         icon="⭐"
         borderColor="border-purple-500"
       >
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              List your extra-ordinary contributions (non-listed in parameters A, B, C)
+              List your extraordinary contributions (non-listed in parameters A, B, C)
             </label>
             <textarea
               className="w-full h-40 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -213,7 +213,7 @@ const Extra = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Self Awarded Marks
+              Self-Awarded Marks
             </label>
             <input
               type="number"

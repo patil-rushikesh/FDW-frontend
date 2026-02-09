@@ -101,14 +101,17 @@ const AdminSidebar = ({ isOpen, onClose }) => {
           ${
             isDropdownItem
               ? `
-                ml-4 border-l-2 border-indigo-500 pl-6
+                border-l-2 border-indigo-500 pl-6
                 before:content-[""]
                 before:absolute
-                before:left-[-1.5rem]
+                before:left-1/2
                 before:top-1/2
                 before:w-4
                 before:h-[2px]
                 before:bg-indigo-500
+                before:transform
+                before:-translate-x-1/2
+                before:-translate-y-1/2
               `
               : ""
           }
@@ -181,14 +184,16 @@ const AdminSidebar = ({ isOpen, onClose }) => {
               >
                 <div
                   className={`
-                  relative pl-4 mt-2
+                  relative pl-4 mt-2 flex flex-col items-center
                   before:content-[""]
                   before:absolute
-                  before:left-0
+                  before:left-1/2
                   before:top-0
                   before:bottom-4
                   before:w-[2px]
                   before:bg-indigo-500
+                  before:transform
+                  before:-translate-x-1/2
                   space-y-2
                 `}
                 >
@@ -232,14 +237,16 @@ const AdminSidebar = ({ isOpen, onClose }) => {
               >
                 <div
                   className={`
-                  relative pl-4 mt-2
+                  relative pl-4 mt-2 flex flex-col items-center
                   before:content-[""]
                   before:absolute
-                  before:left-0
+                  before:left-1/2
                   before:top-0
                   before:bottom-4
                   before:w-[2px]
                   before:bg-indigo-500
+                  before:transform
+                  before:-translate-x-1/2
                   space-y-2
                 `}
                 >

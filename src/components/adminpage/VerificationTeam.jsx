@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Users, Plus, Check, Trash2, RefreshCw, Edit2 } from "lucide-react";
-import AdminSidebar from "./AdminSidebar";
 
 const VerificationTeam = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [committeeIds, setCommitteeIds] = useState([""]);
   const [loading, setLoading] = useState(false);
@@ -240,13 +238,9 @@ const handleDeleteVerifier = (indexToDelete) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="lg:ml-72">
-        <main className="p-4 lg:p-6 mt-16">
-          <div className="max-w-7xl mx-auto space-y-8">
-            {/* Form to allocate verification committee */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 allocate-committee-form">
+    <div className="space-y-8">
+      {/* Form to allocate verification committee */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 allocate-committee-form">
               <div className="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 flex items-center justify-between">
                 <div className="flex items-center">
                   <Users className="mr-2 text-blue-600" />
@@ -509,9 +503,6 @@ const handleDeleteVerifier = (indexToDelete) => {
                 </div>
               </div>
             )}
-          </div>
-        </main>
-      </div>
     </div>
   );
 };

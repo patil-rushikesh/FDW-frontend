@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Users, XCircle, Check, Search } from "lucide-react";
-import AdminSidebar from "./AdminSidebar";
 
 const FacultyList = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [faculties, setFaculties] = useState([]);
   const [filterDepartment, setFilterDepartment] = useState("");
   const [filterDesignation, setFilterDesignation] = useState("");
@@ -150,16 +148,9 @@ const FacultyList = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
-      <div className="lg:ml-72">
-        <main className="p-4 lg:p-6 mt-16">
-          <div className="max-w-7xl mx-auto space-y-8">
-            {/* Faculty List */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+    <div className="space-y-8">
+      {/* Faculty List */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -170,52 +161,50 @@ const FacultyList = () => {
                   </div>
 
                   {/* Filters */}
-                  <div className="flex gap-4">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        placeholder="Search by ID"
-                        value={searchUserId}
-                        onChange={(e) => setSearchUserId(e.target.value)}
-                        className="p-2 bg-white border border-gray-300 rounded-lg text-sm"
-                      />
-                      <select
-                        value={filterDepartment}
-                        onChange={(e) => setFilterDepartment(e.target.value)}
-                        className="p-2 bg-white border border-gray-300 rounded-lg text-sm"
-                      >
-                        <option value="">All Departments</option>
-                        {departments.map((dept) => (
-                          <option key={dept} value={dept}>
-                            {dept}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        value={filterDesignation}
-                        onChange={(e) => setFilterDesignation(e.target.value)}
-                        className="p-2 bg-white border border-gray-300 rounded-lg text-sm"
-                      >
-                        <option value="">All Roles</option>
-                        {designations.map((designation) => (
-                          <option key={designation} value={designation}>
-                            {designation}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        value={filterRole}
-                        onChange={(e) => setFilterRole(e.target.value)}
-                        className="p-2 bg-white border border-gray-300 rounded-lg text-sm"
-                      >
-                        <option value="">All Designation</option>
-                        {roles.map((role) => (
-                          <option key={role} value={role}>
-                            {role}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                  <div className="flex flex-wrap items-center gap-3 md:gap-4">
+                    <input
+                      type="text"
+                      placeholder="Search by ID"
+                      value={searchUserId}
+                      onChange={(e) => setSearchUserId(e.target.value)}
+                      className="p-2 bg-white border border-gray-300 rounded-lg text-sm min-w-[140px]"
+                    />
+                    <select
+                      value={filterDepartment}
+                      onChange={(e) => setFilterDepartment(e.target.value)}
+                      className="p-2 bg-white border border-gray-300 rounded-lg text-sm min-w-[170px]"
+                    >
+                      <option value="">All Departments</option>
+                      {departments.map((dept) => (
+                        <option key={dept} value={dept}>
+                          {dept}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={filterDesignation}
+                      onChange={(e) => setFilterDesignation(e.target.value)}
+                      className="p-2 bg-white border border-gray-300 rounded-lg text-sm min-w-[150px]"
+                    >
+                      <option value="">All Roles</option>
+                      {designations.map((designation) => (
+                        <option key={designation} value={designation}>
+                          {designation}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={filterRole}
+                      onChange={(e) => setFilterRole(e.target.value)}
+                      className="p-2 bg-white border border-gray-300 rounded-lg text-sm min-w-[170px]"
+                    >
+                      <option value="">All Designation</option>
+                      {roles.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>
@@ -246,10 +235,10 @@ const FacultyList = () => {
                           {faculty.name || faculty.full_name}
                         </td>
                         <td className="px-6 py-4">{faculty.dept}</td>
-                        <td className="px-6 py-4">{faculty.desg}</td>
                         <td className="px-6 py-4">{faculty.role}</td>
-                        <td className="px-6 py-4">{faculty.mail}</td>
-                        <td className="px-6 py-4">{faculty.mob}</td>
+                        <td className="px-6 py-4">{faculty.designation || faculty.desg}</td>
+                        <td className="px-6 py-4">{faculty.email || faculty.mail}</td>
+                        <td className="px-6 py-4">{faculty.mobile || faculty.mob}</td>
                         <td className="px-6 py-4">
                           <div className="flex space-x-2">
                             <button
@@ -259,9 +248,9 @@ const FacultyList = () => {
                                   name: faculty.name || faculty.full_name,
                                   role: faculty.role,
                                   dept: faculty.dept,
-                                  desg: faculty.desg,
-                                  mail: faculty.mail,
-                                  mob: faculty.mob,
+                                  desg: faculty.designation || faculty.desg,
+                                  mail: faculty.email || faculty.mail,
+                                  mob: faculty.mobile || faculty.mob,
                                 });
                                 setShowEditDialog(true);
                               }}
@@ -485,9 +474,6 @@ const FacultyList = () => {
                 </div>
               </div>
             )}
-          </div>
-        </main>
-      </div>
     </div>
   );
 };
