@@ -225,8 +225,10 @@ const AssignFacultyToVerificationTeam = () => {
   };
 
   return (
+    <div>
     <div className="space-y-8">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div>
               {/* Header Section */}
               <div className="border-b border-gray-200 px-4 lg:px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
@@ -463,7 +465,6 @@ const AssignFacultyToVerificationTeam = () => {
                 )}
             </div>
           </div>
-        </main>
       </div>
       
       {/* Success Dialog */}
