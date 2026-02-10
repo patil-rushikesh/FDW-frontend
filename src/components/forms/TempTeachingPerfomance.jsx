@@ -901,6 +901,12 @@ const TeachingPerformance = () => {
 
 {/* Academic Engagement Section */}
 <SectionCard title="Academic Engagement" icon="📖" borderColor="border-indigo-500">
+  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+    <p className="text-sm font-semibold text-blue-900 mb-2">Calculation Formula:</p>
+    <p className="text-sm text-blue-800">
+      Marks = 50 × [(Sum of students present for lectures/practical labs/tutorials across all taught subjects) / (Sum of total enrolled students for those subjects)]
+    </p>
+  </div>
   {!manualScoring && courseResults.map((courseData, index) => (
     <AcademicEngagementInput
       key={courseData.courseCode}

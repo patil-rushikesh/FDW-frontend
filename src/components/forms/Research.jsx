@@ -1097,7 +1097,7 @@ const handleSubmitClick = () => {
     <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50 min-h-screen">
       {/* Papers Published in Quality Journal */}
       <SectionCard
-        title="1. Papers Published in Quality Journal (Being among First Two Authors)"
+        title="1. Papers Published in Quality Journal (Being among First Three Authors)"
         icon="📝"
         borderColor="border-blue-500"
       >
@@ -1233,7 +1233,7 @@ const handleSubmitClick = () => {
 
       {/* Paper Publication in International Conference */}
       <SectionCard
-        title="2. Paper Publication in International Conference (Being among First Two Authors)"
+        title="2. Paper Publication in International Conference (Being among First Five Authors - Only if Earlier Authors are from PCCoE)"
         icon="🎤"
         borderColor="border-green-500"
       >
@@ -1301,7 +1301,7 @@ const handleSubmitClick = () => {
 
       {/* Book Chapter Publication */}
       <SectionCard
-        title="3. Book Chapter Publication (Being among First Two Authors)"
+        title="3. Book Chapter Publication (Being among First Three Authors)"
         icon="📚"
         borderColor="border-purple-500"
       >
